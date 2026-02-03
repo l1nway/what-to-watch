@@ -36,6 +36,8 @@ const getExpirationDate = (durationStr: string) => {
 export default function Invite({data, onClose, input, setInput}: InviteProps) {
     const {user, loading} = useAuth()
 
+    const group = typeof data === 'object' ? data : null
+
     const emailRef = useRef<HTMLInputElement | null>(null)
     const [error, setError] = useState<boolean>(false)
 
@@ -57,13 +59,13 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
             for (const email of pendings) {
                 const token = generateToken()
                 const cleanEmail = email.toLowerCase()
-                const customInviteId = `${cleanEmail}_${data.id}`
+                const customInviteId = `${cleanEmail}_${group?.id}`
                 const inviteRef = doc(db, 'invites', customInviteId)
                 
                 batch.set(inviteRef, {
                     email: cleanEmail,
-                    groupId: data.id,
-                    groupName: data.name,
+                    groupId: group?.id,
+                    groupName: group?.name,
                     token: token,
                     expiresAt: expiresAt,
                     status: 'pending',
@@ -76,9 +78,9 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                 batch.set(mailRef, {
                     to: email,
                     message: {
-                        subject: `You've been invited to join ${data.name}!`,
+                        subject: `You've been invited to join ${group?.name}!`,
                         html: `
-                            <p>Hello! You have been invited to join the group <strong>${data.name}</strong>.</p>
+                            <p>Hello! You have been invited to join the group <strong>${group?.name}</strong>.</p>
                             <p>Click the link below to accept the invitation:</p>
                             <a href='${window.location.origin}/invite?token=${token}'>Accept Invitation</a>
                             <p>This link will expire on ${expiresAt.toLocaleString()}.</p>
@@ -108,7 +110,7 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
 
     return (
         <ShowClarify
-            visibility={data}
+            visibility={group}
             onClose={onClose}
         >
             <div className='text-white flex justify-between border-b border-[#1e2939] pb-4 items-center'>
@@ -117,7 +119,7 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                         Invite members
                     </h1>
                     <h2 className='text-[#99a1af]'>
-                        {data?.name ? data?.name : 'name'}
+                        {group?.name ? group?.name : 'name'}
                     </h2>
                 </div>
             <X

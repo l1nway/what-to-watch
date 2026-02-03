@@ -38,7 +38,7 @@ export default function MovieClarify({visibility, onClose, statuses, selected, l
                     movies: updatedMovies
                 })
                 
-                onRefresh()
+                onRefresh?.()
                 onClose()
             }
         } catch (e) {

@@ -1,5 +1,22 @@
-import {AppRouterInstance} from 'next/dist/shared/lib/app-router-context.shared-runtime'
 import {ReactNode} from 'react'
+
+interface Status {
+  name: string
+  id?: string
+}
+
+export type AddMovieCardProps = {
+  currentStatus: string
+  toggleFilm: (movie: any) => void
+  statusChange: (movie: any, status: Status | null) => void
+  movie: any
+  index: number
+  added: boolean
+  addedLocally: boolean
+  alreadyInDb: boolean
+  statuses: Status[]
+  loading: boolean
+}
 
 export type MovieClarifyProps = {
   delWarning: boolean
@@ -10,7 +27,7 @@ export type MovieClarifyProps = {
       id: string | number | undefined
   ) => void
   onClose: () => void
-  onRefresh: () => void
+  onRefresh?: () => void
   statuses: Array<{
       name: string
   }>
@@ -57,7 +74,6 @@ export interface MovieCardProps {
   setSelected: (selected: TMDBMovie[]) => void
   setDelWarning: (warning: boolean) => void
   setFilm: (film: boolean) => void
-  router: AppRouterInstance
   statusColor: string
   loading: boolean
   index: number

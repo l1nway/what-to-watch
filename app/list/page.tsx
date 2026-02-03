@@ -1,6 +1,7 @@
 'use client'
 
 import {ArrowLeft, Pencil, PencilOff} from 'lucide-react'
+import {MovieClarifyProps} from './listTypes'
 import {useSearchParams} from 'next/navigation'
 import {Button} from '@/components/ui/button'
 import {useList, statuses} from './useList'
@@ -100,7 +101,7 @@ export default function List() {
                 onClose={() => {setFilm(false); setDelWarning(false)}}
                 statuses={statuses}
                 listId={listId}
-                selected={selected}
+                selected={selected as MovieClarifyProps['selected']}
                 deleteMovie={deleteMovie}
                 delWarning={delWarning}
                 setDelWarning={setDelWarning}

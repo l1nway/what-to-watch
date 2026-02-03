@@ -4,7 +4,7 @@ export interface NewProps {
     setGroupLists?: (value: any) => void
     setTextarea: (value: string) => void
     setInput: (value: string) => void
-    ref: HTMLInputElement | null
+    ref: React.RefObject<HTMLInputElement | null>
     groupLists?: string[]
     visibility: boolean
     onClose: () => void
@@ -41,22 +41,22 @@ export interface Group {
 }
 
 export type Data = boolean | {
-  id: number | string
-  name: string
+    id: number | string
+    name: string
 }
 
 export interface GroupCardProps {
-    updateGroups: (groupId: string, originalOptions: any[], selectedIds: string[]) => void
-    updateGroup: (id: string, name: string | undefined) => void
-    setGroups: React.Dispatch<React.SetStateAction<Group[]>>
-    setDelClarify: (val: boolean | string) => void
-    setSelectedGroup: (id: string) => void
-    setInvite: (data: any) => void
-    accept: () => void
-    reject: () => void
-    lists: ListItem[]
-    invite: boolean
-    delay: boolean
+    updateGroups?: (groupId: string, originalOptions: any[], selectedIds: string[]) => void
+    updateGroup?: (id: string, name: string | undefined) => void
+    setGroups?: React.Dispatch<React.SetStateAction<Group[]>>
+    setDelClarify?: (val: boolean | 'delete' | 'leave') => void
+    setSelectedGroup?: (id: string) => void
+    setInvite?: (data: any) => void
+    accept?: () => void
+    reject?: () => void
+    lists?: ListItem[]
+    invite?: boolean
+    delay?: boolean
     index: number
     group: Group
     router: any

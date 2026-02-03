@@ -1,6 +1,7 @@
 'use client'
 
-import {Film, Settings, LogOut, X, Save, Pencil, Loader} from 'lucide-react'
+import {Film, Settings, LogOut, X, Save, Pencil, Loader, ArrowLeft} from 'lucide-react'
+import {GroupCardProps} from '../dashboard/dashboardTypes'
 import {Field, FieldLabel} from '@/components/ui/field'
 import {TransitionGroup} from 'react-transition-group'
 import {GroupCard} from '../dashboard/groupCard'
@@ -28,7 +29,7 @@ export default function settings() {
                 <GroupCard
                     reject={() => rejectInvite(invite.id)}
                     accept={() => acceptInvite(invite)}
-                    group={invite.groupData}
+                    group={invite.groupData as unknown as GroupCardProps['group']}
                     key={invite.id}
                     router={router}
                     index={index}
@@ -71,7 +72,7 @@ export default function settings() {
                     </div>
                     <div className='flex'>
                         <Input
-                            ref={(el) => (inputRefs.current[element.field] = el)}
+                            ref={(el) => {inputRefs.current[element.field] = el}}
                             id={`input-field-${element.field}`}
                             type={element.field}
                             placeholder={`Enter your ${element.field}`}
@@ -133,7 +134,7 @@ export default function settings() {
                         {element.title}
                     </FieldLabel>
                     <Input
-                        ref={(el) => (passwordsRefs.current[element.password] = el)}
+                        ref={(el) => {passwordsRefs.current[element.password] = el}}
                         disabled={!passwordEdit}
                         id={`input-field-${element.password}`}
                         type='password'
@@ -176,6 +177,9 @@ export default function settings() {
                 className='bg-[#101828] flex justify-between items-center border-b border-b-[#1e2939] p-4'
             >
                 <div className='flex gap-5'>
+                    <div className='flex items-center' onClick={() => router.back()}>
+                        <ArrowLeft className='cursor-pointer text-[#777f8d] hover:text-white transition-colors duration-300'/>
+                    </div>
                     <div
                         className='bg-[#7f22fe] rounded-[10px] w-min p-2'
                     >

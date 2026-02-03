@@ -20,7 +20,7 @@ export default function UseDashboard() {
 
     const {user} = useAuth()
 
-    const [delClarify, setDelClarify] = useState<boolean>(false)
+    const [delClarify, setDelClarify] = useState<boolean | 'delete' | 'leave'>(false)
 
     const [selectedGroup, setSelectedGroup] = useState<string | number>('')
 
@@ -145,10 +145,10 @@ export default function UseDashboard() {
         }
     }, [user, lists, groupLists])
 
-    const deleteGroup = useCallback(async (id: string) => {
+    const deleteGroup = useCallback(async (id: string | number) => {
         try {
             setLoading(true)
-            await deleteDoc(doc(db, 'groups', id))
+            await deleteDoc(doc(db, 'groups', String(id)))
             setGroups(prev => prev.filter(g => g.id !== id))
             setDelClarify(false)
         } catch (e) {
@@ -179,12 +179,12 @@ export default function UseDashboard() {
         }
     }, [])
 
-    const leaveGroup = useCallback(async (groupId: string) => {
+    const leaveGroup = useCallback(async (groupId: string | number) => {
         if (!user) return
 
         try {
             setLoading(true)
-            const groupRef = doc(db, 'groups', groupId)
+            const groupRef = doc(db, 'groups', String(groupId))
 
             await updateDoc(groupRef, {
                 members: arrayRemove(user.uid),
@@ -250,7 +250,11 @@ export default function UseDashboard() {
         }
     }, [user, listName, listDesc, groupLists])
 
-    const updateGroups = useCallback(async (groupId: string, originalOptions: ListItem[], selectedIds: string[]) => {
+    const updateGroups = useCallback(async (
+        groupId: string,
+        originalOptions: ListItem[],
+        selectedIds: string[]
+    ) => {
         const previousGroups = [...groups]
 
         setGroups(prevGroups => prevGroups.map(group => 

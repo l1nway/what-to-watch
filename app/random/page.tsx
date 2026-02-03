@@ -1,12 +1,13 @@
 'use client'
 
-import {useSearchParams, useRouter} from 'next/navigation'
 import {useState, useEffect, useCallback, useMemo} from 'react'
+import {useSearchParams, useRouter} from 'next/navigation'
 import {ArrowLeft, Sparkles} from 'lucide-react'
+import SlideDown from '../components/slideDown'
 import {doc, getDoc} from 'firebase/firestore'
+import {Variants, Easing} from 'framer-motion'
 import {Button} from '@/components/ui/button'
 import {motion} from 'framer-motion'
-import SlideDown from '../components/slideDown'
 import {db} from '@/lib/firebase'
 
 interface MovieData {
@@ -86,6 +87,10 @@ export default function Random() {
         if (!loading && allIds.length === 0) router.back()
     }, [loading, allIds.length])
 
+    const linear: Easing = [0, 0, 1, 1]
+    const easeInOut: Easing = [0.42, 0, 0.58, 1]
+    const easeOut: Easing = [0, 0, 0.58, 1]
+
     const cardVariants = useMemo(() => ({
         spinning: {
             rotate: [0, 360],
@@ -96,9 +101,9 @@ export default function Random() {
                 rotate: {
                     repeat: Infinity,
                     duration: 1.2,
-                    ease: 'linear',
+                    ease: linear,
                 },
-                rotateY: {duration: 0.8, ease: 'easeInOut'},
+                rotateY: {duration: 0.8, ease: easeInOut},
                 filter: {duration: 0.8},
                 backgroundColor: {duration: 0.8}
             },
@@ -111,15 +116,15 @@ export default function Random() {
             transition: {
                 rotate: {
                     duration: 1.5,
-                    ease: 'easeOut',
+                    ease: easeOut,
                 },
                 rotateY: {
                     duration: 2,
-                    ease: 'easeInOut',
+                    ease: easeInOut,
                 },
                 filter: {
                     duration: 1.5,
-                    ease: 'easeOut',
+                    ease: easeOut,
                 },
                 backgroundColor: {duration: 1.5}
             },

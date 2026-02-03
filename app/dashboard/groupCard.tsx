@@ -91,7 +91,7 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
                             disabled={!group?.edit}
                             value={group?.tempName ?? group?.name ?? ''}
                             onChange={(e) => {
-                                setGroups(prev => prev.map(g => 
+                                setGroups?.(prev => prev.map(g => 
                                     g.id === group?.id ? {...g, tempName: e.target.value} : g
                                 ))
                                 clearShake(inputRef.current)
@@ -121,10 +121,10 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
                                             return
                                         }
                                         if (group?.tempName.trim() === group?.name) {
-                                            setGroups(prev => prev.map(g => g.id === group?.id ? {...g, edit: false} : g))
+                                            setGroups?.(prev => prev.map(g => g.id === group?.id ? {...g, edit: false} : g))
                                             return
                                         }
-                                        updateGroup(group?.id, group?.tempName)
+                                        updateGroup?.(group?.id, group?.tempName)
                                         }}
                                     />
                                     </div>
@@ -143,7 +143,7 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
                                     <Pencil
                                         className='ml-1 text-[#99a1af] cursor-pointer hover:text-white transition-colors duration-300'
                                         onClick={() =>
-                                        setGroups(prev => prev.map(g =>
+                                        setGroups?.(prev => prev.map(g =>
                                             g.id === group?.id ? {...g, edit: true, tempName: g.name} : g
                                         ))
                                         }
@@ -195,14 +195,14 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
             </div>
             {!owner && !invite ?
                 <DoorOpen
-                    onClick={() => {setSelectedGroup(group?.id); setDelClarify('leave')}}
+                    onClick={() => {setSelectedGroup?.(group?.id); setDelClarify?.('leave')}}
                     className='w-9 h-9 text-[#959dab] hover:text-white transition-colors duration-300'/>
                 : null}
             {owner && !invite ?
                 <div className='flex flex-col gap-4'>
                     <Button
                         className='bg-[#1e2939] rounded-[10px] p-4 cursor-pointer hover:bg-[#303844] transition-colors duration-300'
-                        onClick={() => setInvite({id: group?.id, name: group?.name})}
+                        onClick={() => setInvite?.({id: group?.id, name: group?.name})}
                         disabled={!owner}
                     >
                         <UserRoundPlus/> Invite
@@ -231,12 +231,12 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
                         placeholder='+ Add list'
                         options={lists}
                         value={group?.lists?.map(l => l)}
-                        onChange={(fullObjects, ids) => updateGroups(group?.id, fullObjects, ids)}
+                        onChange={(fullObjects, ids) => updateGroups?.(group?.id, fullObjects, ids as unknown as string[])}
                         className='!justify-center min-w-40 [&_.rac-select-buttons]:!hidden text-white hover:!bg-[#641aca] rounded-[10px] p-4 cursor-pointer !transition-colors duration-300'
                     />
                     <Button
                         className='bg-red-500 rounded-[10px] p-4 cursor-pointer hover:bg-red-700 transition-colors duration-300'
-                        onClick={() => {setSelectedGroup(group?.id); setDelClarify('delete')}}
+                        onClick={() => {setSelectedGroup?.(group?.id); setDelClarify?.('delete')}}
                     >
                         <Trash2/> Delete
                     </Button>

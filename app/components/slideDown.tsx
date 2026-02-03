@@ -14,7 +14,7 @@ interface SlideDownProps {
 
 function SlideDown({in: transitionIn, visibility, children, duration = 300, className, onClick}: SlideDownProps) {
     const nodeRef = useRef<HTMLDivElement>(null)
-    const active = transitionIn ?? visibility
+    const active = Boolean(transitionIn ?? visibility)
 
     return(
         <CSSTransition

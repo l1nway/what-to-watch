@@ -1,10 +1,11 @@
 import {useEffect, useRef, useState, useId} from 'react'
 import {Button} from '@/components/ui/button'
 import {Select} from 'react-animated-select'
+import {AddMovieCardProps} from './listTypes'
 import {Plus, Check} from 'lucide-react'
 import {motion} from 'framer-motion'
 
-export function AddMovieCard({currentStatus, toggleFilm, statusChange, movie, index, added, addedLocally, alreadyInDb, statuses, loading}: any) {
+export function AddMovieCard({currentStatus, toggleFilm, statusChange, movie, index, added, addedLocally, alreadyInDb, statuses, loading}: AddMovieCardProps) {
     const cardRef = useRef<HTMLDivElement | null>(null)
     const uid = useId()
 
@@ -24,7 +25,7 @@ export function AddMovieCard({currentStatus, toggleFilm, statusChange, movie, in
 
     return (
        <motion.div
-            className='max-h-150 mr-4 mb-4 flex gap-4 bg-[#1e2939] rounded-xl p-4 border border-[#364153] transition-colors duration-300 hover:border-[#7f22fe] cursor-pointer'
+            className='max-h-150 mr-4 mt-4 flex gap-4 bg-[#1e2939] rounded-xl p-4 border border-[#364153] transition-colors duration-300 hover:border-[#7f22fe] cursor-pointer'
             key={movie.id}
             tabIndex={0}
             style={{ 

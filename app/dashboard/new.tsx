@@ -9,13 +9,14 @@ import {Button} from '@/components/ui/button'
 import {Select} from 'react-animated-select'
 import {NewProps} from './dashboardTypes'
 import {clearShake} from '../components/shake'
+import { useState } from 'react'
 
 export default function New({visibility, onClose, page, input, setInput, textarea, setTextarea, create, groupLists, setGroupLists, lists, ref}: NewProps) {
-
+    const [value, setValue] = useState([])
     return (
         <ShowClarify visibility={visibility} onClose={onClose}>
             <div className='text-white flex justify-between border-b border-[#1e2939] pb-4'>
-                <h1>
+                <h1 onClick={() => console.log(value)}>
                     Create new {page}
                 </h1>
             <X onClick={onClose} className='text-[#99a1af] hover:text-white cursor-pointer transition-colors duration-300'/>
@@ -58,17 +59,17 @@ export default function New({visibility, onClose, page, input, setInput, textare
                 />
             </Field>
             <Field
-                htmlFor={`textarea-${page}`}
                 className='text-[#d1d5dc]'
             >
-                <FieldLabel>
+                <FieldLabel
+                    htmlFor={`textarea-${page}`}
+                >
                     Description (Optional)
                 </FieldLabel>
                 <Textarea
                     value={textarea}
                     onChange={(e: {target: {value: string}}) => setTextarea(e.target.value)}
                     id={`textarea-${page}`}
-                    type='text'
                     placeholder={page == 'List' ? 'Add a description for your list…' : `What's this group about…`}
                     className='
                         bg-[#1e2939]
@@ -97,6 +98,7 @@ export default function New({visibility, onClose, page, input, setInput, textare
                 <>
                     <Select
                         style={{
+                            '--rac-multiple-selected-padding' : '0.3em',
                             '--rac-list-background': '#1e2939',
                             '--rac-list-color': 'white',
                             '--rac-option-highlight': '#7f22fe',
@@ -109,8 +111,8 @@ export default function New({visibility, onClose, page, input, setInput, textare
                         className='mt-4 hover:border-[#7f22fe!important] w-full mt-1 rounded-md bg-[#1e2939!important] !border-[1px] !border-solid !border-[#364153] !text-white'
                         placeholder='Choose lists'
                         options={lists}
-                        value={groupLists.id}
-                        onChange={(element, id) => setGroupLists(id)}
+                        value={value}
+                        onChange={(element, id) => {setValue(element); setGroupLists?.(id)}}
                     />
                     <div className='text-center w-full mt-4 bg-[#1e2939] prose prose-invert p-4 rounded-[10px] border border-[#364153] hover:border-[#7f22fe] transition-colors duration-300'>
                         <h4 className='text-[#d1d5dc]'>After creating the group, you can:</h4>

@@ -3,13 +3,13 @@
 import {useState, useCallback, useEffect, useLayoutEffect, useRef} from 'react'
 import {FilmItem, MovieSearchProps} from './listTypes'
 import {AnimatePresence, motion} from 'framer-motion'
+import ShowClarify from '../components/showClarify'
 import {doc, updateDoc} from 'firebase/firestore'
+import SlideDown from '../components/slideDown'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
 import {AddMovieCard} from './addMovieCard'
-import ShowClarify from '../components/showClarify'
 import debounce from 'lodash.debounce'
-import SlideDown from '../components/slideDown'
 import {db} from '@/lib/firebase'
 import {X} from 'lucide-react'
 
@@ -109,7 +109,6 @@ export default function MovieSearch({visibility, onClose, id, movies, setMoviesD
         } catch (e) {
             console.error('Error during save:', e)
             await onRefresh()
-            alert('Failed to save movies')
         }
     }, [films, id, onClose, movies, setMoviesData])
 
@@ -193,6 +192,11 @@ export default function MovieSearch({visibility, onClose, id, movies, setMoviesD
         measureHeight()
     }, [combinedList.length])
 
+    const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearch(e.target.value)
+        search == '' ? setText('Enter movie title') : setText('Searching…')
+    }, [search])
+
     return (
         <ShowClarify visibility={visibility} onClose={onClose}>
             <div className='flex justify-between text-white border-b border-[#1e2939] pb-4'>
@@ -204,7 +208,7 @@ export default function MovieSearch({visibility, onClose, id, movies, setMoviesD
             <div className='flex gap-2 my-4'>
                 <Input
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={onChange}
                     placeholder='Search for movies on TMTB…'
                     className='
                         bg-[#1e2939]

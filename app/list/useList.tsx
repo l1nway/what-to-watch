@@ -39,7 +39,7 @@ export function useList(listId: string | null) {
     const [movie, setMovie] = useState<boolean>(false)
 
     const [runtime, setRuntime] = useState<string>('200')
-    const [selected, setSelected] = useState<TMDBMovie | null>()
+    const [selected, setSelected] = useState<TMDBMovie[] | null>()
     const [selectedGenres, setSelectedGenres] = useState<string[]>([])
 
     const [owner, setOwner] = useState<string>('')
@@ -122,9 +122,9 @@ export function useList(listId: string | null) {
 
     const [status, setStatus] = useState(statuses)
 
-    const deleteList = useCallback(async (listId: string) => {
+    const deleteList = useCallback(async (listId: string | null) => {
         try {
-            const listRef = doc(db, 'lists', listId)
+            const listRef = doc(db, 'lists', String(listId))
 
             await deleteDoc(listRef)
             router.push('/dashboard')
@@ -156,7 +156,7 @@ export function useList(listId: string | null) {
         )
     }, [setStatus])
     
-    const onChange = useCallback(e => {
+    const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setName(e.target.value)
         clearShake(inputRef.current)
     }, [name])
@@ -192,7 +192,7 @@ export function useList(listId: string | null) {
             setEdit(false)
             setOriginalName(name.trim())
         } catch (e) {
-            alert('error')
+            console.error(e)
         }
     }, [listId, name, originalName])
 
