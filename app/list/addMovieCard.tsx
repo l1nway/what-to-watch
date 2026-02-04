@@ -25,8 +25,6 @@ export function AddMovieCard({currentStatus, toggleFilm, statusChange, movie, in
         }
     }, [loading])
 
-    console.log(movie.release_date)
-
     return (
        <motion.div
             className='max-h-150 mr-4 mt-4 flex bg-[#1e2939] rounded-xl p-4 border border-[#364153] transition-colors duration-300 hover:border-[#7f22fe] cursor-pointer flex-col'
@@ -124,7 +122,7 @@ export function AddMovieCard({currentStatus, toggleFilm, statusChange, movie, in
                         {movie.overview ?
                             <Button
                                 className='min-md:hidden bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer transition-colors duration-300'
-                                onClick={() => {setDesc(!desc); console.log(movie.overview != '')}}
+                                onClick={() => setDesc(!desc)}
                             >
                                 {desc ? 'Hide' : 'Show'} description
                             </Button>

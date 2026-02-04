@@ -55,10 +55,10 @@ export function MovieCard({setDelWarning, setSelected, setFilm, movie, statusCol
             exit={{opacity: 0, scale: 0.8, transition: {duration: 0.3}}}
         >
             <div>
-                <div className='cursor-pointer group movieCard relative max-w-min flex rounded-xl overflow-hidden' onClick={() => {setSelected(movie), setFilm(true)}}>
+                <div className='min-w-67 cursor-pointer group movieCard relative max-w-min flex rounded-xl overflow-hidden' onClick={() => {setSelected(movie), setFilm(true)}}>
                     <img
                         src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                        className='min-w-min h-100 max-md:min-w-43 max-md:h-74 aspect-[2/3] object-cover block transition-transform duration-300 ease-out group-hover:scale-110'
+                        className='min-w-min h-100 w-50 max-md:min-w-43 max-md:h-74 aspect-[2/3] object-cover block transition-transform duration-300 ease-out group-hover:scale-110'
                     />
                     <div
                         className='w-2 h-2 absolute right-2 top-2 rounded-full'

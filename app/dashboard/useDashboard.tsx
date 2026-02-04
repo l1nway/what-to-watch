@@ -152,7 +152,7 @@ export default function UseDashboard() {
             setGroups(prev => prev.filter(g => g.id !== id))
             setDelClarify(false)
         } catch (e) {
-            console.log(e)
+            console.error(e)
         } finally {
             setLoading(false)
         }

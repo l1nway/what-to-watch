@@ -16,7 +16,7 @@ export default function New({visibility, onClose, page, input, setInput, textare
     return (
         <ShowClarify visibility={visibility} onClose={onClose}>
             <div className='text-white flex justify-between border-b border-[#1e2939] pb-4'>
-                <h1 onClick={() => console.log(value)}>
+                <h1>
                     Create new {page}
                 </h1>
             <X onClick={onClose} className='text-[#99a1af] hover:text-white cursor-pointer transition-colors duration-300'/>
