@@ -21,6 +21,7 @@ export interface Status {
   name: string
   id?: string
   checked?: boolean
+  color?: string | undefined
 }
 
 export type AddMovieCardProps = {
@@ -93,7 +94,7 @@ export interface MovieCardProps {
   setSelected: (selected: TMDBMovie[]) => void
   setDelWarning: (warning: boolean) => void
   setFilm: (film: boolean) => void
-  statusColor: string
+  statusColor: string | undefined
   loading: boolean
   index: number
   movie: any
