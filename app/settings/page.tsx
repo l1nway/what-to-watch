@@ -172,9 +172,9 @@ export default function settings() {
     const emptyPassword = passwords.some(p => p.value.trim() === '')
 
     return (
-        <div>
+        <div className='h-screen flex flex-col bg-gradient-to-br from-[#030712] to-[#2f0d68]'>
             <header
-                className='bg-[#101828] flex justify-between items-center border-b border-b-[#1e2939] p-4'
+                className='shrink-0 bg-[#101828] flex justify-between items-center border-b border-b-[#1e2939] p-4'
             >
                 <div className='flex gap-5'>
                     <div className='flex items-center' onClick={() => router.back()}>
@@ -199,74 +199,76 @@ export default function settings() {
                     />
                 </div>
             </header>
-            <SlideDown
-                visibility={fullInvites.length}
-            >
-                <div
-                    className='flex flex-col gap-2 p-4'
+            <div className='flex-1 overflow-y-auto'>
+                <SlideDown
+                    visibility={fullInvites.length}
                 >
-                    <h2
-                        className='text-white text-2xl pb-2'
+                    <div
+                        className='flex flex-col gap-2 px-4 pt-2'
                     >
-                        Invites
-                    </h2>
-                    <TransitionGroup component={null}>
-                        {renderInvites}
-                    </TransitionGroup>
-                </div>
-            </SlideDown>
-            <div
-                className='flex flex-col gap-2 p-4'
-            >
-                <h2
-                    className='text-white text-2xl pb-2'
-                >
-                    Personal data
-                </h2>
-                {renderPersonal}
-            </div>
-            <div
-                className='flex flex-col gap-2 px-4'
-            >
-                <div className='flex items-center'>
-                    <h2
-                        className='text-white text-2xl pb-2'
-                    >
-                        Change password
-                    </h2>
-                    <SlideLeft visibility={loading}>
-                        <Loader className='ml-2 w-5 h-5 text-[#99a1af] cursor-wait animate-spin'/>
-                    </SlideLeft>
-                    <SlideLeft visibility={!passwordEdit && !loading}>
-                        <Pencil
-                            className='ml-2 w-5 h-5 text-[#99a1af] cursor-pointer hover:text-white transition-colors duration-300'
-                            onClick={() => setPasswordEdit(true)}
-                        />
-                    </SlideLeft>
-                    <SlideLeft visibility={passwordEdit && !loading}>
-                        <X
-                            className='ml-2 w-5 h-5 text-[#99a1af] cursor-pointer hover:text-white transition-colors duration-300'
-                            onClick={() => setPasswordEdit(false)}
-                        />
-                    </SlideLeft>
-                </div>
-                {renderPasswords}
-                <SlideDown visibility={passwordEdit}>
-                    <Button
-                        onClick={savePassword}
-                        className='mt-4 w-full gap-0 bg-[#7f22fe] hover:bg-[#641aca] transition-[colors, opacity] duration-300 cursor-pointer
-                        '
-                        disabled={emptyPassword}
-                    >
-                        <SlideLeft visibility={passwordSaving}>
-                            <Loader className='mr-2 w-4 h-4 text-[#99a1af] cursor-wait animate-spin'/>
-                        </SlideLeft>
-                        <SlideLeft visibility={!passwordSaving}>
-                            <Save className='mr-2 w-4 h-4 text-[#99a1af] cursor-wait'/>
-                        </SlideLeft>
-                            Save changes
-                    </Button>
+                        <h2
+                            className='text-white text-2xl pb-2'
+                        >
+                            Invites
+                        </h2>
+                        <TransitionGroup component={null}>
+                            {renderInvites}
+                        </TransitionGroup>
+                    </div>
                 </SlideDown>
+                <div
+                    className='bg-[#101828] flex flex-col gap-2 p-4 m-4 rounded-[10px]'
+                >
+                    <h2
+                        className='text-white text-2xl pb-2'
+                    >
+                        Personal data
+                    </h2>
+                    {renderPersonal}
+                </div>
+                <div
+                    className='bg-[#101828] flex flex-col gap-2 p-4 m-4 rounded-[10px]'
+                >
+                    <div className='flex items-center'>
+                        <h2
+                            className='text-white text-2xl pb-2'
+                        >
+                            Change password
+                        </h2>
+                        <SlideLeft visibility={loading}>
+                            <Loader className='ml-2 w-5 h-5 text-[#99a1af] cursor-wait animate-spin'/>
+                        </SlideLeft>
+                        <SlideLeft visibility={!passwordEdit && !loading}>
+                            <Pencil
+                                className='ml-2 w-5 h-5 text-[#99a1af] cursor-pointer hover:text-white transition-colors duration-300'
+                                onClick={() => setPasswordEdit(true)}
+                            />
+                        </SlideLeft>
+                        <SlideLeft visibility={passwordEdit && !loading}>
+                            <X
+                                className='ml-2 w-5 h-5 text-[#99a1af] cursor-pointer hover:text-white transition-colors duration-300'
+                                onClick={() => setPasswordEdit(false)}
+                            />
+                        </SlideLeft>
+                    </div>
+                    {renderPasswords}
+                    <SlideDown visibility={passwordEdit}>
+                        <Button
+                            onClick={savePassword}
+                            className='mt-4 w-full gap-0 bg-[#7f22fe] hover:bg-[#641aca] transition-[colors, opacity] duration-300 cursor-pointer
+                            '
+                            disabled={emptyPassword}
+                        >
+                            <SlideLeft visibility={passwordSaving}>
+                                <Loader className='mr-2 w-4 h-4 text-[#99a1af] cursor-wait animate-spin'/>
+                            </SlideLeft>
+                            <SlideLeft visibility={!passwordSaving}>
+                                <Save className='mr-2 w-4 h-4 text-[#99a1af] cursor-wait'/>
+                            </SlideLeft>
+                                Save changes
+                        </Button>
+                    </SlideDown>
+                </div>
             </div>
         </div>
     )

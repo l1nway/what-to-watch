@@ -1,13 +1,13 @@
 import {Save, Film, UserRoundPlus, Trash2, Pencil, CircleCheck, X, DoorOpen} from 'lucide-react'
-import {TransitionGroup, CSSTransition} from 'react-transition-group'
 import {useEffect, useRef, useLayoutEffect, useState} from 'react'
+import {shake, clearShake} from '../components/shake'
+import {motion, AnimatePresence} from 'framer-motion'
+import {CSSTransition} from 'react-transition-group'
+import SlideLeft from '../components/slideLeft'
 import {GroupCardProps} from './dashboardTypes'
 import {Button} from '@/components/ui/button'
 import {Select} from 'react-animated-select'
-import {shake, clearShake} from '../components/shake'
-import {motion} from 'framer-motion'
 
-import SlideLeft from '../components/slideLeft'
 
 export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, updateGroup, setGroups, setInvite, accept, reject, router, invite, group, index, lists, user, delay}: GroupCardProps) {
     const [inputWidth, setInputWidth] = useState<number | string>('auto')
@@ -71,12 +71,12 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
             }}
             exit={{opacity: 0, scale: 0.8, transition: {duration: 0.3}}}
         >
-            <div className='flex flex-col'>
-                <div className='relative h-full flex items-center'>
-                    <div className='absolute h-full flex top-0 items-center'>
+            <div className='flex flex-col min-md:w-[85%] max-md:w-[50%]'>
+                <div className='relative flex items-center h-10'>
+                    <div className='absolute flex top-0 items-center h-10'>
                         <span
-                            className={`
-                                absolute invisible whitespace-pre text-xl py-2 ${group?.edit ? 'pl-2 pr-2' : 'pr-1'}`
+                            className={`overflow-hidden text-ellipsis max-md:max-w-35
+                                absolute invisible whitespace-pre text-xl ${group?.edit ? 'pl-2 pr-2' : 'pr-1'} py-2`
                             }
                             ref={spanRef}
                         >
@@ -96,12 +96,12 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
                                 ))
                                 clearShake(inputRef.current)
                             }}
-                            className={`text-left whitespace-nowrap overflow-hidden border border-[#7f22fe] text-xl py-2 rounded-[10px] outline-none bg-[#7f22fe] text-white disabled:bg-[#101828] disabled:border-[#101828] duration-300
+                            className={`overflow-hidden text-ellipsis max-md:max-w-35 py-2 text-left whitespace-nowrap overflow-hidden border border-[#7f22fe] text-xl rounded-[10px] outline-none bg-[#7f22fe] text-white disabled:bg-[#101828] disabled:border-[#101828] duration-300
                                 ${group?.edit ? 'pl-2 pr-2' : 'pr-1'} 
                                 `}
                         />
                         {owner ?
-                            <div className='relative h-[65%] flex items-center'>
+                            <div className='relative w-6 h-6'>
                                 <CSSTransition
                                     in={group?.edit}
                                     timeout={700}
@@ -111,10 +111,9 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
                                 >
                                     <div
                                         ref={editRef}
-                                        className='absolute top-0 left-0 flex items-center justify-center'
                                     >
                                     <Save
-                                        className='ml-1 text-[#99a1af] cursor-pointer hover:text-white transition-colors duration-300'
+                                        className='absolute top-0 left-0 ml-1 text-[#99a1af] cursor-pointer hover:text-white transition-colors duration-300'
                                         onClick={() => {
                                         if (!group?.id || !group?.tempName.trim()) {
                                             shake(inputRef.current)
@@ -157,38 +156,58 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
                 <span className='text-[#99a1af] mb-2'>
                     {group?.members?.length} members
                 </span>
-                <div className='flex overflow-y-hidden overflow-x-auto [scrollbar-width:thin] [scrollbar-gutter:stable] min-h-20'>
-                    <TransitionGroup component={null}>
+                <div className='flex overflow-x-auto [scrollbar-width:thin] [scrollbar-gutter:stable] min-h-20 pb-2 max-md:max-w-50 w-[100%]'>
+                    <AnimatePresence initial={false}>
                         {group?.lists?.map((list) => (
-                            <SlideLeft className='min-h-20' key={list.id}>
+                            <motion.div
+                                key={list.id}
+                                layout
+                                initial={{width: 0, opacity: 0, x: 20}}
+                                animate={{ 
+                                    width: 'auto', 
+                                    opacity: 1, 
+                                    x: 0,
+                                    transition: {
+                                        width: {duration: 0.3},
+                                        opacity: {duration: 0.2},
+                                        x: {duration: 0.3}
+                                    }
+                                }}
+                                exit={{ 
+                                    width: 0, 
+                                    opacity: 0, 
+                                    x: -20,
+                                    transition: {duration: 0.3} 
+                                }}
+                                style={{overflow: 'visible'}}
+                                className='min-h-20'
+                            >
                                 <div
-                                    className='hover:border-[#7f22fe] transition-colors duration-300 flex min-w-25 min-h-20 justify-between bg-[#1e2939] border border-[#364153] rounded-[5px] px-2 pt-2 mr-4 mb-2'
+                                    className='hover:border-[#7f22fe] transition-colors duration-300 mr-4 min-w-25 max-w-25 min-h-20 rounded-[5px] border border-[#1e2939] bg-[#101828] p-2 flex flex-col justify-between'
                                     onClick={() => router.push(`/list?id=${encodeURIComponent(list.id)}`)}
                                 >
-                                    <div
-                                        className='bg-[#1e2939] rounded-[10px] w-min p-2'
-                                    >
-                                        <Film className='text-[#a684ff]'/>
-                                        <span className='text-white whitespace-nowrap max-w-50 overflow-hidden text-ellipsis block'>
-                                            {list.name}
-                                        </span>
-                                    </div>
-                                    <span className='text-[#6a7282]'>
+                                    <div className='flex justify-between items-start'>
+                                    <Film className='w-7 h-7 text-[#a684ff]' />
+                                    <div className='w-6 text-[#6a7282] flex justify-center'>
                                         {list?.movies?.length}
-                                    </span>
+                                    </div>
+                                    </div>
+                                    <div className='w-full text-white text-nowrap overflow-hidden text-ellipsis'>
+                                        {list.name}
+                                    </div>
                                 </div>
-                            </SlideLeft>
+                            </motion.div>
                         ))}
-                    </TransitionGroup>
+                    </AnimatePresence>
                     <SlideLeft visibility={!group?.lists?.length}>
                         <div className={`
                             min-w-25 min-h-20 rounded-[5px] border border-[#1e2939] bg-[#101828] p-2 flex flex-col justify-between
                         `}>
                             <div className='flex justify-between items-start'>
-                            <Film className='w-7 h-7 text-[#364153]' />
-                            <div className='h-3 w-6 bg-[#1e2939] rounded-[10px]' />
+                            <Film className='w-7 h-7 text-[#364153]'/>
+                            <div className='h-3 w-6 bg-[#1e2939] rounded-[10px]'/>
                             </div>
-                            <div className='h-3 w-full bg-[#1e2939] rounded-[10px]' />
+                            <div className='h-3 w-full bg-[#1e2939] rounded-[10px]'/>
                         </div>
                     </SlideLeft>
                 </div>

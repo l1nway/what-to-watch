@@ -9,7 +9,7 @@ export default function MovieSkeleton({loading, onClick}: {loading: boolean, onC
       w-max group mr-4
       `}>
       <div 
-        className={`
+        className={`max-md:h-74
           relative min-w-min aspect-[2/3] object-cover h-100 rounded-xl p-4 flex flex-col justify-between overflow-hidden border border-transparent hover:border-[#7f22fe] transition-colors duration-300
           ${loading ? 'animate-pulse' : ''}
           `}
@@ -57,7 +57,7 @@ export default function MovieSkeleton({loading, onClick}: {loading: boolean, onC
         `}>
           {loading ? null : 'Add a movie?'}
         </div>
-        <div className={`
+        <div className={`max-md:max-w-45
           h-4 w-1/4 rounded text-[#777f8d] whitespace-nowrap
           ${loading ? 'animate-pulse bg-[#1e2939]/60' : ''}`
         }>
@@ -65,5 +65,5 @@ export default function MovieSkeleton({loading, onClick}: {loading: boolean, onC
         </div>
       </div>
     </div>
-  );
+  )
 }

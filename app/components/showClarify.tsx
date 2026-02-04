@@ -27,8 +27,10 @@ export default function ShowClarify({visibility, onClose, children, className}: 
     if (!mounted) return null
 
     return (
-        <div 
+        <div
+            // max-md:items-start
             className={`
+                max-md:overflow-y-auto
                 fixed inset-0 z-50 flex items-center justify-center p-4
                 transition-all duration-300 ease-in-out
                 ${show ? 'opacity-100 backdrop-blur-md bg-black/50' : 'opacity-0 backdrop-blur-0 bg-transparent'}
@@ -36,10 +38,10 @@ export default function ShowClarify({visibility, onClose, children, className}: 
             onClick={onClose}
         >
             <div 
-                className={`relative w-full min-w-fit max-w-md transform transition-transform duration-300 ${show ? 'scale-100' : 'scale-50'}`}
+                className={`max-md:h-fit max-md:min-w-[100%] relative w-full min-w-fit max-w-md transform transition-transform duration-300 ${show ? 'scale-100' : 'scale-50'}`}
                 onClick={e => e.stopPropagation()}
             >
-                <div className={`bg-[#101828] rounded-xl p-4 flex flex-col w-full ${className}`}>
+                <div className={`max-md:h-fit bg-[#101828] rounded-xl p-4 flex flex-col w-full ${className}`}>
                     {children}
                 </div>
             </div>

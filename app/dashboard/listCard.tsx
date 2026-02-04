@@ -8,7 +8,7 @@ export function ListCard({router, list, delay, index}: ListCardProps) {
 
     return (
        <motion.div
-            className='min-w-153 flex bg-[#101828] border border-[#1e2939] rounded-[10px] flex-col p-6 cursor-pointer hover:border-[#7f22fe] transition-colors duration-300'
+            className='max-md:max-w-[47%] max-md:min-w-[47%] min-w-153 flex bg-[#101828] border border-[#1e2939] rounded-[10px] flex-col p-6 cursor-pointer hover:border-[#7f22fe] transition-colors duration-300'
             onClick={() => router.push(`/list?id=${encodeURIComponent(list.id)}`)}
             tabIndex={0}
             key={list?.id}

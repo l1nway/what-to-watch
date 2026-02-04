@@ -3,7 +3,7 @@ import {useEffect, useRef, useState} from 'react'
 import {MovieCardProps} from './listTypes'
 import {motion} from 'framer-motion'
 
-export function MovieCard({setDelWarning, setSelected, setFilm, movie, statusColor, index, loading}: MovieCardProps) {
+export function MovieCard({setDelWarning, setSelected, setFilm, movie, statusColor, index, loading, onClick}: MovieCardProps) {
     const cardRef = useRef<HTMLDivElement | null>(null)
 
     const [delay, setDelay] = useState(true)
@@ -22,6 +22,7 @@ export function MovieCard({setDelWarning, setSelected, setFilm, movie, statusCol
 
     return (
        <motion.div
+            onClick={onClick}
             tabIndex={0}
             className='mb-4 mr-4'
             style={{ 
@@ -55,7 +56,10 @@ export function MovieCard({setDelWarning, setSelected, setFilm, movie, statusCol
         >
             <div>
                 <div className='cursor-pointer group movieCard relative max-w-min flex rounded-xl overflow-hidden' onClick={() => {setSelected(movie), setFilm(true)}}>
-                    <img src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} className='min-w-min aspect-[2/3] object-cover h-100 block transition-transform duration-300 ease-out group-hover:scale-110'/>
+                    <img
+                        src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                        className='min-w-min h-100 max-md:min-w-43 max-md:h-74 aspect-[2/3] object-cover block transition-transform duration-300 ease-out group-hover:scale-110'
+                    />
                     <div
                         className='w-2 h-2 absolute right-2 top-2 rounded-full'
                         style={{backgroundColor: statusColor}}
@@ -72,8 +76,8 @@ export function MovieCard({setDelWarning, setSelected, setFilm, movie, statusCol
                         />
                     </div>
                 </div>
-                <div className='flex flex-col gap-1'>
-                    <h2 className='text-white max-w-64 whitespace-nowrap overflow-hidden text-ellipsis'>
+                <div className='flex flex-col gap-1 pt-2'>
+                    <h2 className='max-md:max-w-40 text-white max-w-64 whitespace-nowrap overflow-hidden text-ellipsis'>
                         {movie.title}
                     </h2>
                     <span className='text-[#777f8d]'>

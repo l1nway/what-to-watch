@@ -36,7 +36,7 @@ export const GroupSkeleton = ({loading, onClick, lists}: GroupSkeletonProps) => 
           `}>
             {loading ? null : 'No groups have been created yet.'}
           </div>
-            <div className='flex gap-3 mt-2 overflow-y-hidden overflow-x-auto [scrollbar-width:thin] [scrollbar-gutter:stable]'>
+            <div className='flex gap-3 mt-2 overflow-y-hidden overflow-x-auto [scrollbar-width:thin] [scrollbar-gutter:stable] pb-2'>
               {lists &&
                 Array.from({length: Math.max(lists.length, 1)}).map((e, i) => (
                   <div key={i} className={`

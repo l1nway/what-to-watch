@@ -1,8 +1,26 @@
-import {ReactNode} from 'react'
+import {ReactNode, RefObject} from 'react'
 
-interface Status {
+export interface DropdownProps {
+    toggle: () => void
+    visibility: boolean
+    ref: RefObject<HTMLElement | null>
+    children: ReactNode
+    offset?: number
+    duration?: number
+    className?: string
+}
+
+export interface DropdownCoords {
+  top: number
+  bottom: number
+  right: number
+  isUpward: boolean
+}
+
+export interface Status {
   name: string
   id?: string
+  checked?: boolean
 }
 
 export type AddMovieCardProps = {
@@ -71,6 +89,7 @@ export interface TMDBMovie {
 }
 
 export interface MovieCardProps {
+  onClick: () => void
   setSelected: (selected: TMDBMovie[]) => void
   setDelWarning: (warning: boolean) => void
   setFilm: (film: boolean) => void

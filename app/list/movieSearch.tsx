@@ -35,7 +35,7 @@ export default function MovieSearch({visibility, onClose, id, movies, setMoviesD
         checked: false
     }]
 
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState<boolean>(false)
 
     const fetchSuggestions = useCallback(
         debounce(async (query: string) => {
@@ -168,7 +168,7 @@ export default function MovieSearch({visibility, onClose, id, movies, setMoviesD
         )
     })
     
-    const [height, setHeight] = useState(0)
+    const [height, setHeight] = useState<number>(0)
 
     const contentRef = useRef<HTMLDivElement>(null)
 
@@ -236,7 +236,7 @@ export default function MovieSearch({visibility, onClose, id, movies, setMoviesD
             </div>
             <span className='text-[#6a7282] border-b border-[#1e2939] pb-4'>Powered by TMDB API (The Movie Database)</span>
             <div
-                className='w-250 mb-4'
+                className='w-250 mb-4 max-md:w-full'
             >
                 <motion.div
                     className='overflow-hidden'
@@ -244,7 +244,7 @@ export default function MovieSearch({visibility, onClose, id, movies, setMoviesD
                     animate={{height}}
                 >
                     <div
-                        className='flex flex-col w-250 max-h-150 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939]'
+                        className='flex flex-col w-250 max-h-150 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939] max-md:w-full'
                         ref={contentRef}
                     >
                         <AnimatePresence

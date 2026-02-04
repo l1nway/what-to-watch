@@ -6,8 +6,7 @@ import {Funnel, Plus, Shuffle, Trash2} from 'lucide-react'
 import {shake, clearShake} from '../components/shake'
 import {useRouter} from 'next/navigation'
 import {useAuth} from '../components/authProvider'
-import {ButtonItem} from './listTypes'
-import {TMDBMovie} from './listTypes'
+import {ButtonItem, Status, TMDBMovie} from './listTypes'
 import {db} from '@/lib/firebase'
 
 export const statuses = [{
@@ -46,30 +45,30 @@ export function useList(listId: string | null) {
 
     const buttons = useMemo<ButtonItem[]>(() => [
         {
-            icon: <Trash2/>,
-            text: 'Delete',
-            color: '#fb2c36',
-            hover: '#c10007',
-            onClick: () => setDelClarify(true)
-
-        }, {
-            icon: <Funnel/>,
-            text: 'Filter',
-            color: filter ? '#7f22fe' : '#1e2939',
-            hover: filter ? '#641aca': '#303844',
-            onClick: () => setFilter(!filter)
-        },{
-            icon: <Plus/>,
+            icon: <Plus className='max-md:h-8! max-md:w-8!'/>,
             text: 'Add movie',
             color: movie ? '#7f22fe' : '#1e2939',
             hover: movie ? '#641aca': '#303844',
             onClick: () => setMovie(!movie)
         },{
-            icon: <Shuffle/>,
+            icon: <Funnel className='max-md:h-8! max-md:w-8!'/>,
+            text: 'Filter',
+            color: filter ? '#7f22fe' : '#1e2939',
+            hover: filter ? '#641aca': '#303844',
+            onClick: () => setFilter(!filter)
+        },{
+            icon: <Shuffle className='max-md:h-8! max-md:w-8!'/>,
             text: 'Random pick',
             color: '#7f22fe',
             hover: '#641aca',
             onClick: () => router.push(`./random?id=${listId}`)
+        },{
+            icon: <Trash2 className='max-md:h-8! max-md:w-8!'/>,
+            text: 'Delete',
+            color: '#fb2c36',
+            hover: '#c10007',
+            onClick: () => setDelClarify(true)
+
         }
     ], [filter, movie, listId])
 
@@ -120,7 +119,7 @@ export function useList(listId: string | null) {
         fetchListAndMovies()
     }, [fetchListAndMovies])
 
-    const [status, setStatus] = useState(statuses)
+    const [status, setStatus] = useState<Status[]>(statuses)
 
     const deleteList = useCallback(async (listId: string | null) => {
         try {
@@ -196,7 +195,7 @@ export function useList(listId: string | null) {
         }
     }, [listId, name, originalName])
 
-    const [delWarning, setDelWarning] = useState(false)
+    const [delWarning, setDelWarning] = useState<boolean>(false)
 
     const deleteMovie = useCallback(async (e: React.MouseEvent, movieId: string | number | undefined) => {
         e.stopPropagation()
@@ -225,5 +224,5 @@ export function useList(listId: string | null) {
 
     const [genres, setGenres] = useState<{name: string, id: string}[]>([])
 
-    return {owner, user, loading, delClarify, setDelClarify, deleteList, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, inputWidth, onChange, edit, setEdit, name, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime}
+    return {setFilter, owner, user, loading, delClarify, setDelClarify, deleteList, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, inputWidth, onChange, edit, setEdit, name, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime}
 }

@@ -122,9 +122,20 @@ export default function Dashboard() {
             <div className='flex-1 overflow-y-auto  gap-4 p-4 overflow-y-auto [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939]'>
                 <div className='flex gap-4 flex-col'>
                     <h1
-                        className='text-white text-[2em] flex whitespace-nowrap'
+                        className='text-white text-[2em] flex whitespace-nowrap max-md:hidden'
                     >
                         Welcome back<SlideLeft visibility={!loading}>, {user?.displayName ? user?.displayName : user?.email}</SlideLeft>
+                    </h1>
+                    <h1
+                        className='text-white text-[2em] flex min-md:hidden flex-col'
+                    >
+                        <span className='whitespace-nowrap'>Welcome back,</span>
+                        <SlideDown
+                            className='whitespace-nowrap'
+                            visibility={!loading}
+                        >
+                            {user?.displayName ? user?.displayName : user?.email}
+                        </SlideDown>
                     </h1>
                     <h2
                         className='text-white'

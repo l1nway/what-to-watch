@@ -7,9 +7,9 @@ export const validateEmail = (value: string): boolean => {
 }
 
 export const validatePassword = (value: string): boolean => {
-  return value.length >= 8
+  return value.length > 7
 }
 
 export const validateConfirm = (password: string, confirm: string): boolean => {
-  return password == confirm && confirm.length > 0
+  return confirm == password
 }

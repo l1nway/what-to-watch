@@ -134,8 +134,8 @@ export default function Random() {
     if (allIds.length > 0) router.back
 
     return (
-        <div className='bg-[#030712] h-full'>
-            <header className='flex w-full justify-between bg-[#101828] border-b border-b-[#1e2939] p-4'>
+        <div className='bg-[#030712] h-screen flex flex-col '>
+            <header className='shrink-0 flex w-full justify-between bg-[#101828] border-b border-b-[#1e2939] p-4'>
                 <div className='flex text-white gap-3 items-center'>
                     <div onClick={() => router.back()}>
                         <ArrowLeft className='cursor-pointer text-[#777f8d] hover:text-white transition-colors duration-300'/>
@@ -144,14 +144,14 @@ export default function Random() {
                 </div>
             </header>
             
-            <div className='flex items-center flex-col gap-4 pt-4'>
+            <div className='flex-1 overflow-y-auto overflow-x-hidden min-h-0 flex items-center flex-col gap-4 pt-4 max-md:gap-1 max-md:pt-2'>
                 <div className='bg-[#1b0c41] p-4 rounded-full max-w-min'>
                     <Sparkles className='text-[#a684ff]'/>
                 </div>
                 <span className='text-white' key={title}>{title}</span>
                 <span className='text-white' key={desc}>{desc}</span>
                 {!loading ?
-                    <div className='w-full flex justify-center perspective-1000 py-10'>
+                    <div className='w-full flex justify-center perspective-1000 py-10 max-md:py-5'>
                         <motion.div
                             variants={cardVariants}
                             initial='spinning'
@@ -180,17 +180,17 @@ export default function Random() {
                     </div>
                 : null}
 
-                <SlideDown className='flex flex-col gap-2 w-full items-center' visibility={done}>
+                <SlideDown className='pb-35 flex flex-col gap-2 w-full items-center' visibility={done}>
                     <h1 className='text-white text-center'>{selectedMovie?.title}</h1>
-                    <div className='flex gap-2'>
+                    <div className='flex gap-2 max-md:flex-col max-md:w-full max-md:items-center max-md:gap-3'>
                         <Button
-                            className='bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'
+                            className='bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer max-md:w-[90%] max-md:h-10'
                             onClick={pickRandomMovie}
                         >
                             Spin again
                         </Button>
                         <Button 
-                            className='bg-[#1e2939] hover:bg-[#303844] cursor-pointer'
+                            className='bg-[#1e2939] hover:bg-[#303844] cursor-pointer max-md:w-[90%] max-md:h-10'
                             onClick={() => router.back()}
                         >
                             Back to list

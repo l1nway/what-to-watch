@@ -207,26 +207,11 @@ export default function Auth() {
 
   return (
     <div
-      className='min-h-screen bg-gradient-to-br from-[#030712] to-[#2f0d68] flex flex-col items-center justify-center gap-3'
+      className='h-screen overflow-y-auto bg-gradient-to-br from-[#030712] to-[#2f0d68] flex flex-col items-center justify-center gap-3'
     >
-      <form onSubmit={(e) => {e.preventDefault(); auth()}}>
-        <FieldGroup
-          className='
-            bg-[#101828]
-            border-[#1e2939]
-            p-4
-            gap-0
-            rounded-2xl
-            
-            min-w-[420px]
-            min-h-[320px]
-
-            max-w-[480px]
-          '
-        >
-            <Field
-              style={{paddingBottom: '1.5em'}}
-            >
+      <form className='w-screen flex justify-center' onSubmit={(e) => {e.preventDefault(); auth()}}>
+        <FieldGroup className='bg-[#101828] border-[#1e2939] p-4 gap-0 rounded-2xl w-[95%]'>
+            <Field className='pb-4'>
               <ButtonGroup className='bg-[#1e2939] rounded-[10px] p-[2px] flex justify-center w-[300px]'>
                 <Button
                   onClick={() => switchMode('login')}

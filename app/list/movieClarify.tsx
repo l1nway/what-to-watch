@@ -4,7 +4,7 @@ import {doc, getDoc, updateDoc} from 'firebase/firestore'
 import {MovieClarifyProps} from './listTypes'
 import {Button} from '@/components/ui/button'
 import {Select} from 'react-animated-select'
-import {Info, Trash2} from 'lucide-react'
+import {Info, Trash2, X} from 'lucide-react'
 import {useState, useEffect} from 'react'
 import ShowClarify from '../components/showClarify'
 import SlideLeft from '../components/slideLeft'
@@ -49,16 +49,23 @@ export default function MovieClarify({visibility, onClose, statuses, selected, l
     return (
         <ShowClarify
             visibility={visibility}
+            className='h-full'
             onClose={onClose}
         >
             <div className='relative mb-4'>
                 <img
                     src={`https://image.tmdb.org/t/p/w500${selected?.poster_path}`}
-                    className='w-full aspect-[9/5] object-cover min-h-150 max-h-150'
+                    className='w-full aspect-[9/5] object-cover min-h-150 max-h-150 max-md:max-h-120 max-md:min-h-120'
                 />
                 <div
                     className='absolute inset-0 bg-gradient-to-t from-[#101828] via-black/40 to-transparent opacity-100'
                 />
+                <div
+                    className='absolute top-0 right-0 bg-gradient-to-bl from-[#101828]/90 to-transparent backdrop-blur-sm [mask-image:linear-gradient(to_bottom_left,black,transparent)]'
+                    onClick={onClose}
+                >
+                    <X className='w-15 h-15 cursor-pointer text-[#777f8d] hover:text-white transition-colors duration-300'/>
+                </div>
             </div>
             <div className='text-white flex justify-between mb-2'>
                 <h2>{selected?.title}</h2>

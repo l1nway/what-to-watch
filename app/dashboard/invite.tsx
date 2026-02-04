@@ -34,7 +34,7 @@ const getExpirationDate = (durationStr: string) => {
 }
 
 export default function Invite({data, onClose, input, setInput}: InviteProps) {
-    const {user, loading} = useAuth()
+    const {user} = useAuth()
 
     const group = typeof data === 'object' ? data : null
 
@@ -110,8 +110,8 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
 
     return (
         <ShowClarify
+            onClose={() => {onClose(); setError(false)}}
             visibility={group}
-            onClose={onClose}
         >
             <div className='text-white flex justify-between border-b border-[#1e2939] pb-4 items-center'>
                 <div className='flex flex-col gap-2 whitespace-nowrap'>
@@ -123,7 +123,7 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                     </h2>
                 </div>
             <X
-                onClick={onClose}
+                onClick={() => {onClose(); setError(false)}}
                 className='text-[#99a1af] hover:text-white cursor-pointer transition-colors duration-300'
             />
             </div>
@@ -199,8 +199,8 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                     style={{
                         '--rac-arrow-height' : '2em',
                         '--rac-arrow-width' : '2em',
-                        '--rac-cancel-height': '1.5em',
-                        '--rac-cancel-width': '1.5em',
+                        '--rac-cancel-height': '0',
+                        '--rac-cancel-width': '0',
                         '--rac-list-background': '#1e2939',
                         '--rac-list-color': 'white',
                         '--rac-option-highlight': '#7f22fe',
@@ -227,11 +227,11 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                     </div>
                 </div>
             </SlideDown>
-            <div className='mt-4 text-[#c4b4ff] mt-1 bg-[#1b183d] prose prose-invert p-4 rounded-[10px] border border-[#381a77] hover:border-[#7f22fe] transition-colors duration-300 w-max'>
+            <div className='mt-4 text-[#c4b4ff] mt-1 bg-[#1b183d] prose prose-invert p-4 rounded-[10px] border border-[#381a77] hover:border-[#7f22fe] transition-colors duration-300 w-max max-md:w-[100%] text-wrap'>
                 Invited members will receive an email with a link to join your group.
             </div>
             <div className='flex gap-2 w-full justify-between pt-4'>
-                <Button className='w-full flex-1 bg-[#1e2939] hover:bg-[#303844] cursor-pointer' onClick={onClose}>
+                <Button className='w-full flex-1 bg-[#1e2939] hover:bg-[#303844] cursor-pointer' onClick={() => {onClose(); setError(false)}}>
                     Cancel
                 </Button>
                 <SlideLeft className='min-w-0' visibility={pendings.length > 0}>
