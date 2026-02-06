@@ -1,21 +1,19 @@
 'use client'
 
 import {Film, Settings, LogOut, List, Users, Loader} from 'lucide-react'
-import {ReactNode, useCallback} from 'react'
-import {Button} from '@/components/ui/button'
-
-import Invite from './invite'
-import New from './new'
-import Delete from './delete'
+import {ReactNode, useCallback, useState} from 'react'
+import {AnimatePresence, motion} from 'framer-motion'
 import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
-import {ListSkeleton} from './listSkeleton'
+import {Button} from '@/components/ui/button'
 import {GroupSkeleton} from './groupSkeleton'
-
+import {ListSkeleton} from './listSkeleton'
 import useDashboard from './useDashboard'
-
 import {GroupCard} from './groupCard'
 import {ListCard} from './listCard'
+import Delete from './delete'
+import Invite from './invite'
+import New from './new'
 
 export default function Dashboard() {
     const dashboardLogic = useDashboard()
@@ -36,21 +34,26 @@ export default function Dashboard() {
                 </div>
                 <Button
                     onClick={onClick}
-                    className='
-                        bg-[#7f22fe]
-                        hover:bg-[#641aca]
-                        transition-colors
-                        duration-300
-                        cursor-pointer
-                        disabled:cursor-not-allowed
-                        disabled:opacity-50
-                    '
+                    className='outline-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-[#7f22fe] hover:bg-[#641aca] focus:bg-[#641aca] transition-colors duration-300 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50'
                 >
                     + {button}
                 </Button>
             </div>
         )
     }, [loading])
+
+    const [redirect, setRedirect] = useState(false)
+    const [deauth, setDeauth] = useState(false)
+
+    const stng = useCallback(() => {
+        router.push('/settings')
+        setRedirect(true)
+    }, [])
+    
+    const de_auth = useCallback(() => {
+        setDeauth(true)
+        logout()
+    }, [])
 
     return (
         <div
@@ -108,18 +111,69 @@ export default function Dashboard() {
                         What2Watch
                     </h1>
                 </div>
-                <div className='flex gap-5 pr-5'>
-                    <Settings
-                        className='cursor-pointer text-[#959dab] hover:text-white transition-colors duration-300'
-                        onClick={() => router.push('/settings')}
-                    />
-                    <LogOut
-                        onClick={() => logout()}
-                        className='cursor-pointer text-[#959dab] hover:text-white transition-colors duration-300'
-                    />
+                <div className='flex gap-5'>
+                    <AnimatePresence mode='wait'>
+                        {!redirect ?
+                            <motion.div
+                                key='settings'
+                                animate={{opacity: 1, scale: 1, rotate: 0}}
+                                exit={{opacity: 0, scale: 0.5, rotate: 45}}
+                                transition={{duration: 0.15}}
+                            >
+                                <Settings
+                                    className='outline-none cursor-pointer text-[#959dab] hover:text-white focus:text-white transition-colors duration-300'
+                                    onClick={stng}
+                                    tabIndex={0}
+                                />
+                            </motion.div>
+                            :
+                            <motion.div
+                                key='loader'
+                                initial={{opacity: 0, scale: 0.5}}
+                                animate={{opacity: 1, scale: 1}}
+                                exit={{opacity: 0, scale: 0.5}}
+                                transition={{duration: 0.15}}
+                            >
+                                <Loader
+                                    className='text-[#959dab] animate-spin'
+                                />
+                            </motion.div>
+                        }
+                    </AnimatePresence>
+                    <AnimatePresence mode='wait'>
+                        {!deauth ?
+                            <motion.div
+                                key='settings'
+                                animate={{opacity: 1, scale: 1, rotate: 0}}
+                                exit={{opacity: 0, scale: 0.5, rotate: 45}}
+                                transition={{duration: 0.15}}
+                            >
+                                <LogOut
+                                    className='outline-none cursor-pointer text-[#959dab] hover:text-white focus:text-white transition-colors duration-300'
+                                    onClick={de_auth}
+                                    tabIndex={0}
+                                />
+                            </motion.div>
+                            :
+                            <motion.div
+                                key='loader'
+                                initial={{opacity: 0, scale: 0.5}}
+                                animate={{opacity: 1, scale: 1}}
+                                exit={{opacity: 0, scale: 0.5}}
+                                transition={{duration: 0.15}}
+                            >
+                                <Loader
+                                    className='text-[#959dab] animate-spin'
+                                />
+                            </motion.div>
+                        }
+                    </AnimatePresence>
                 </div>
             </div>
-            <div className='flex-1 overflow-y-auto  gap-4 p-4 overflow-y-auto [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939]'>
+            <div
+                className='flex-1 overflow-y-auto  gap-4 p-4 overflow-y-auto [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939]'
+                tabIndex={-1}
+            >
                 <div className='flex gap-4 flex-col'>
                     <h1
                         className='text-white text-[2em] flex whitespace-nowrap max-md:hidden'
@@ -144,50 +198,53 @@ export default function Dashboard() {
                     </h2>
                 </div>
                 {listHeader('My lists', 'New list', <List className='text-[#7f22fe]'/>, () => setList(true))}
-                <SlideDown visibility={loading || lists.length == 0}>
-                    <ListSkeleton
-                        onClick={setList}
-                        loading={loading}
-                    />
-                </SlideDown>
-                <SlideDown className='flex gap-4 flex-wrap' visibility={lists.length > 0}>
-                    {lists.map((list, index) => 
-                        <ListCard
-                            delay={delay}
-                            router={router}
-                            index={index}
-                            key={list.id}
-                            list={list}
-                        />
-                    )}
-                </SlideDown>
+                <div className='flex flex-wrap'>
+                    <AnimatePresence mode='popLayout'>
+                        {!lists.length ?
+                            <ListSkeleton
+                                onClick={setList}
+                                loading={loading}
+                            />
+                        : null}
+                        {lists.map((list, index) => 
+                            <ListCard
+                                delay={delay}
+                                router={router}
+                                index={index}
+                                key={list.id}
+                                list={list}
+                            />
+                        )}
+                    </AnimatePresence>
+                </div>
                 {listHeader('My groups', 'New group', <Users className='text-[#7f22fe]'/>, () => setGroup(true))}
-                <SlideDown visibility={loading || groups.length == 0}>
-                    <GroupSkeleton
-                        lists={lists}
-                        onClick={setGroup}
-                        loading={loading}
-                    />
-                </SlideDown>
-                <SlideDown className='flex flex-col gap-4' visibility={groups.length > 0}>
-                    {groups.map((group, index) => (
-                        <GroupCard
-                            delay={delay}
-                            key={group.id}
-                            group={group}
-                            index={index}
-                            user={user}
-                            lists={lists}
-                            setGroups={setGroups}
-                            updateGroup={updateGroup}
-                            setInvite={setInvite}
-                            setSelectedGroup={setSelectedGroup}
-                            setDelClarify={setDelClarify}
-                            updateGroups={updateGroups}
-                            router={router}
-                        />
-                    ))}
-                </SlideDown>
+                <div className='flex flex-wrap'>
+                    <AnimatePresence mode='popLayout'>
+                        {!groups.length ?
+                            <GroupSkeleton
+                                lists={lists}
+                                onClick={setGroup}
+                                loading={loading}
+                            /> : null}
+                        {groups.map((group, index) => 
+                            <GroupCard
+                                delay={delay}
+                                key={group.id}
+                                group={group}
+                                index={index}
+                                user={user}
+                                lists={lists}
+                                setGroups={setGroups}
+                                updateGroup={updateGroup}
+                                setInvite={setInvite}
+                                setSelectedGroup={setSelectedGroup}
+                                setDelClarify={setDelClarify}
+                                updateGroups={updateGroups}
+                                router={router}
+                            />
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
         </div>
     )

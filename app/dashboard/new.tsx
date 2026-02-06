@@ -108,7 +108,7 @@ export default function New({visibility, onClose, page, input, setInput, textare
                             '--rac-scroll-track': '#1e2939'
                         } as React.CSSProperties}
                         multiple
-                        className='mt-4 hover:border-[#7f22fe!important] w-full mt-1 rounded-md bg-[#1e2939!important] !border-[1px] !border-solid !border-[#364153] !text-white'
+                        className='items-center min-h-9! mt-4 hover:border-[#7f22fe!important] w-full mt-1 rounded-md bg-[#1e2939!important] !border-[1px] !border-solid !border-[#364153] !text-white'
                         placeholder='Choose lists'
                         options={lists}
                         value={value}

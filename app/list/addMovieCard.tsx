@@ -1,75 +1,45 @@
-import {useEffect, useRef, useState, useId} from 'react'
-import {Button} from '@/components/ui/button'
-import {Select} from 'react-animated-select'
-import {AddMovieCardProps} from './listTypes'
-import {Plus, Check} from 'lucide-react'
-import {motion} from 'framer-motion'
+import {animationProps, stylesProps} from '../components/motionProps'
+import {useRef, useState, useId, memo} from 'react'
 import SlideDown from '../components/slideDown'
+import {Plus, Check, Info} from 'lucide-react'
+import {Button} from '@/components/ui/button'
+import {AddMovieCardProps} from './listTypes'
+import {Select} from 'react-animated-select'
+import {motion} from 'framer-motion'
 
-export function AddMovieCard({currentStatus, toggleFilm, statusChange, movie, index, added, addedLocally, alreadyInDb, statuses, loading}: AddMovieCardProps) {
+const AddMovieCard = ({delay, currentStatus, toggleFilm, statusChange, movie, index, added, addedLocally, alreadyInDb, statuses, url}: AddMovieCardProps) => {
     const cardRef = useRef<HTMLDivElement | null>(null)
+    const [desc, setDesc] = useState<boolean>(false)
     const uid = useId()
-
-    const [delay, setDelay] = useState(true)
-    const [desc, setDesc] = useState(false)
-
-    useEffect(() => {
-        if (!loading) {
-            const timer = setTimeout(() => {
-            setDelay(false)
-            }, 1000)
-
-            return () => clearTimeout(timer)
-        } else {
-            setDelay(true)
-        }
-    }, [loading])
-
+    
     return (
        <motion.div
-            className='max-h-150 mr-4 mt-4 flex bg-[#1e2939] rounded-xl p-4 border border-[#364153] transition-colors duration-300 hover:border-[#7f22fe] cursor-pointer flex-col'
-            key={movie.id}
-            tabIndex={0}
-            style={{ 
-                willChange: 'transform, opacity',
-                backfaceVisibility: 'hidden',
-                transform: 'translateZ(0)'
-            }}
-            ref={cardRef}
-            layout='position'
+            className='outline-none h-fit mr-4 mt-4 flex bg-[#1e2939] rounded-xl p-4 border border-[#364153] transition-colors duration-300 hover:border-[#7f22fe] focus:border-[#7f22fe] cursor-pointer flex-col'
+            {...animationProps('vertical', true, delay, index)}
+            style={{...stylesProps}}
             layoutId={uid}
-            viewport={{once: false, amount: 'some', margin: '-10px 0px -10px 0px'}}
-            initial={{opacity: 0, scale: 0.9}}
-            whileInView={{opacity: 1, scale: 1}}
-            transition={{
-                layout: { 
-                    type: 'spring', 
-                    stiffness: 300, 
-                    damping: 30
-                },
-                default: { 
-                    duration: 0.3, 
-                    ease: 'easeInOut',
-                    delay: (delay && !alreadyInDb) ? index * 0.08 : undefined
-                },
-                opacity: {
-                    duration: 0.3,
-                    delay: (delay && !alreadyInDb) ? index * 0.08 : undefined
-                }
-            }}
-            exit={{opacity: 0, scale: 0.8, transition: {duration: 0.3}}}
+            ref={cardRef}
+            tabIndex={0}
         >
-            <div className='flex gap-4'>
-                <img
-                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path || ''}`}
-                    className='rounded-xl min-w-min h-50 max-md:aspect-[2/3]'
-                    alt={movie.original_title}
-                    key={`poster-${movie.id}`}
-                    crossOrigin='anonymous'
-                    loading='lazy'
-                />
-                <div className='flex flex-col gap-2 w-full'>
-                    <h2 className='text-white'>{movie.original_title}</h2>
+            <div className='flex gap-4 h-fit'>
+                {movie.poster_path ?
+                    <img
+                        src={`https://image.tmdb.org/t/p/w500${movie.poster_path || ''}`}
+                        className='rounded-xl min-w-min h-50 max-md:aspect-[2/3]'
+                        alt={movie.original_title}
+                        key={`poster-${movie.id}`}
+                        crossOrigin='anonymous'
+                        decoding='async'
+                        loading='lazy'
+                    />
+                    : null}
+                <div className='flex flex-col gap-2 h-fit w-full'>
+                    <div className='flex justify-between w-full'>
+                        <h2 className='text-white'>{movie.original_title}</h2>
+                        <a href={url} className='outline-none group'>
+                            <Info className='text-[#99a1af] group-hover:text-white group-focus-within:text-white cursor-pointer transition-colors duration-300'/>
+                        </a>
+                    </div>
                     <div className='flex text-[#99a1af] gap-2 items-center flex-wrap'>
                         {movie.release_date ?
                             <span>
@@ -96,6 +66,7 @@ export function AddMovieCard({currentStatus, toggleFilm, statusChange, movie, in
                     <span className='text-[#99a1af] text-wrap max-w-150 max-md:hidden'>{movie.overview}</span>
                     <div className='flex gap-4 max-md:flex-col'>
                         <Select
+                            offset={2}
                             disabled={alreadyInDb && !addedLocally}
                             disabledText='Already added'
                             style={{
@@ -106,6 +77,8 @@ export function AddMovieCard({currentStatus, toggleFilm, statusChange, movie, in
                                 '--rac-option-selected': '#2c2c2c'
                             } as React.CSSProperties}
                             className={`${(alreadyInDb && !addedLocally) ? '!justify-center' : ''}
+                                outline-none hover:!border-[#7f22fe] focus:!border-[#7f22fe]
+                                [&_.rac-select-list]:!p-4
                                 w-full rounded-md bg-[#1e2939!important] border border-[#364153!important] !text-white !min-h-9 !max-h-9 !items-center`}
                             placeholder='Choose status'
                             value={statuses.find(s => s.name === currentStatus) || null}
@@ -114,7 +87,7 @@ export function AddMovieCard({currentStatus, toggleFilm, statusChange, movie, in
                         />
                         <Button
                             disabled={alreadyInDb}
-                            className={`bg-[#7f22fe] ${!added ? 'hover:bg-[#641aca]' : 'hover:bg-[#900]'} cursor-pointer transition-colors duration-300`}
+                            className={`outline-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-[#7f22fe] ${!added ? 'hover:bg-[#641aca] focus:bg-[#641aca]' : 'hover:bg-[#900] focus:bg-[#900]'} cursor-pointer transition-colors duration-300`}
                             onClick={() => toggleFilm(movie)}
                         >
                             {added ? <><Check/> {alreadyInDb ? 'Already added' : 'Remove from list'}</> : <><Plus/> Add to list</>}
@@ -138,3 +111,5 @@ export function AddMovieCard({currentStatus, toggleFilm, statusChange, movie, in
         </motion.div>
     )
 }
+
+export default memo(AddMovieCard)

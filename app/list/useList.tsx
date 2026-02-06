@@ -1,12 +1,10 @@
-'use client'
-
 import {useCallback, useState, useMemo, useEffect, useRef, useLayoutEffect} from 'react'
 import {doc, getDoc, updateDoc, arrayRemove, deleteDoc} from 'firebase/firestore'
 import {Funnel, Plus, Shuffle, Trash2} from 'lucide-react'
-import {shake, clearShake} from '../components/shake'
-import {useRouter} from 'next/navigation'
-import {useAuth} from '../components/authProvider'
 import {ButtonItem, Status, TMDBMovie} from './listTypes'
+import {shake, clearShake} from '../components/shake'
+import {useAuth} from '../components/authProvider'
+import {useRouter} from 'next/navigation'
 import {db} from '@/lib/firebase'
 
 export const statuses = [{
@@ -37,33 +35,33 @@ export function useList(listId: string | null) {
     const [film, setFilm] = useState<boolean>(false)
     const [movie, setMovie] = useState<boolean>(false)
 
-    const [runtime, setRuntime] = useState<string>('200')
-    const [selected, setSelected] = useState<TMDBMovie[] | null>()
+    const [runtime, setRuntime] = useState<string>('600')
+    const [selected, setSelected] = useState<TMDBMovie | null>()
     const [selectedGenres, setSelectedGenres] = useState<string[]>([])
 
     const [owner, setOwner] = useState<string>('')
 
     const buttons = useMemo<ButtonItem[]>(() => [
         {
-            icon: <Plus className='max-md:h-8! max-md:w-8!'/>,
+            icon: <Plus className='max-md:h-6! max-md:w-6!'/>,
             text: 'Add movie',
             color: movie ? '#7f22fe' : '#1e2939',
             hover: movie ? '#641aca': '#303844',
             onClick: () => setMovie(!movie)
         },{
-            icon: <Funnel className='max-md:h-8! max-md:w-8!'/>,
+            icon: <Funnel className='max-md:h-6! max-md:w-6!'/>,
             text: 'Filter',
             color: filter ? '#7f22fe' : '#1e2939',
             hover: filter ? '#641aca': '#303844',
             onClick: () => setFilter(!filter)
         },{
-            icon: <Shuffle className='max-md:h-8! max-md:w-8!'/>,
+            icon: <Shuffle className='max-md:h-6! max-md:w-6!'/>,
             text: 'Random pick',
             color: '#7f22fe',
             hover: '#641aca',
             onClick: () => router.push(`./random?id=${listId}`)
         },{
-            icon: <Trash2 className='max-md:h-8! max-md:w-8!'/>,
+            icon: <Trash2 className='max-md:h-6! max-md:w-6!'/>,
             text: 'Delete',
             color: '#fb2c36',
             hover: '#c10007',
@@ -224,5 +222,19 @@ export function useList(listId: string | null) {
 
     const [genres, setGenres] = useState<{name: string, id: string}[]>([])
 
-    return {setFilter, owner, user, loading, delClarify, setDelClarify, deleteList, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, inputWidth, onChange, edit, setEdit, name, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime}
+    const [delay, setDelay] = useState<boolean>(true)
+
+    useEffect(() => {
+        if (!loading) {
+            const timer = setTimeout(() => {
+            setDelay(false)
+            }, 1000)
+
+            return () => clearTimeout(timer)
+        } else {
+            setDelay(true)
+        }
+    }, [loading])
+
+    return {delay, setFilter, owner, user, loading, delClarify, setDelClarify, deleteList, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, inputWidth, onChange, edit, setEdit, name, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime}
 }

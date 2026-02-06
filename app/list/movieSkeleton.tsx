@@ -1,16 +1,25 @@
+import {animationProps, stylesProps} from '../components/motionProps'
 import {Calendar, Clock4, Trash2} from 'lucide-react'
 import SlideDown from '../components/slideDown'
+import {motion} from 'framer-motion'
+import {useRef} from 'react'
 
 export default function MovieSkeleton({loading, onClick}: {loading: boolean, onClick: (boolean: boolean) => void}) {
+  const cardRef = useRef<HTMLDivElement | null>(null)
   return (
-    <div
+    <motion.div
       className={`
-      ${loading ? 'cursor-wait' : 'cursor-pointer'}
-      w-max group mr-4
-      `}>
+        ${loading ? 'cursor-wait' : 'cursor-pointer'}
+        group mb-3 mr-3 movie-card-sizes
+      `}
+      style={{...stylesProps}}
+      {...animationProps('both')}
+      layoutId='skeleton'
+      ref={cardRef}
+    >
       <div 
-        className={`max-md:h-74
-          relative min-w-min aspect-[2/3] object-cover h-100 rounded-xl p-4 flex flex-col justify-between overflow-hidden border border-transparent hover:border-[#7f22fe] transition-colors duration-300
+        className={`
+          relative w-full aspect-[2/3] aspect-[2/3] object-cover rounded-xl p-4 flex flex-col justify-between overflow-hidden border border-transparent hover:border-[#7f22fe] transition-colors duration-300
           ${loading ? 'animate-pulse' : ''}
           `}
         style={{
@@ -50,20 +59,20 @@ export default function MovieSkeleton({loading, onClick}: {loading: boolean, onC
         </SlideDown>
       </div>
 
-      <div className='px-1 space-y-2'>
+      <div className='px-1 space-y-2 pt-2'>
         <div className={`
           ${loading ? 'animate-pulse bg-[#1e2939] mt-2' : ''}
           h-5 w-3/4 rounded text-white whitespace-nowrap
         `}>
           {loading ? null : 'Add a movie?'}
         </div>
-        <div className={`max-md:max-w-45
-          h-4 w-1/4 rounded text-[#777f8d] whitespace-nowrap
+        <div className={`
+          h-4 w-full rounded text-[#777f8d] whitespace-nowrap
           ${loading ? 'animate-pulse bg-[#1e2939]/60' : ''}`
         }>
           {loading ? null : 'No movies have been added yet.'}
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

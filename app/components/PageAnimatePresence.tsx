@@ -4,7 +4,7 @@ import {AnimatePresence, motion} from 'framer-motion'
 import {usePathname} from 'next/navigation'
 import {FrozenRouter} from './frozenRouter'
 
-export default function PageAnimatePresence({ children }: { children: React.ReactNode }) {
+export default function PageAnimatePresence({children}: {children: React.ReactNode}) {
   const pathname = usePathname()
 
   return (

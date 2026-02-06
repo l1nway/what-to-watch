@@ -195,7 +195,7 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                 <Select
                     offset={1}
                     optionsClassName='options'
-                    className='mt-2 mb-2 rac-select-cancel:hover:text-red-500 h-10 hover:border-[#7f22fe!important] w-full mt-1 rounded-md bg-[#1e2939!important] !border-[1px] !border-solid !border-[#364153] !text-white'
+                    className='items-center mt-2 mb-2 rac-select-cancel:hover:text-red-500 h-10 hover:border-[#7f22fe!important] w-full mt-1 rounded-md bg-[#1e2939!important] !border-[1px] !border-solid !border-[#364153] !text-white min-h-9!'
                     style={{
                         '--rac-arrow-height' : '2em',
                         '--rac-arrow-width' : '2em',

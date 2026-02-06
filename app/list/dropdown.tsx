@@ -45,7 +45,7 @@ function Dropdown({toggle, visibility, ref, children, offset = 8, duration = 300
                         overflow: 'hidden',
                         transformOrigin: coords.isUpward ? 'bottom right' : 'top right',
                     }}
-                    className='flex w-full justify-center'
+                    className='flex w-[75%] justify-center'
                 >
                     <div
                         className={`${className} w-[95%] bg-[#101828] border border-[#1e2939] rounded-lg shadow-xl`}

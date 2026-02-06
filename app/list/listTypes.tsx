@@ -1,5 +1,7 @@
 import {ReactNode, RefObject} from 'react'
 
+export type AnimationKeys = 'loading' | 'view' | 'edit'
+
 export interface DropdownProps {
     toggle: () => void
     visibility: boolean
@@ -25,19 +27,21 @@ export interface Status {
 }
 
 export type AddMovieCardProps = {
+  url: string
   currentStatus: string
   toggleFilm: (movie: any) => void
   statusChange: (movie: any, status: Status | null) => void
+  delay: boolean
   movie: any
   index: number
   added: boolean
   addedLocally: boolean
   alreadyInDb: boolean
   statuses: Status[]
-  loading: boolean
 }
 
 export type MovieClarifyProps = {
+  url: string
   delWarning: boolean
   setDelWarning: (delWarning: boolean) => void
   visibility: boolean
@@ -90,12 +94,12 @@ export interface TMDBMovie {
 }
 
 export interface MovieCardProps {
+  delay: boolean
   onClick: () => void
-  setSelected: (selected: TMDBMovie[]) => void
+  setSelected: (selected: TMDBMovie) => void
   setDelWarning: (warning: boolean) => void
   setFilm: (film: boolean) => void
   statusColor: string | undefined
-  loading: boolean
   index: number
   movie: any
 }
@@ -112,6 +116,7 @@ export interface FilmItem {
 }
 
 export interface MovieSearchProps {
+  delay: boolean
   visibility: boolean,
   onClose: () => void,
   id: string | null,

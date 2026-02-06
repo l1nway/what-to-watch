@@ -124,6 +124,64 @@
   }
 }
 
+@media (min-width: 1px) and (max-width: 768px) {
+  .movie-card-sizes {
+    width: 46.5%;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .movie-card-sizes {width: 31.5%;}
+}
+
+@media (min-width: 1025px) and (max-width: 1660px) {
+  .movie-card-sizes {width: 23.75%;}
+}
+
+@media (min-width: 1661px) and (max-width: 1920px) {
+  .movie-card-sizes {width: 15.9%;}
+}
+
+@media (min-width: 1921px) {
+  .movie-card-sizes {width: 9%;}
+}
+
+@media (max-width: 301px) {
+  .movie-card-sizes {width: 98%;}
+}
+
+@media (min-width: 1px) and (max-width: 1024px) {
+  .list-card-sizes {width: 45%;}
+}
+
+@media (min-width: 1025px) and (max-width: 1660px) {
+  .list-card-sizes {width: 32%;}
+}
+
+@media (min-width: 1661px) and (max-width: 1920px) {
+  .list-card-sizes {width: 24.25%;}
+}
+
+@media (min-width: 1921px) {
+  .list-card-sizes {width: 16%;}
+}
+
+.rac-title-text {
+  margin: 0 !important;
+}
+
+.login-logo {
+  background: linear-gradient(to bottom right, #7f22fe, #1b183d);
+  border-radius: 15%;
+  background-size: 200% 200%;
+  animation: flow 6s ease-in-out infinite alternate;
+}
+
+@keyframes flow {
+  0% {background-position: 0% 0%;}
+  100% {background-position: 100% 100%;}
+}
+
 .hamburger-icon {
     display: none;
     position: relative;
@@ -218,10 +276,6 @@ body {
   height: 100%;
   background-color: #030712;
 }
-.rac-select-option {
-
-  text-wrap: nowrap;
-}
 
 .rac-select-option, .rac-options {
   border-radius: 10px;
@@ -238,13 +292,14 @@ body {
 }
 
 .list-select-list .rac-select-option {
-  overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 10em;
   margin: 0.5em 0.25em;
+  text-wrap: nowrap;
+  overflow: hidden;
 }
 
-.rac-select:hover .rac-select-arrow-wrapper {
+.rac-select:hover .rac-select-arrow-wrapper,
+.rac-select:focus .rac-select-arrow-wrapper {
   color: white;
 }
 

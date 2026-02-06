@@ -12,7 +12,6 @@ export default function UseDashboard() {
     const router = useRouter()
 
     const logout = useCallback(async () => {
-        setLoading(true)
         await signOut(auth)
         await fetch('/api/logout', {method: 'POST'})
         router.push('/auth?mode=login')

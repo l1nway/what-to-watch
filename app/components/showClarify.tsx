@@ -38,10 +38,10 @@ export default function ShowClarify({visibility, onClose, children, className}: 
             onClick={onClose}
         >
             <div 
-                className={`max-md:h-fit max-md:min-w-[100%] relative w-full min-w-fit max-w-md transform transition-transform duration-300 ${show ? 'scale-100' : 'scale-50'}`}
+                className={`max-md:h-fit max-md:min-w-[100%] max-md:max-h-[100%] relative w-full min-w-fit max-w-md transform transition-transform duration-300 ${show ? 'scale-100' : 'scale-50'}`}
                 onClick={e => e.stopPropagation()}
             >
-                <div className={`max-md:h-fit bg-[#101828] rounded-xl p-4 flex flex-col w-full ${className}`}>
+                <div className={`max-md:h-fit bg-[#101828] rounded-xl p-4 mb-4 flex flex-col w-full ${className}`}>
                     {children}
                 </div>
             </div>

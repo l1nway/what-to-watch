@@ -1,5 +1,3 @@
-'use client'
-
 import {doc, getDoc, updateDoc} from 'firebase/firestore'
 import {MovieClarifyProps} from './listTypes'
 import {Button} from '@/components/ui/button'
@@ -11,7 +9,7 @@ import SlideLeft from '../components/slideLeft'
 import SlideDown from '../components/slideDown'
 import {db} from '@/lib/firebase'
 
-export default function MovieClarify({visibility, onClose, statuses, selected, listId, onRefresh, deleteMovie, delWarning, setDelWarning}: MovieClarifyProps) {
+export default function MovieClarify({url, visibility, onClose, statuses, selected, listId, onRefresh, deleteMovie, delWarning, setDelWarning}: MovieClarifyProps) {
     const [status, setStatus] = useState<MovieClarifyProps['statuses'][number] | undefined>(undefined)
 
     useEffect(() => {
@@ -71,10 +69,12 @@ export default function MovieClarify({visibility, onClose, statuses, selected, l
                 <h2>{selected?.title}</h2>
                 <div className='flex gap-2'>
                     <Trash2
-                        className='text-white hover:text-[#fb2933] transition-colors duration-300 cursor-pointer'
+                        className='text-[#99a1af] hover:text-[#fb2933] transition-colors duration-300 cursor-pointer'
                         onClick={() => setDelWarning(!delWarning)}
                     />
-                    <Info className='text-white'/>
+                    <a href={url}>
+                        <Info className='text-[#99a1af] hover:text-white cursor-pointer transition-colors duration-300'/>
+                    </a>
                 </div>
             </div>
             <SlideDown visibility={delWarning}>
@@ -121,10 +121,13 @@ export default function MovieClarify({visibility, onClose, statuses, selected, l
                             '--rac-list-color': 'white',
                             '--rac-option-highlight': '#2c2c2c',
                             '--rac-option-hover': '#2c2c2c',
-                            '--rac-option-selected': '#2c2c2c'
+                            '--rac-option-selected': '#2c2c2c',
+                            '--rac-arrow-width': '2em',
+                            '--rac-cancel-height': '1.75em',
+                            '--rac-arrow-height': '2em',
+                            '--rac-cancel-width': '1.75em',
                         } as React.CSSProperties}
-                        className='
-                            h-9 w-full rounded-md bg-[#1e2939!important] border border-[#364153!important] !text-white'
+                        className='h-9 w-full rounded-md bg-[#1e2939!important] border border-[#364153!important] !text-white items-center'
                         placeholder='Choose status'
                         value={status}
                         onChange={setStatus}

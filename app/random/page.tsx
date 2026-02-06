@@ -2,12 +2,11 @@
 
 import {useState, useEffect, useCallback, useMemo} from 'react'
 import {useSearchParams, useRouter} from 'next/navigation'
-import {ArrowLeft, Sparkles} from 'lucide-react'
+import {ArrowLeft, Loader, Sparkles} from 'lucide-react'
 import SlideDown from '../components/slideDown'
 import {doc, getDoc} from 'firebase/firestore'
-import {Variants, Easing} from 'framer-motion'
 import {Button} from '@/components/ui/button'
-import {motion} from 'framer-motion'
+import {motion, Easing, AnimatePresence} from 'framer-motion'
 import {db} from '@/lib/firebase'
 
 interface MovieData {
@@ -130,6 +129,13 @@ export default function Random() {
             },
         },
     }), [])
+    
+    const [back, setBack] = useState(false)
+    
+    const bck = useCallback(() => {
+        router.back()
+        setBack(true)
+    }, [])
 
     if (allIds.length > 0) router.back
 
@@ -137,9 +143,34 @@ export default function Random() {
         <div className='bg-[#030712] h-screen flex flex-col '>
             <header className='shrink-0 flex w-full justify-between bg-[#101828] border-b border-b-[#1e2939] p-4'>
                 <div className='flex text-white gap-3 items-center'>
-                    <div onClick={() => router.back()}>
-                        <ArrowLeft className='cursor-pointer text-[#777f8d] hover:text-white transition-colors duration-300'/>
-                    </div>
+                    <AnimatePresence mode='wait'>
+                        {!back ?
+                            <motion.div
+                                key='settings'
+                                animate={{opacity: 1, scale: 1, rotate: 0}}
+                                exit={{opacity: 0, scale: 0.5, rotate: 45}}
+                                transition={{duration: 0.15}}
+                            >
+                                <ArrowLeft
+                                    className='cursor-pointer text-[#777f8d] hover:text-white focus:text-white outline-none transition-colors duration-300 w-8 h-8'
+                                    onClick={bck}
+                                    tabIndex={0}
+                                />
+                            </motion.div>
+                            :
+                            <motion.div
+                                key='loader'
+                                initial={{opacity: 0, scale: 0.5}}
+                                animate={{opacity: 1, scale: 1}}
+                                exit={{opacity: 0, scale: 0.5}}
+                                transition={{duration: 0.15}}
+                            >
+                                <Loader
+                                    className='text-[#959dab] animate-spin'
+                                />
+                            </motion.div>
+                        }
+                    </AnimatePresence>
                     <h1>Random pick</h1>
                 </div>
             </header>
@@ -184,13 +215,13 @@ export default function Random() {
                     <h1 className='text-white text-center'>{selectedMovie?.title}</h1>
                     <div className='flex gap-2 max-md:flex-col max-md:w-full max-md:items-center max-md:gap-3'>
                         <Button
-                            className='bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer max-md:w-[90%] max-md:h-10'
+                            className='outline-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-[#7f22fe] hover:bg-[#641aca] focus:bg-[#641aca] cursor-pointer max-md:w-[90%] max-md:h-10'
                             onClick={pickRandomMovie}
                         >
                             Spin again
                         </Button>
                         <Button 
-                            className='bg-[#1e2939] hover:bg-[#303844] cursor-pointer max-md:w-[90%] max-md:h-10'
+                            className='outline-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-[#1e2939] hover:bg-[#303844] focus:bg-[#303844] cursor-pointer max-md:w-[90%] max-md:h-10'
                             onClick={() => router.back()}
                         >
                             Back to list

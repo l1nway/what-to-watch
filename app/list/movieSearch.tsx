@@ -1,44 +1,37 @@
-'use client'
-
-import {useState, useCallback, useEffect, useLayoutEffect, useRef} from 'react'
+import {useState, useCallback, useEffect, useLayoutEffect, useRef, useMemo, memo} from 'react'
 import {FilmItem, MovieSearchProps} from './listTypes'
 import {AnimatePresence, motion} from 'framer-motion'
 import ShowClarify from '../components/showClarify'
 import {doc, updateDoc} from 'firebase/firestore'
 import SlideDown from '../components/slideDown'
+import SlideLeft from '../components/slideLeft'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
-import {AddMovieCard} from './addMovieCard'
+import AddMovieCard from './addMovieCard'
+import {Loader, Search, X} from 'lucide-react'
 import debounce from 'lodash.debounce'
+import {statuses} from './useList'
 import {db} from '@/lib/firebase'
-import {X} from 'lucide-react'
 
-const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY
 const TMDB_SEARCH_URL = 'https://api.themoviedb.org/3/search/movie'
-const TMDB_MOVIE_URL = 'https://api.themoviedb.org/3/movie'
+const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY
+export const TMDB_MOVIE_URL = 'https://themoviedb.org/movie/'
 
-export default function MovieSearch({visibility, onClose, id, movies, setMoviesData, onRefresh}: MovieSearchProps) {
+export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesData, onRefresh}: MovieSearchProps) => {
+
+    const contentRef = useRef<HTMLDivElement>(null)
 
     const [films, setFilms] = useState<FilmItem[]>([])
     const [suggestions, setSuggestions] = useState<any[]>([])
+
     const [search, setSearch] = useState<string>('')
     const [text, setText] = useState<string>('')
-
-    const statuses = [{
-        name: 'Plan to watch',
-        checked: false
-    },{
-        name: 'Watched',
-        checked: false
-    },{
-        name: 'Dropped',
-        checked: false
-    }]
+    
+    const [height, setHeight] = useState<number>(0)
 
     const [loading, setLoading] = useState<boolean>(false)
 
-    const fetchSuggestions = useCallback(
-        debounce(async (query: string) => {
+    const fetchSuggestions = useMemo(() => debounce(async (query: string) => {
             if (!query.trim()) {
                 setSuggestions([])
                 return
@@ -66,12 +59,59 @@ export default function MovieSearch({visibility, onClose, id, movies, setMoviesD
                 setText('Error while searching')
                 setLoading(false)
             }
-        }, 500), [movies]
+    }, 500), [movies])
+
+    const combinedList = useMemo(() => 
+        [...films, ...suggestions.filter(s => !films.some(f => f.id === s.id))],
+        [films, suggestions]
     )
 
-    useEffect(() => {
-        fetchSuggestions(search)
-    }, [search, fetchSuggestions])
+    const statusChange = useCallback((element: any, newStatus: any) => {
+        const statusValue = newStatus?.name
+
+        setFilms(prev => prev.some(f => f.id === element.id)
+            ? prev.map(f => f.id === element.id ? {...f, status: statusValue} : f)
+            : prev
+        )
+        setSuggestions(prev => prev.map(s => s.id === element.id ? {...s, status: statusValue} : s))
+    }, [])
+
+    const toggleFilm = useCallback((element: FilmItem) => {
+        setFilms(prev => {
+            const isAdded = prev.some(f => f.id === element.id)
+            if (isAdded) {
+                return prev.filter(f => f.id !== element.id)
+            } else {
+                return [...prev, {...element, status: element.status || null}]
+            }
+        })
+    }, [])
+
+    const renderFilms = useMemo(() => {
+        return combinedList.map((movie, index) => {
+        const addedLocally = films.some(f => f.id === movie.id)
+        const alreadyInDb = movies?.some((m: any) => m.id === movie.id)
+        const added = addedLocally || alreadyInDb
+
+        const currentStatus = addedLocally 
+            ? films.find(f => f.id === movie.id)?.status 
+            : movie.status
+        return (
+            <AddMovieCard
+                url={`${TMDB_MOVIE_URL}/${movie.id}`}
+                currentStatus={currentStatus}
+                statusChange={statusChange}
+                addedLocally={addedLocally}
+                alreadyInDb={alreadyInDb}
+                toggleFilm={toggleFilm}
+                statuses={statuses}
+                key={movie.id}
+                delay={delay}
+                movie={movie}
+                index={index}
+                added={added}
+            />
+    )})}, [combinedList, delay, onClose])
 
     const save = useCallback(async () => {
         if (!id || films.length === 0) return
@@ -112,69 +152,13 @@ export default function MovieSearch({visibility, onClose, id, movies, setMoviesD
         }
     }, [films, id, onClose, movies, setMoviesData])
 
-    const statusChange = (element: any, newStatus: any) => {
-        const statusValue = newStatus?.name
-
-        if (films.some(f => f.id === element.id)) {
-            setFilms(prev => prev.map(f => 
-                f.id === element.id ? {...f, status: statusValue} : f
-            ))
-        } 
-        else {
-            setSuggestions(prev => prev.map(s => 
-                s.id === element.id ? {...s, status: statusValue} : s
-            ))
-        }
-    }
-
-    const toggleFilm = (element: FilmItem) => {
-        setFilms(prev => {
-            const isAdded = prev.some(f => f.id === element.id)
-            if (isAdded) {
-                return prev.filter(f => f.id !== element.id)
-            } else {
-                return [...prev, {...element, status: element.status || null}]
-            }
-        })
-    }
-
-    const combinedList = [
-        ...films,
-        ...suggestions.filter(s => !films.some(f => f.id === s.id))
-    ]
-
-    const renderFilms = combinedList.map((movie, index) => {
-        const addedLocally = films.some(f => f.id === movie.id)
-        const alreadyInDb = movies?.some((m: any) => m.id === movie.id)
-        const added = addedLocally || alreadyInDb
-
-        const currentStatus = addedLocally 
-            ? films.find(f => f.id === movie.id)?.status 
-            : movie.status
-        return (
-            <AddMovieCard
-                currentStatus={currentStatus}
-                statusChange={statusChange}
-                addedLocally={addedLocally}
-                alreadyInDb={alreadyInDb}
-                toggleFilm={toggleFilm}
-                statuses={statuses}
-                loading={loading}
-                key={movie.id}
-                movie={movie}
-                index={index}
-                added={added}
-            />
-        )
-    })
-    
-    const [height, setHeight] = useState<number>(0)
-
-    const contentRef = useRef<HTMLDivElement>(null)
-
-    const measureHeight = () => {
+    const measureHeight = useCallback(() => {
         if (!contentRef.current) return
-
+        if (!combinedList.length) {
+            setHeight(0)
+            return
+        }
+        // using requestAnimationFrame twice ensures that height animation is calculated correctly; using just one can sometimes get stuck if there's a lag
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 const MAX_HEIGHT = 150 * 4
@@ -186,54 +170,65 @@ export default function MovieSearch({visibility, onClose, id, movies, setMoviesD
                 setHeight(nextHeight)
             })
         })
-    }
-
-    useLayoutEffect(() => {
-        measureHeight()
-    }, [combinedList.length])
+    }, [setHeight, combinedList.length])
 
     const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value)
         search == '' ? setText('Enter movie title') : setText('Searching…')
     }, [search])
 
+    useLayoutEffect(() => {
+        measureHeight()
+    }, [combinedList.length, visibility])
+
+    useEffect(() => {
+        fetchSuggestions(search)
+    }, [search, fetchSuggestions])
+
+    // needed to force height to be reset to zero if the user clears the search field and immediately exits without waiting for the animation to play; otherwise, the height gets stuck
+    useEffect(() => {
+        if (!visibility && search == '') {
+            setHeight(0)
+        }
+    }, [visibility])
+
     return (
         <ShowClarify visibility={visibility} onClose={onClose}>
             <div className='flex justify-between text-white border-b border-[#1e2939] pb-4'>
-                <h1>
-                    Add movie
-                </h1>
-                <X onClick={onClose} className='text-[#99a1af] hover:text-white cursor-pointer transition-colors duration-300'/>
-            </div>
-            <div className='flex gap-2 my-4'>
-                <Input
-                    value={search}
-                    onChange={onChange}
-                    placeholder='Search for movies on TMTB…'
-                    className='
-                        bg-[#1e2939]
-                        text-[#6a7282]
-                        border-[#364153]
-                        placeholder:text-[#4b5563]
-
-                        hover:border-[#7f22fe]
-
-                        focus:border-[#7f22fe]
-                        focus:outline-none
-                        focus:ring-0
-                        focus:ring-offset-0
-
-                        focus-visible:outline-none
-                        focus-visible:border-[#7f22fe]
-                        focus-visible:ring-0
-                        focus-visible:ring-offset-0
-
-                        transition-colors
-                        duration-300
-                    '
+                <div className='flex'>
+                    <h1>
+                        Add movie
+                    </h1>
+                    <SlideLeft className='ml-2' visibility={loading}>
+                        <Loader className='text-[#959dab] animate-spin'/>
+                    </SlideLeft>
+                </div>
+                <X
+                    className='text-[#99a1af] outline-none hover:text-white focus:text-white cursor-pointer transition-colors duration-300'
+                    onClick={onClose}
+                    tabIndex={0}
                 />
-                <Button className='bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'>Search</Button>
             </div>
+            <label
+                className='group items-center rounded-[10px] flex gap-2 my-4 bg-[#1e2939] border border-[#364153] hover:border-[#7f22fe] focus:border-[#7f22fe] focus-within:border-[#7f22fe] transition-colors duration-300 outline-none'
+                tabIndex={0}
+            >
+                <Search className='ml-2 text-[#99a1af] cursor-pointer group-hover:text-white group-focus:text-white group-focus-within:text-white transition-colors duration-300'/>
+                <Input
+                    className='p-0 border-0 text-white outline-none placeholder:text-[#4b5563] ring-0 ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors duration-300'
+                    placeholder='Search for movies on TMTB…'
+                    onChange={onChange}
+                    value={search}
+                    tabIndex={-1}
+                />
+                <SlideLeft visibility={search.length > 0}>
+                    <X
+                        className='mr-2 text-[#99a1af] hover:text-red-500 cursor-pointer transition-colors duration-300 outline-none'
+                        onClick={() => setSearch('')}
+                        tabIndex={0}
+                    />
+                </SlideLeft>
+            </label>
             <span className='text-[#6a7282] border-b border-[#1e2939] pb-4'>Powered by TMDB API (The Movie Database)</span>
             <div
                 className='w-250 mb-4 max-md:w-full'
@@ -246,6 +241,7 @@ export default function MovieSearch({visibility, onClose, id, movies, setMoviesD
                     <div
                         className='flex flex-col w-250 max-h-150 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939] max-md:w-full'
                         ref={contentRef}
+                        tabIndex={-1}
                     >
                         <AnimatePresence
                             onExitComplete={measureHeight}
@@ -268,8 +264,8 @@ export default function MovieSearch({visibility, onClose, id, movies, setMoviesD
             </SlideDown>
             <SlideDown visibility={films.length > 0}>
                 <Button
-                    className='w-full bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'
-                    onClick={() => save()}
+                    className='outline-none focus-visible:ring-0 focus-visible:ring-offset-0 w-full bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'
+                    onClick={save}
                 >
                     Save changes
                 </Button>

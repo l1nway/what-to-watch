@@ -12,7 +12,8 @@ import {useAuth} from '../components/authProvider'
 import useInvites from './useInvites'
 import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
-import {useMemo} from 'react'
+import {useCallback, useMemo, useState} from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 
 export default function settings() {
     const {user, loading} = useAuth()
@@ -170,16 +171,50 @@ export default function settings() {
     }), [passwords, user, loading, passwordEdit])
 
     const emptyPassword = passwords.some(p => p.value.trim() === '')
+    
+    const [deauth, setDeauth] = useState(false)
+
+    const [back, setBack] = useState(false)
+    
+    const bck = useCallback(() => {
+        router.back()
+        setBack(true)
+    }, [])
 
     return (
         <div className='h-screen flex flex-col bg-gradient-to-br from-[#030712] to-[#2f0d68]'>
             <header
                 className='shrink-0 bg-[#101828] flex justify-between items-center border-b border-b-[#1e2939] p-4'
             >
-                <div className='flex gap-5'>
-                    <div className='flex items-center' onClick={() => router.back()}>
-                        <ArrowLeft className='cursor-pointer text-[#777f8d] hover:text-white transition-colors duration-300'/>
-                    </div>
+                <div className='flex gap-5 items-center'>
+                    <AnimatePresence mode='wait'>
+                        {!back ?
+                            <motion.div
+                                key='settings'
+                                animate={{opacity: 1, scale: 1, rotate: 0}}
+                                exit={{opacity: 0, scale: 0.5, rotate: 45}}
+                                transition={{duration: 0.15}}
+                            >
+                                <ArrowLeft
+                                    className='cursor-pointer text-[#777f8d] hover:text-white focus:text-white outline-none transition-colors duration-300 w-8 h-8'
+                                    onClick={bck}
+                                    tabIndex={0}
+                                />
+                            </motion.div>
+                            :
+                            <motion.div
+                                key='loader'
+                                initial={{opacity: 0, scale: 0.5}}
+                                animate={{opacity: 1, scale: 1}}
+                                exit={{opacity: 0, scale: 0.5}}
+                                transition={{duration: 0.15}}
+                            >
+                                <Loader
+                                    className='text-[#959dab] animate-spin'
+                                />
+                            </motion.div>
+                        }
+                    </AnimatePresence>
                     <div
                         className='bg-[#7f22fe] rounded-[10px] w-min p-2'
                     >
@@ -191,12 +226,35 @@ export default function settings() {
                         What2Watch
                     </h1>
                 </div>
-                <div className='flex gap-5 pr-5'>
+                <div className='flex gap-5'>
                     <Settings className='text-white hover:text-white transition-colors duration-300'/>
-                    <LogOut
-                        className='cursor-pointer text-[#959dab] hover:text-red-500 transition-colors duration-300'
-                        onClick={logout}
-                    />
+                    <AnimatePresence mode='wait'>
+                        {!deauth ?
+                            <motion.div
+                                key='settings'
+                                animate={{opacity: 1, scale: 1, rotate: 0}}
+                                exit={{opacity: 0, scale: 0.5, rotate: 45}}
+                                transition={{duration: 0.15}}
+                            >
+                                <LogOut
+                                    onClick={() => {logout(); setDeauth(true)}}
+                                    className='cursor-pointer text-[#959dab] hover:text-white transition-colors duration-300'
+                                />
+                            </motion.div>
+                            :
+                            <motion.div
+                                key='loader'
+                                initial={{opacity: 0, scale: 0.5}}
+                                animate={{opacity: 1, scale: 1}}
+                                exit={{opacity: 0, scale: 0.5}}
+                                transition={{duration: 0.15}}
+                            >
+                                <Loader
+                                    className='text-[#959dab] animate-spin'
+                                />
+                            </motion.div>
+                        }
+                    </AnimatePresence>
                 </div>
             </header>
             <div className='flex-1 overflow-y-auto'>

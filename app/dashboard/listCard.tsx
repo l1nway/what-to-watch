@@ -1,3 +1,4 @@
+import {animationProps, stylesProps} from '../components/motionProps'
 import {ListCardProps} from './dashboardTypes'
 import {motion} from 'framer-motion'
 import {Film} from 'lucide-react'
@@ -8,51 +9,26 @@ export function ListCard({router, list, delay, index}: ListCardProps) {
 
     return (
        <motion.div
-            className='max-md:max-w-[47%] max-md:min-w-[47%] min-w-153 flex bg-[#101828] border border-[#1e2939] rounded-[10px] flex-col p-6 cursor-pointer hover:border-[#7f22fe] transition-colors duration-300'
+            className='outline-none list-card-sizes flex bg-[#101828] border border-[#1e2939] rounded-[10px] flex-col p-6 max-md:p-3 cursor-pointer hover:border-[#7f22fe] focus:border-[#7f22fe] transition-colors duration-300 mb-3 mr-3'
             onClick={() => router.push(`/list?id=${encodeURIComponent(list.id)}`)}
-            tabIndex={0}
-            key={list?.id}
-            style={{ 
-                willChange: 'transform, opacity, height',
-                backfaceVisibility: 'hidden',
-                transform: 'translateZ(0)'
-            }}
-            ref={cardRef}
+            style={{...stylesProps, overflow: 'hidden'}}
+            {...animationProps('both', true, delay, index)}
             layoutId={list?.id}
-            layout='position'
-            viewport={{once: false, amount: 'some', margin: '-10px 0px -10px 0px'}}
-            initial={{opacity: 0, scale: 0.9}}
-            whileInView={{opacity: 1, scale: 1}}
-            transition={{
-                layout: { 
-                    type: 'spring', 
-                    stiffness: 300, 
-                    damping: 30
-                },
-                default: { 
-                    duration: 0.3, 
-                    ease: 'easeInOut',
-                    delay: delay ? index * 0.08 : undefined
-                },
-                opacity: {
-                    duration: 0.3,
-                    delay: delay ? index * 0.08 : undefined
-                }
-            }}
-            exit={{opacity: 0, scale: 0.8, transition: {duration: 0.3}}}
+            ref={cardRef}
+            tabIndex={0}
         >
-            <div className='flex w-full justify-between'>
-                <div className='p-4 bg-[#1b183d] rounded-[10px]'>
+            <div className='flex w-full justify-between gap-2 max-md:flex-col'>
+                <div className='p-4 bg-[#1b183d] rounded-[10px] max-md:justify-center max-md:flex max-md:h-fit max-md:w-fit'>
                     <Film className='text-[#a684ff]'/>
                 </div>
                 <span className='text-[#6a7282]'>
                     {list?.movies?.length ? list.movies.length : 0} movies
                 </span>
             </div>
-            <div className='text-white text-[1.5em]'>
+            <div className='text-white text-[1.5em] break-all'>
                 {list.name}
             </div>
-            <span className='text-[#99a1af]'>
+            <span className='text-[#99a1af] min-h-6'>
                 {list.desc}
             </span>
         </motion.div>

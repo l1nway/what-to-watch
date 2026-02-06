@@ -1,4 +1,5 @@
 import {Save, Film, UserRoundPlus, Trash2, Pencil, CircleCheck, X, DoorOpen} from 'lucide-react'
+import {animationProps, stylesProps} from '../components/motionProps'
 import {useEffect, useRef, useLayoutEffect, useState} from 'react'
 import {shake, clearShake} from '../components/shake'
 import {motion, AnimatePresence} from 'framer-motion'
@@ -8,12 +9,11 @@ import {GroupCardProps} from './dashboardTypes'
 import {Button} from '@/components/ui/button'
 import {Select} from 'react-animated-select'
 
-
 export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, updateGroup, setGroups, setInvite, accept, reject, router, invite, group, index, lists, user, delay}: GroupCardProps) {
     const [inputWidth, setInputWidth] = useState<number | string>('auto')
 
-    const cardRef = useRef<HTMLDivElement | null>(null)
     const inputRef = useRef<HTMLInputElement | null>(null)
+    const cardRef = useRef<HTMLDivElement | null>(null)
     const spanRef = useRef<HTMLSpanElement>(null)
     const editRef = useRef<HTMLDivElement>(null)
     const viewRef = useRef<HTMLDivElement>(null)
@@ -39,43 +39,18 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
     const owner = user?.uid === group?.ownerId
     return (
         <motion.div
-            className='min-h-50 flex bg-[#101828] border border-[#1e2939] rounded-[10px] p-6 w-full justify-between cursor-pointer hover:border-[#7f22fe] transition-colors duration-300'
-            tabIndex={0}
-            key={group?.id}
-            style={{ 
-                willChange: 'transform, opacity, height',
-                backfaceVisibility: 'hidden',
-                transform: 'translateZ(0)'
-            }}
-            ref={cardRef}
+            className='outline-none focus:border-[#7f22fe] min-h-50 flex bg-[#101828] border border-[#1e2939] rounded-[10px] p-6 w-full justify-between cursor-pointer hover:border-[#7f22fe] transition-colors duration-300 mb-3'
+            style={{...stylesProps, overflow: 'hidden'}}
             layoutId={group?.id}
-            layout='position'
-            viewport={{once: false, amount: 'some', margin: '-10px 0px -10px 0px'}}
-            initial={{opacity: 0, scale: 0.9}}
-            whileInView={{opacity: 1, scale: 1}}
-            transition={{
-                layout: { 
-                    type: 'spring', 
-                    stiffness: 300, 
-                    damping: 30
-                },
-                default: { 
-                    duration: 0.3, 
-                    ease: 'easeInOut',
-                    delay: delay ? index * 0.08 : undefined
-                },
-                opacity: {
-                    duration: 0.3,
-                    delay: delay ? index * 0.08 : undefined
-                }
-            }}
-            exit={{opacity: 0, scale: 0.8, transition: {duration: 0.3}}}
+            {...animationProps('vertical', true, delay, index)}
+            ref={cardRef}
+            tabIndex={0}
         >
-            <div className='flex flex-col min-md:w-[85%] max-md:w-[50%]'>
-                <div className='relative flex items-center h-10'>
-                    <div className='absolute flex top-0 items-center h-10'>
+            <div className={`flex flex-col ${owner ? 'min-md:min-w-[85%] max-md:min-w-[70%]' : 'min-md:w-full max-md:w-full'}`}>
+                <div className='relative flex items-center h-10 w-full'>
+                    <div className='absolute flex top-0 items-center h-10 w-full'>
                         <span
-                            className={`overflow-hidden text-ellipsis max-md:max-w-35
+                            className={`overflow-hidden text-ellipsis max-md:max-w-[90%]
                                 absolute invisible whitespace-pre text-xl ${group?.edit ? 'pl-2 pr-2' : 'pr-1'} py-2`
                             }
                             ref={spanRef}
@@ -95,8 +70,8 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
                                     g.id === group?.id ? {...g, tempName: e.target.value} : g
                                 ))
                                 clearShake(inputRef.current)
-                            }}
-                            className={`overflow-hidden text-ellipsis max-md:max-w-35 py-2 text-left whitespace-nowrap overflow-hidden border border-[#7f22fe] text-xl rounded-[10px] outline-none bg-[#7f22fe] text-white disabled:bg-[#101828] disabled:border-[#101828] duration-300
+                            }}  
+                            className={`overflow-hidden text-ellipsis max-md:max-w-[90%] py-2 text-left whitespace-nowrap overflow-hidden border border-[#7f22fe] text-xl rounded-[10px] outline-none bg-[#7f22fe] text-white disabled:bg-[#101828] disabled:border-[#101828] duration-300
                                 ${group?.edit ? 'pl-2 pr-2' : 'pr-1'} 
                                 `}
                         />
@@ -156,7 +131,12 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
                 <span className='text-[#99a1af] mb-2'>
                     {group?.members?.length} members
                 </span>
-                <div className='flex overflow-x-auto [scrollbar-width:thin] [scrollbar-gutter:stable] min-h-20 pb-2 max-md:max-w-50 w-[100%]'>
+                <div
+                    className={`flex overflow-x-auto [scrollbar-width:thin] [scrollbar-gutter:stable] min-h-20 pb-2 w-full
+                    ${owner ? '[mask-image:linear-gradient(to_right,black_calc(100%-60px),transparent)] [-webkit-mask-image:linear-gradient(to_right,black_calc(100%-60px),transparent)]' : ''}`}
+                    
+                    tabIndex={-1}
+                >
                     <AnimatePresence initial={false}>
                         {group?.lists?.map((list) => (
                             <motion.div
@@ -214,24 +194,22 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
             </div>
             {!owner && !invite ?
                 <DoorOpen
+                    className='outline-none w-9 h-9 text-[#959dab] hover:text-white focus:text-white transition-colors duration-300'
                     onClick={() => {setSelectedGroup?.(group?.id); setDelClarify?.('leave')}}
-                    className='w-9 h-9 text-[#959dab] hover:text-white transition-colors duration-300'/>
+                    tabIndex={0}
+                />
                 : null}
             {owner && !invite ?
-                <div className='flex flex-col gap-4'>
+                <div className='flex flex-col gap-4 max-md:w-fit min-md:w-full'>
                     <Button
-                        className='bg-[#1e2939] rounded-[10px] p-4 cursor-pointer hover:bg-[#303844] transition-colors duration-300'
+                        className='outline-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-[#1e2939] rounded-[10px] p-4 cursor-pointer hover:bg-[#303844] focus:bg-[#303844] transition-colors duration-300'
                         onClick={() => setInvite?.({id: group?.id, name: group?.name})}
                         disabled={!owner}
                     >
                         <UserRoundPlus/> Invite
                     </Button>
                     <Select
-                        offset={2}
-                        disabled={!owner}
-                        disabledText='Not available'
-                        selectedText='+ Add list'
-                        optionsClassName='list-select-list'
+                        className='outline-none !justify-center [&_.rac-select-buttons]:!hidden text-white hover:!bg-[#641aca] rounded-[10px] p-4 cursor-pointer !transition-colors duration-300 min-h-9! items-center'
                         style={{
                             '--rac-select-border': 'none',
                             '--rac-select-background': '#7f22fe',
@@ -246,15 +224,20 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
                             '--rac-scroll-color': '#7f22fe',
                             '--rac-scroll-track': '#1e2939'
                         } as React.CSSProperties}
-                        multiple
-                        placeholder='+ Add list'
-                        options={lists}
-                        value={group?.lists?.map(l => l)}
+                        optionsClassName='list-select-list max-md:w-[50%]! max-md:left-[40%]!'
+                        
                         onChange={(fullObjects, ids) => updateGroups?.(group?.id, fullObjects, ids as unknown as string[])}
-                        className='!justify-center min-w-40 [&_.rac-select-buttons]:!hidden text-white hover:!bg-[#641aca] rounded-[10px] p-4 cursor-pointer !transition-colors duration-300'
+                        value={group?.lists?.map(l => l)}
+                        disabledText='Not available'
+                        selectedText='+ Add list'
+                        placeholder='+ Add list'
+                        disabled={!owner}
+                        options={lists}
+                        offset={2}
+                        multiple
                     />
                     <Button
-                        className='bg-red-500 rounded-[10px] p-4 cursor-pointer hover:bg-red-700 transition-colors duration-300'
+                        className='outline-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-red-500 rounded-[10px] p-4 cursor-pointer hover:bg-red-700 focus:bg-red-700 transition-colors duration-300'
                         onClick={() => {setSelectedGroup?.(group?.id); setDelClarify?.('delete')}}
                     >
                         <Trash2/> Delete
