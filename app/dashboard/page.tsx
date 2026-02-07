@@ -5,6 +5,7 @@ import {ReactNode, useCallback, useState} from 'react'
 import {AnimatePresence, motion} from 'framer-motion'
 import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
+import {useSearchParams} from 'next/navigation'
 import {Button} from '@/components/ui/button'
 import {GroupSkeleton} from './groupSkeleton'
 import {ListSkeleton} from './listSkeleton'
@@ -16,6 +17,9 @@ import Invite from './invite'
 import New from './new'
 
 export default function Dashboard() {
+    const searchParams = useSearchParams()
+    const groupId = searchParams.get('groupId')
+
     const dashboardLogic = useDashboard()
 
     const {logout, delay, leaveGroup, newGroupRef, newListRef, setGroups, updateGroup, delClarify, setDelClarify, selectedGroup, setSelectedGroup, deleteGroup, router, lists, groups, user, loading, list, setList, group, setGroup, invite, setInvite, listName, setListName, listDesc, setListDesc, groupName, setGroupName, groupDesc, setGroupDesc, inviteEmail, setInviteEmail, groupLists, setGroupLists, createList, createGroup, updateGroups} = dashboardLogic
@@ -228,19 +232,19 @@ export default function Dashboard() {
                             /> : null}
                         {groups.map((group, index) => 
                             <GroupCard
-                                delay={delay}
-                                key={group.id}
-                                group={group}
-                                index={index}
-                                user={user}
-                                lists={lists}
-                                setGroups={setGroups}
-                                updateGroup={updateGroup}
-                                setInvite={setInvite}
                                 setSelectedGroup={setSelectedGroup}
                                 setDelClarify={setDelClarify}
                                 updateGroups={updateGroups}
+                                updateGroup={updateGroup}
+                                setGroups={setGroups}
+                                setInvite={setInvite}
                                 router={router}
+                                key={group.id}
+                                delay={delay}
+                                group={group}
+                                index={index}
+                                lists={lists}
+                                user={user}
                             />
                         )}
                     </AnimatePresence>

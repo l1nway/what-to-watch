@@ -1,11 +1,11 @@
 import {Save, Film, UserRoundPlus, Trash2, Pencil, CircleCheck, X, DoorOpen} from 'lucide-react'
+import {useEffect, useRef, useLayoutEffect, useState, useCallback, useMemo} from 'react'
 import {animationProps, stylesProps} from '../components/motionProps'
-import {useEffect, useRef, useLayoutEffect, useState} from 'react'
+import {DeleteProps, GroupCardProps} from './dashboardTypes'
 import {shake, clearShake} from '../components/shake'
 import {motion, AnimatePresence} from 'framer-motion'
 import {CSSTransition} from 'react-transition-group'
 import SlideLeft from '../components/slideLeft'
-import {GroupCardProps} from './dashboardTypes'
 import {Button} from '@/components/ui/button'
 import {Select} from 'react-animated-select'
 
@@ -17,6 +17,22 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
     const spanRef = useRef<HTMLSpanElement>(null)
     const editRef = useRef<HTMLDivElement>(null)
     const viewRef = useRef<HTMLDivElement>(null)
+
+    const owner = useMemo(() => user?.uid === group?.ownerId, [user?.uid, group?.ownerId])
+    const editor = useMemo(() => group?.editors?.includes(user?.uid ?? ''), [user?.uid, group?.editors])
+    const admin = useMemo(() => owner || editor, [owner, editor])
+
+    const del = useCallback((type: DeleteProps['action']) => {
+        setSelectedGroup?.(group?.id)
+        setDelClarify?.(type)
+    }, [group, setSelectedGroup, setDelClarify])
+
+    const onChange = useCallback((e: {target: {value: string}}) => {
+        setGroups?.(prev => prev.map(g => 
+            g.id === group?.id ? {...g, tempName: e.target.value} : g
+        ))
+        clearShake(inputRef.current)
+    }, [group, setGroups])
 
     useLayoutEffect(() => {
         if (!spanRef.current) return
@@ -35,105 +51,110 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
             inputRef.current.value = val
         }
     }, [group?.edit])
-
-    const owner = user?.uid === group?.ownerId
+    
     return (
         <motion.div
             className='outline-none focus:border-[#7f22fe] min-h-50 flex bg-[#101828] border border-[#1e2939] rounded-[10px] p-6 w-full justify-between cursor-pointer hover:border-[#7f22fe] transition-colors duration-300 mb-3'
+            {...animationProps('vertical', true, delay, index)}
             style={{...stylesProps, overflow: 'hidden'}}
             layoutId={group?.id}
-            {...animationProps('vertical', true, delay, index)}
             ref={cardRef}
             tabIndex={0}
         >
-            <div className={`flex flex-col ${owner ? 'min-md:min-w-[85%] max-md:min-w-[70%]' : 'min-md:w-full max-md:w-full'}`}>
-                <div className='relative flex items-center h-10 w-full'>
-                    <div className='absolute flex top-0 items-center h-10 w-full'>
-                        <span
-                            className={`overflow-hidden text-ellipsis max-md:max-w-[90%]
-                                absolute invisible whitespace-pre text-xl ${group?.edit ? 'pl-2 pr-2' : 'pr-1'} py-2`
-                            }
-                            ref={spanRef}
-                        >
-                            {group?.tempName ?? group?.name ?? ''}
+            <div className={`flex flex-col ${(admin || invite) ? 'min-md:min-w-[85%] max-md:min-w-[70%]' : 'min-md:w-full max-md:w-full'}`}>
+                <div className='mb-2 flex justify-between w-full'>
+                    <div className='w-full'>
+                        <div className='relative flex items-center h-10 w-full'>
+                            <div className='absolute flex top-0 items-center h-10 w-full'>
+                                <span
+                                    className={`text-ellipsis max-md:max-w-[90%]
+                                        absolute invisible whitespace-pre text-xl ${group?.edit ? 'pl-2 pr-2' : 'pr-1'} py-2`
+                                    }
+                                    ref={spanRef}
+                                >
+                                    {group?.tempName ?? group?.name ?? ''}
+                                </span>
+                                <input
+                                    style={{
+                                        transition: 'width 150ms, padding 300ms, background-color 300ms, border-color 300ms',
+                                        width: inputWidth
+                                    }}
+                                    ref={inputRef}
+                                    disabled={!group?.edit}
+                                    value={group?.tempName ?? group?.name ?? ''}
+                                    onChange={onChange}  
+                                    className={`text-ellipsis max-md:max-w-[90%] py-2 text-left whitespace-nowrap border border-[#7f22fe] text-xl rounded-[10px] outline-none bg-[#7f22fe] text-white disabled:bg-[#101828] disabled:border-[#101828] duration-300
+                                        ${group?.edit ? 'pl-2 pr-2' : 'pr-1'} 
+                                        `}
+                                />
+                                {admin ?
+                                    <div className='relative w-6 h-6'>
+                                        <CSSTransition
+                                            in={group?.edit}
+                                            timeout={700}
+                                            classNames='icon-fade'
+                                            unmountOnExit
+                                            nodeRef={editRef}
+                                        >
+                                            <div
+                                                ref={editRef}
+                                            >
+                                            <Save
+                                                className='absolute top-0 left-0 ml-1 text-[#99a1af] cursor-pointer hover:text-white transition-colors duration-300'
+                                                onClick={() => {
+                                                    if (!group?.id || !group?.tempName.trim()) {
+                                                        shake(inputRef.current)
+                                                        return
+                                                    }
+                                                    if (group?.tempName.trim() === group?.name) {
+                                                        setGroups?.(prev => prev.map(g => g.id === group?.id ? {...g, edit: false} : g))
+                                                        return
+                                                    }
+                                                    updateGroup?.(group?.id, group?.tempName)
+                                                }}
+                                            />
+                                            </div>
+                                        </CSSTransition>
+                                        <CSSTransition
+                                            in={!group?.edit}
+                                            timeout={700}
+                                            classNames='icon-fade'
+                                            unmountOnExit
+                                            nodeRef={viewRef}
+                                        >
+                                            <div
+                                                ref={viewRef}
+                                                className='absolute top-0 left-0 flex items-center justify-center'
+                                            >
+                                            <Pencil
+                                                className='ml-1 text-[#99a1af] cursor-pointer hover:text-white transition-colors duration-300'
+                                                onClick={() =>
+                                                    setGroups?.(prev => prev.map(g =>
+                                                        g.id === group?.id ? {...g, edit: true, tempName: g.name} : g
+                                                    ))
+                                                }
+                                            />
+                                            </div>
+                                        </CSSTransition>
+                                    </div>
+                                : null}
+                            </div>
+                        </div>
+                        <span className='text-[#99a1af]'>
+                            {group?.members?.length} members
                         </span>
-                        <input
-                            style={{
-                                transition: 'width 150ms, padding 300ms, background-color 300ms, border-color 300ms',
-                                width: inputWidth
-                            }}
-                            ref={inputRef}
-                            disabled={!group?.edit}
-                            value={group?.tempName ?? group?.name ?? ''}
-                            onChange={(e) => {
-                                setGroups?.(prev => prev.map(g => 
-                                    g.id === group?.id ? {...g, tempName: e.target.value} : g
-                                ))
-                                clearShake(inputRef.current)
-                            }}  
-                            className={`overflow-hidden text-ellipsis max-md:max-w-[90%] py-2 text-left whitespace-nowrap overflow-hidden border border-[#7f22fe] text-xl rounded-[10px] outline-none bg-[#7f22fe] text-white disabled:bg-[#101828] disabled:border-[#101828] duration-300
-                                ${group?.edit ? 'pl-2 pr-2' : 'pr-1'} 
-                                `}
-                        />
-                        {owner ?
-                            <div className='relative w-6 h-6'>
-                                <CSSTransition
-                                    in={group?.edit}
-                                    timeout={700}
-                                    classNames='icon-fade'
-                                    unmountOnExit
-                                    nodeRef={editRef}
-                                >
-                                    <div
-                                        ref={editRef}
-                                    >
-                                    <Save
-                                        className='absolute top-0 left-0 ml-1 text-[#99a1af] cursor-pointer hover:text-white transition-colors duration-300'
-                                        onClick={() => {
-                                        if (!group?.id || !group?.tempName.trim()) {
-                                            shake(inputRef.current)
-                                            return
-                                        }
-                                        if (group?.tempName.trim() === group?.name) {
-                                            setGroups?.(prev => prev.map(g => g.id === group?.id ? {...g, edit: false} : g))
-                                            return
-                                        }
-                                        updateGroup?.(group?.id, group?.tempName)
-                                        }}
-                                    />
-                                    </div>
-                                </CSSTransition>
-                                <CSSTransition
-                                    in={!group?.edit}
-                                    timeout={700}
-                                    classNames='icon-fade'
-                                    unmountOnExit
-                                    nodeRef={viewRef}
-                                >
-                                    <div
-                                    ref={viewRef}
-                                    className='absolute top-0 left-0 flex items-center justify-center'
-                                    >
-                                    <Pencil
-                                        className='ml-1 text-[#99a1af] cursor-pointer hover:text-white transition-colors duration-300'
-                                        onClick={() =>
-                                        setGroups?.(prev => prev.map(g =>
-                                            g.id === group?.id ? {...g, edit: true, tempName: g.name} : g
-                                        ))
-                                        }
-                                    />
-                                    </div>
-                                </CSSTransition>
-                             </div>
-                        : null}
                     </div>
+                    {!admin && !invite ?
+                        <DoorOpen
+                            className='outline-none w-9 h-9 text-[#959dab] hover:text-white focus:text-white transition-colors duration-300'
+                            onClick={() => del('leave')}
+                            tabIndex={0}
+                        />
+                    : null}
                 </div>
-                <span className='text-[#99a1af] mb-2'>
-                    {group?.members?.length} members
-                </span>
                 <div
-                    className={`flex overflow-x-auto [scrollbar-width:thin] [scrollbar-gutter:stable] min-h-20 pb-2 w-full
-                    ${owner ? '[mask-image:linear-gradient(to_right,black_calc(100%-60px),transparent)] [-webkit-mask-image:linear-gradient(to_right,black_calc(100%-60px),transparent)]' : ''}`}
+                    className={`flex overflow-x-auto [scrollbar-width:thin] [scrollbar-gutter:stable] [scrollbar-color:#641aca_#1e2939] min-h-20 pb-2 w-full
+                    ${(admin || invite) ? '[mask-image:linear-gradient(to_right,black_calc(100%-60px),transparent)] [-webkit-mask-image:linear-gradient(to_right,black_calc(100%-60px),transparent)]' : ''}`}
                     
                     tabIndex={-1}
                 >
@@ -192,19 +213,12 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
                     </SlideLeft>
                 </div>
             </div>
-            {!owner && !invite ?
-                <DoorOpen
-                    className='outline-none w-9 h-9 text-[#959dab] hover:text-white focus:text-white transition-colors duration-300'
-                    onClick={() => {setSelectedGroup?.(group?.id); setDelClarify?.('leave')}}
-                    tabIndex={0}
-                />
-                : null}
-            {owner && !invite ?
+            {admin && !invite ?
                 <div className='flex flex-col gap-4 max-md:w-fit min-md:w-full'>
                     <Button
                         className='outline-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-[#1e2939] rounded-[10px] p-4 cursor-pointer hover:bg-[#303844] focus:bg-[#303844] transition-colors duration-300'
                         onClick={() => setInvite?.({id: group?.id, name: group?.name})}
-                        disabled={!owner}
+                        disabled={!admin}
                     >
                         <UserRoundPlus/> Invite
                     </Button>
@@ -231,34 +245,36 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
                         disabledText='Not available'
                         selectedText='+ Add list'
                         placeholder='+ Add list'
-                        disabled={!owner}
+                        disabled={!admin}
                         options={lists}
                         offset={2}
                         multiple
                     />
                     <Button
-                        className='outline-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-red-500 rounded-[10px] p-4 cursor-pointer hover:bg-red-700 focus:bg-red-700 transition-colors duration-300'
-                        onClick={() => {setSelectedGroup?.(group?.id); setDelClarify?.('delete')}}
+                        className={`outline-none focus-visible:ring-0 focus-visible:ring-offset-0 rounded-[10px] p-4 cursor-pointer
+                        ${owner ? 'bg-red-500 hover:bg-red-700 focus:bg-red-700' : 'bg-[#1e2939] hover:bg-[#303844] focus:bg-[#303844]'}
+                        transition-colors duration-300`}
+                        onClick={() => del(owner ? 'delete' : 'leave')}
                     >
-                        <Trash2/> Delete
+                        {owner ? <><Trash2/> Delete</> : <><DoorOpen/> Leave</>}
                     </Button>
                 </div>
             : null}
             {invite ?
-                <div className='flex flex-col gap-4'>
+                <div className='flex flex-col gap-4 justify-center'>
                     <Button
-                        className='h-fit text-2xl bg-[#7f22fe] rounded-[10px] p-4 cursor-pointer hover:bg-[#641aca] transition-colors duration-300'
+                        className='h-fit text-xl bg-[#7f22fe] rounded-[10px] p-2 cursor-pointer hover:bg-[#641aca] transition-colors duration-300'
                         onClick={() => accept?.()}
                     >
                         <CircleCheck
-                            className='w-8! h-8!'
+                            className='w-5! h-5!'
                         /> Accept
                     </Button>
                     <Button
-                        className='h-fit text-2xl bg-red-500 rounded-[10px] p-4 cursor-pointer hover:bg-red-700 transition-colors duration-300'
+                        className='h-fit text-xl bg-red-500 rounded-[10px] p-2 cursor-pointer hover:bg-red-700 transition-colors duration-300'
                         onClick={() => reject?.()}
                     >
-                        <X className='w-8! h-8!'/> Reject
+                        <X className='w-5! h-5!'/> Reject
                     </Button>
                 </div>
             : null}

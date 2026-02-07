@@ -12,6 +12,7 @@ export interface FirestoreGroup {
 
 export interface FirestoreInvite {
     id: string
+    role: string
     email: string
     groupId: string
     status: 'pending' | 'accepted' | 'rejected'
@@ -23,6 +24,7 @@ export interface EnrichedGroup extends Omit<FirestoreGroup, 'lists'> {
 
 export interface FullInvite extends FirestoreInvite {
     groupData: EnrichedGroup | null
+    token?: string
 }
 
 export interface PasswordField {

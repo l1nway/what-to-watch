@@ -89,9 +89,16 @@ export default function useInvites(user: User | null) {
         const batch = writeBatch(db)
 
         const groupRef = doc(db, 'groups', invite.groupId)
-        batch.update(groupRef, {
+
+        const updateData: any = {
             members: arrayUnion(user.uid)
-        })
+        }
+
+        if (invite.role === 'editor') {
+            updateData.editors = arrayUnion(user.uid)
+        }
+
+        batch.update(groupRef, updateData)
 
         const inviteRef = doc(db, 'invites', invite.id)
         batch.delete(inviteRef)

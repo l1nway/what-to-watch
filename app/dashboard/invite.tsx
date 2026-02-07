@@ -1,21 +1,20 @@
 'use client'
 
-import ShowClarify from '../components/showClarify'
-import {X, UserRoundPlus} from 'lucide-react'
-import {Input} from '@/components/ui/input'
+import {X, UserRoundPlus, UserStar, UserPen, User, BadgeInfo} from 'lucide-react'
+import {collection, writeBatch, doc} from 'firebase/firestore'
 import {Field, FieldLabel} from '@/components/ui/field'
+import {TransitionGroup} from 'react-transition-group'
+import {validateEmail} from '../components/validation'
+import {shake, clearShake} from '../components/shake'
+import {useState, useCallback, useRef} from 'react'
+import ShowClarify from '../components/showClarify'
+import {useAuth} from '../components/authProvider'
+import SlideDown from '../components/slideDown'
 import {Button} from '@/components/ui/button'
 import {Select} from 'react-animated-select'
-import {useState, useCallback, useRef} from 'react'
-import {TransitionGroup} from 'react-transition-group'
-import SlideDown from '../components/slideDown'
-import SlideLeft from '../components/slideLeft'
-import {shake, clearShake} from '../components/shake'
-import {collection, writeBatch, doc} from 'firebase/firestore'
-import {db} from '@/lib/firebase'
-
 import {InviteProps} from './dashboardTypes'
-import {useAuth} from '../components/authProvider'
+import {Input} from '@/components/ui/input'
+import {db} from '@/lib/firebase'
 
 const generateToken = () => crypto.randomUUID()
 
@@ -39,24 +38,39 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
     const group = typeof data === 'object' ? data : null
 
     const emailRef = useRef<HTMLInputElement | null>(null)
-    const [error, setError] = useState<boolean>(false)
+    const adminRef = useRef<HTMLButtonElement | null>(null)
+    const memberRef = useRef<HTMLButtonElement | null>(null)
 
-    const [pendings, setPendings] = useState<string[]>([])
+    const [error, setError] = useState<boolean>(false)
+    
     const [duration, setDuration] = useState<string>('30 min')
     const durations = ['5 min', '30 min', '1 hour', '2 hours', '6 hours', '12 hours', '1 day', '1 week', '1 month']
-    
-    const validEmail = useCallback((input: string): boolean => {
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input)
-    }, [])
+
+    type Pending = {
+        email: string
+        admin: boolean
+    }
+
+    const [pendings, setPendings] = useState<Pending[]>([])
 
     const sendInvite = useCallback(async () => {
-        if (pendings.length === 0) return
+        if ((!validateEmail(input) || input == '') && pendings.length === 0) {
+            shake(emailRef.current)
+            setError(true)
+            return
+        }
+
+        if (pendings.length === 0) {
+            shake(memberRef.current)
+            shake(adminRef.current)
+            return
+        }
 
         try {
             const batch = writeBatch(db)
             const expiresAt = getExpirationDate(duration)
 
-            for (const email of pendings) {
+            for (const {email, admin} of pendings) {
                 const token = generateToken()
                 const cleanEmail = email.toLowerCase()
                 const customInviteId = `${cleanEmail}_${group?.id}`
@@ -71,7 +85,8 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                     status: 'pending',
                     senderId: user?.uid,
                     senderName: user?.displayName || 'Someone',
-                    createdAt: new Date()
+                    createdAt: new Date(),
+                    role: admin ? 'editor' : 'member'
                 })
 
                 const mailRef = doc(collection(db, 'mail'))
@@ -99,19 +114,61 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
 
     const renderPendings = pendings.map((element, index) => {
         return (
-            <SlideDown key={element}>
-                <div key={element} className='text-white mt-3 bg-[#1e2939] prose prose-invert p-2 rounded-[10px] border border-[#364153] hover:border-[#7f22fe] transition-colors duration-300 flex justify-between w-full'>
-                    {element}
+            <SlideDown key={element.email}>
+                <div className='text-white mt-3 bg-[#1e2939] prose prose-invert p-2 rounded-[10px] border border-[#364153] hover:border-[#7f22fe] transition-colors duration-300 flex justify-between w-full'>
+                    <label className='flex gap-2 items-center'>
+                        {element.admin ? <UserPen className='w-4 h-4'/> : <User className='w-4 h-4'/>}
+                        <span>
+                            {element.email}
+                        </span>
+                    </label>
                     <X onClick={() => setPendings(prev => prev.filter(e => e !== element))} className='text-[#99a1af] hover:text-red-500 cursor-pointer transition-colors duration-300'/>
                 </div>
             </SlideDown>
         )
     })
 
+    const addEmail = useCallback((role: boolean) => {
+        if (!validateEmail(input) || input === '') {
+            shake(emailRef.current)
+            setError(true)
+            return
+        }
+        clearShake(memberRef.current)
+        clearShake(adminRef.current)
+        const cleanEmail = input.trim().toLowerCase()
+
+        setPendings(prev => {
+            const exists = prev.find(p => p.email.toLowerCase() === cleanEmail)
+
+            if (exists) {
+                return prev.map(p =>
+                    p.email.toLowerCase() === cleanEmail ? {...p, admin: role} : p
+                )
+            }
+
+            return [...prev, {email: cleanEmail, admin: role}]
+        })
+
+        setInput('')
+    }, [input])
+
+    const close = useCallback(() => {
+        setPendings([])
+        setError(false)
+        onClose()
+    }, [])
+
+    const onChange = useCallback((e: {target: {value: string}}) => {
+        clearShake(emailRef.current)
+        setInput(e.target.value)
+        setError(false)
+    }, [])
+
     return (
         <ShowClarify
-            onClose={() => {onClose(); setError(false)}}
             visibility={group}
+            onClose={onClose}
         >
             <div className='text-white flex justify-between border-b border-[#1e2939] pb-4 items-center'>
                 <div className='flex flex-col gap-2 whitespace-nowrap'>
@@ -123,63 +180,50 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                     </h2>
                 </div>
             <X
-                onClick={() => {onClose(); setError(false)}}
+                onClick={close}
                 className='text-[#99a1af] hover:text-white cursor-pointer transition-colors duration-300'
             />
             </div>
             
-            <Field className='pb-4 pt-2 min-w-100'>
+            <div className='pt-2 flex justify-between'>
+                <span className='text-[#99a1af] text-sm'>
+                    By inviting user with admin{''}
+                    <span className='inline'>
+                        <UserStar className='w-4 h-4 mx-1 inline' />
+                    </span>{''}
+                    rights, he will be able to edit group.
+                    </span>
+                <BadgeInfo className='text-[#99a1af] hover:text-white cursor-pointer transition-colors duration-300'/>
+            </div>
+
+            <Field className='pb-4 pt-2 min-w-97 w-full'>
                 <FieldLabel
-                    htmlFor='input-email'
                     className='text-[#d1d5dc]'
+                    htmlFor='input-email'
                 >
                     Email Adress
                 </FieldLabel>
-                <div className='flex gap-2'>
+                <div className='flex gap-2 w-full'>
                     <Input
                         ref={emailRef}
-                        onChange={(e: {target: {value: string}}) => {
-                            setInput(e.target.value)
-                            setError(false) 
-                            clearShake(emailRef.current)
-                        }}
+                        onChange={onChange}
                         value={input}
                         id='input-email'
-                        type='email'    
+                        type='email'
                         placeholder='friend@email.com'
-                        className='
-                            bg-[#1e2939]
-                            text-white
-                            border-[#364153]
-                            placeholder:text-[#4b5563]
-
-                            hover:border-[#7f22fe]
-
-                            focus:border-[#7f22fe]
-                            focus:outline-none
-                            focus:ring-0
-                            focus:ring-offset-0
-
-                            focus-visible:outline-none
-                            focus-visible:border-[#7f22fe]
-                            focus-visible:ring-0
-                            focus-visible:ring-offset-0
-
-                            transition-colors
-                            duration-300
-                        '
+                        className='max-md:w-[65%] bg-[#1e2939] text-white border-[#364153] placeholder:text-[#4b5563] hover:border-[#7f22fe] focus:border-[#7f22fe] focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:border-[#7f22fe] focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors duration-300'
                     />
                     <Button
-                        className='bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'
-                        onClick={() => {
-                            if (!validEmail(input) || input == '') {
-                                shake(emailRef.current)
-                                setError(true)
-                                return
-                            }
-                            setPendings(prev => [...prev, input.trim()])
-                            setInput('')
-                        }}
+                        className='max-md:w-[10%] bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'
+                        onClick={() => addEmail(true)}
+                        ref={adminRef}
+                    >
+                        <UserStar/>
+                    </Button>
+                    <Button
+                        className='max-md:w-[10%] bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'
+                        onClick={() => addEmail(false)}
+                        ref={memberRef}
                     >
                         <UserRoundPlus/>
                     </Button>
@@ -231,14 +275,21 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                 Invited members will receive an email with a link to join your group.
             </div>
             <div className='flex gap-2 w-full justify-between pt-4'>
-                <Button className='w-full flex-1 bg-[#1e2939] hover:bg-[#303844] cursor-pointer' onClick={() => {onClose(); setError(false)}}>
+                <Button
+                    className='w-[49%] bg-[#1e2939] hover:bg-[#303844] cursor-pointer'
+                    onClick={close}
+                >
                     Cancel
                 </Button>
-                <SlideLeft className='min-w-0' visibility={pendings.length > 0}>
-                    <Button className='min-w-64 bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer' onClick={sendInvite}>
-                        Send invites ({pendings.length})
-                    </Button>
-                </SlideLeft>
+                <Button
+                    className={`
+                        w-[49%] hover:bg-[#641aca] cursor-pointer
+                        ${(pendings.length == 0) ? 'bg-[#641aca]' : 'bg-[#7f22fe]'}    
+                    `}
+                    onClick={sendInvite}
+                >
+                    Send invites ({pendings.length})
+                </Button>
             </div>
         </ShowClarify>
 )}

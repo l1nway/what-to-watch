@@ -48,8 +48,7 @@ export const GroupSkeleton = ({loading, onClick, lists}: GroupSkeletonProps) => 
             <div className={`flex gap-3 mt-2 overflow-y-hidden overflow-x-auto [scrollbar-width:thin] [scrollbar-gutter:stable] min-h-20 pb-2 w-full pb-2 
             ${loading ? '[mask-image:linear-gradient(to_right,black_calc(100%-60px),transparent)] [-webkit-mask-image:linear-gradient(to_right,black_calc(100%-60px),transparent)]' : ''}`}>
               {lists &&
-                // Array.from({length: Math.max(lists.length, 1)}).map((e, i) => (
-                Array.from({length: 200}).map((e, i) => (
+                Array.from({length: Math.max(lists.length, 1)}).map((e, i) => (
                   <div key={i} className={`
                     min-w-25 min-h-20 rounded-[5px] border border-[#1e2939] bg-[#101828] p-2 flex flex-col justify-between
                     ${loading ? 'animate-pulse' : null}

@@ -217,7 +217,7 @@ export default function List() {
                                 transition={{duration: 0.15}}
                             >
                                 <Loader
-                                    className='text-[#959dab] animate-spin'
+                                    className='text-[#959dab] animate-spin w-8 h-8'
                                 />
                             </motion.div>
                         }

@@ -33,6 +33,7 @@ export interface ListItem {
 export interface Group {
     members: string[]
     lists: ListItem[]
+    editors: string[]
     tempName: string
     ownerId: string
     edit: boolean

@@ -4,16 +4,16 @@ import {Film, Settings, LogOut, X, Save, Pencil, Loader, ArrowLeft} from 'lucide
 import {GroupCardProps} from '../dashboard/dashboardTypes'
 import {Field, FieldLabel} from '@/components/ui/field'
 import {TransitionGroup} from 'react-transition-group'
+import {AnimatePresence, motion} from 'framer-motion'
+import {useCallback, useMemo, useState} from 'react'
+import {useAuth} from '../components/authProvider'
 import {GroupCard} from '../dashboard/groupCard'
+import SlideDown from '../components/slideDown'
+import SlideLeft from '../components/slideLeft'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
 import useSettings from './useSettings'
-import {useAuth} from '../components/authProvider'
 import useInvites from './useInvites'
-import SlideDown from '../components/slideDown'
-import SlideLeft from '../components/slideLeft'
-import {useCallback, useMemo, useState} from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
 
 export default function settings() {
     const {user, loading} = useAuth()
@@ -105,7 +105,7 @@ export default function settings() {
                         <SlideLeft visibility={changed}>
                             <Button
                                 className='gap-0 mx-5 bg-[#7f22fe] hover:bg-[#641aca] transition-colors duration-300 cursor-pointer'
-                                onClick={() => saveName()}
+                                onClick={saveName}
                             >
                                 <SlideLeft visibility={element.loading}>
                                     <Loader className='mr-2 w-4 h-4 text-[#99a1af] cursor-wait animate-spin'/>
@@ -142,26 +142,7 @@ export default function settings() {
                         placeholder={element.placeholder}
                         value={element.value} 
                         onChange={(e) => onPasswordChange(index, e.target.value)}
-                        className='
-                            disabled:opacity-100
-                            bg-[#1e2939]
-                            text-[#6a7282]
-                            disabled:border-[#364153]
-                            placeholder:text-[#4b5563]
-
-                            border-[#7f22fe]
-                            focus:outline-none
-                            focus:ring-0
-                            focus:ring-offset-0
-
-                            focus-visible:outline-none
-                            focus-visible:border-[#7f22fe]
-                            focus-visible:ring-0
-                            focus-visible:ring-offset-0
-
-                            transition-colors
-                            duration-300
-                        '
+                        className='disabled:opacity-100 bg-[#1e2939] text-[#6a7282] disabled:border-[#364153] placeholder:text-[#4b5563] border-[#7f22fe] focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:border-[#7f22fe] focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors duration-300'
                     />
                     <SlideDown visibility={element.error}>
                         <span className='text-red-700'>{element.message}</span>
@@ -180,6 +161,8 @@ export default function settings() {
         router.back()
         setBack(true)
     }, [])
+
+    console.log(fullInvites)
 
     return (
         <div className='h-screen flex flex-col bg-gradient-to-br from-[#030712] to-[#2f0d68]'>
@@ -210,7 +193,7 @@ export default function settings() {
                                 transition={{duration: 0.15}}
                             >
                                 <Loader
-                                    className='text-[#959dab] animate-spin'
+                                    className='text-[#959dab] animate-spin w-8 h-8'
                                 />
                             </motion.div>
                         }

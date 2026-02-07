@@ -1,20 +1,20 @@
-import {useState, useCallback, useEffect, useLayoutEffect, useRef, useMemo, memo} from 'react'
+import {useState, useCallback, useEffect, useLayoutEffect, useRef, useMemo} from 'react'
 import {FilmItem, MovieSearchProps} from './listTypes'
 import {AnimatePresence, motion} from 'framer-motion'
 import ShowClarify from '../components/showClarify'
+import {httpsCallable} from 'firebase/functions'
 import {doc, updateDoc} from 'firebase/firestore'
 import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
+import {Loader, Search, X} from 'lucide-react'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
 import AddMovieCard from './addMovieCard'
-import {Loader, Search, X} from 'lucide-react'
+import {functions} from '@/lib/firebase'
 import debounce from 'lodash.debounce'
 import {statuses} from './useList'
 import {db} from '@/lib/firebase'
 
-const TMDB_SEARCH_URL = 'https://api.themoviedb.org/3/search/movie'
-const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY
 export const TMDB_MOVIE_URL = 'https://themoviedb.org/movie/'
 
 export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesData, onRefresh}: MovieSearchProps) => {
@@ -32,33 +32,40 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
     const [loading, setLoading] = useState<boolean>(false)
 
     const fetchSuggestions = useMemo(() => debounce(async (query: string) => {
-            if (!query.trim()) {
-                setSuggestions([])
-                return
-            }
-            try {
-                setLoading(true)
-                setText('Searching…')
-                const res = await fetch(`${TMDB_SEARCH_URL}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`)
-                const data = await res.json()
-                
-                const enrichedResults = (data.results || []).map((movie: any) => {
-                    const existingMovie = movies?.find((m: any) => m.id === movie.id)
-                    return {
-                        ...movie,
-                        status: existingMovie ? existingMovie.status : null,
-                        isSavedInDb: !!existingMovie 
-                    }
-                })
+        if (!query.trim()) {
+            setSuggestions([])
+            return
+        }
+        
+        try {
+            setText('Searching…')
+            setLoading(true)
 
-                setSuggestions(enrichedResults)
-                enrichedResults.length === 0 && setText('Nothing found')
-                setLoading(false)
-            } catch (e) {
-                console.error(e)
-                setText('Error while searching')
-                setLoading(false)
-            }
+            const searchMovies = httpsCallable(functions, 'searchMovies')
+
+            const response = await searchMovies({query})
+            
+            const tmdbResults = response.data as any[] 
+
+            const enrichedResults = tmdbResults.map((movie: any) => {
+                const existingMovie = movies?.find((m: any) => m.id === movie.id)
+                return {
+                    ...movie,
+                    status: existingMovie ? existingMovie.status : null,
+                    isSavedInDb: !!existingMovie 
+                }
+            })
+
+            setSuggestions(enrichedResults)
+            if (enrichedResults.length === 0) setText('Nothing found')
+            setLoading(false)
+            
+        } catch (e: any) {
+            console.error('Cloud Function Error:', e)
+            
+            setText('Error while searching')
+            setLoading(false)
+        }
     }, 500), [movies])
 
     const combinedList = useMemo(() => 
@@ -74,7 +81,7 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
             : prev
         )
         setSuggestions(prev => prev.map(s => s.id === element.id ? {...s, status: statusValue} : s))
-    }, [])
+    }, [setSuggestions, setFilms])
 
     const toggleFilm = useCallback((element: FilmItem) => {
         setFilms(prev => {
@@ -85,7 +92,7 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
                 return [...prev, {...element, status: element.status || null}]
             }
         })
-    }, [])
+    }, [setFilms])
 
     const renderFilms = useMemo(() => {
         return combinedList.map((movie, index) => {
