@@ -235,6 +235,12 @@ export function useList(listId: string | null) {
             setDelay(true)
         }
     }, [loading])
+    
+    useEffect(() => {
+        if (name && name !== 'Loading…') {
+            document.title = `${name} | What to Watch`
+        }
+    }, [name])
 
     return {delay, setFilter, owner, user, loading, delClarify, setDelClarify, deleteList, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, inputWidth, onChange, edit, setEdit, name, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime}
 }

@@ -1,6 +1,6 @@
-import {writeBatch, doc, addDoc, updateDoc, collection, serverTimestamp, arrayUnion, query, where, getDocs, deleteDoc, arrayRemove} from 'firebase/firestore'
+import {writeBatch, doc, addDoc, updateDoc, collection, serverTimestamp, arrayUnion, query, where, getDocs, deleteDoc, arrayRemove, documentId} from 'firebase/firestore'
 import {useCallback, useState, useEffect, useRef} from 'react'
-import {ListItem, Group, Data} from './dashboardTypes'
+import {ListItem, Group, Data, Member, MembersTypes} from './dashboardTypes'
 import {useAuth} from '../components/authProvider'
 import {shake} from '../components/shake'
 import {useRouter} from 'next/navigation'
@@ -20,8 +20,9 @@ export default function UseDashboard() {
     const {user} = useAuth()
 
     const [delClarify, setDelClarify] = useState<boolean | 'delete' | 'leave'>(false)
+    const [membersClarify, setMembersClarify] = useState<boolean>(false)
 
-    const [selectedGroup, setSelectedGroup] = useState<string | number>('')
+    const [selectedGroup, setSelectedGroup] = useState<Group | undefined>()
 
     const [inviteEmail, setInviteEmail] = useState<string>('')
 
@@ -305,5 +306,140 @@ export default function UseDashboard() {
         }
     }, [loading])
 
-    return ({logout, delay, newGroupRef, newListRef, groupRef, setGroups, updateGroup, delClarify, setDelClarify, selectedGroup, setSelectedGroup, deleteGroup, leaveGroup, router, lists, groups, user, loading, list, setList, group, setGroup, invite, setInvite, listName, setListName, listDesc, setListDesc, groupName, setGroupName, groupDesc, setGroupDesc, inviteEmail, setInviteEmail, groupLists, setGroupLists, createList, createGroup, updateGroups})
+    const [members, setMembers] = useState<Member[]>([])
+
+    const fetchMembers = useCallback(async () => {
+        if (!selectedGroup) return
+
+        try {
+            setLoading(true)
+            const ids = Array.from(new Set([
+                selectedGroup.ownerId,
+                ...(selectedGroup.editors || []),
+                ...(selectedGroup.members || []),
+            ])).filter(Boolean)
+
+            if (ids.length === 0) {
+                setMembers([])
+                return
+            }
+
+            const q = query(
+                collection(db, 'users'),
+                where(documentId(), 'in', ids)
+            )
+
+            const snap = await getDocs(q)
+            const result: Member[] = snap.docs.map(d => {
+                const userData = d.data()
+                const userId = d.id
+
+                let role: Member['role'] = 'member'
+                if (userId === selectedGroup.ownerId) role = 'owner'
+                else if (selectedGroup.editors?.includes(userId)) role = 'admin'
+
+                return {
+                    name: userData.displayName || userData.name || userData.email || 'Unknown user',
+                    avatar: userData.photoURL || '',
+                    id: userId,
+                    role
+                }
+            })
+
+            const roleOrder: Record<string, number> = {owner: 0, admin: 1, member: 2}
+            result.sort((a, b) => {
+                const orderA = roleOrder[a.role ?? 'member']
+                const orderB = roleOrder[b.role ?? 'member']
+                return orderA - orderB
+            })
+
+            setMembers(result)
+        } catch (error) {
+            console.error('Error fetching members:', error)
+        } finally {
+            setLoading(false)
+        }
+        
+    }, [selectedGroup?.id, selectedGroup?.ownerId, selectedGroup?.editors, selectedGroup?.members])
+
+    const [processingId, setProcessingId] = useState<string | null>(null)
+
+    const toggleRole: MembersTypes['toggleRole'] = useCallback(async (groupId, memberId, isCurrentlyAdmin) => {
+        if (!groupId || !memberId || isCurrentlyAdmin === undefined) return
+        try {
+            setProcessingId(memberId)
+            const groupRef = doc(db, 'groups', groupId)
+            
+            await updateDoc(groupRef, {
+                editors: isCurrentlyAdmin ? arrayRemove(memberId) : arrayUnion(memberId)
+            })
+
+            setGroups(prev => {
+                const updated = prev.map(g => {
+                    if (g.id === groupId) {
+                        const editors = isCurrentlyAdmin
+                            ? (g.editors || []).filter(id => id !== memberId)
+                            : [...(g.editors || []), memberId]
+                        return { ...g, editors }
+                    }
+                    return g
+                })
+
+                const updatedGroup = updated.find(g => g.id === groupId)
+                if (updatedGroup) {
+                    setSelectedGroup(updatedGroup)
+                }
+
+                return updated
+            })
+
+            await fetchMembers()
+        } catch (error) {
+            console.error('Error updating role:', error)
+        } finally {
+            setProcessingId(null)
+        }
+    }, [fetchMembers])
+
+    const [deletingId, setDeletingId] = useState<string | null>(null)
+
+    const kickMember: MembersTypes['kickMember'] = useCallback(async (groupId, targetUserId) => {
+        try {
+            setDeletingId(targetUserId)
+            const groupRef = doc(db, 'groups', groupId as string)
+
+            await updateDoc(groupRef, {
+                members: arrayRemove(targetUserId),
+                editors: arrayRemove(targetUserId)
+            })
+
+            setGroups(prev => {
+                const updated = prev.map(g => {
+                    if (g.id === groupId) {
+                        return {
+                            ...g,
+                            members: (g.members || []).filter(id => id !== targetUserId),
+                            editors: (g.editors || []).filter(id => id !== targetUserId)
+                        }
+                    }
+                    return g
+                })
+
+                const updatedGroup = updated.find(g => g.id === groupId)
+                if (updatedGroup) {
+                    setSelectedGroup(updatedGroup)
+                }
+
+                return updated
+            })
+
+            await fetchMembers()
+        } catch (error) {
+            console.error('Error kicking member:', error)
+        } finally {
+            setDeletingId(null)
+        }
+    }, [fetchMembers])
+
+    return ({deletingId, processingId, members, fetchMembers, setLoading, toggleRole, kickMember, membersClarify, setMembersClarify, logout, delay, newGroupRef, newListRef, groupRef, setGroups, updateGroup, delClarify, setDelClarify, selectedGroup, setSelectedGroup, deleteGroup, leaveGroup, router, lists, groups, user, loading, list, setList, group, setGroup, invite, setInvite, listName, setListName, listDesc, setListDesc, groupName, setGroupName, groupDesc, setGroupDesc, inviteEmail, setInviteEmail, groupLists, setGroupLists, createList, createGroup, updateGroups})
 }

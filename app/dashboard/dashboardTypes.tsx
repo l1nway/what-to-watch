@@ -1,4 +1,6 @@
 import {AppRouterInstance} from 'next/dist/shared/lib/app-router-context.shared-runtime'
+import {Timestamp} from 'firebase/firestore'
+import {User} from 'firebase/auth'
 
 export interface NewProps {
     setGroupLists?: (value: any) => void
@@ -41,6 +43,30 @@ export interface Group {
     id: string
 }
 
+export type Member = {
+    role: 'owner' | 'admin' | 'member'
+    updatedAt?: Timestamp
+    avatar: string
+    length?: number
+    name: string
+    id: string
+}
+
+export interface MembersTypes {
+    toggleRole: (group: string | undefined, member: string | undefined, admin: boolean) => void
+    kickMember: (group: string | undefined, member: string) => void
+    processingId: string | null
+    deletingId: string | null
+    group: Group | undefined
+    fetchMembers: () => void
+    visibility: boolean
+    onClose: () => void
+    members: Member[]
+    user: User | null
+    loading: boolean
+    delay: boolean
+}
+
 export type Data = boolean | {
     id: number | string
     name: string
@@ -49,9 +75,10 @@ export type Data = boolean | {
 export interface GroupCardProps {
     updateGroups?: (groupId: string, originalOptions: any[], selectedIds: string[]) => void
     updateGroup?: (id: string, name: string | undefined) => void
-    setGroups?: React.Dispatch<React.SetStateAction<Group[]>>
     setDelClarify?: (val: boolean | 'delete' | 'leave') => void
-    setSelectedGroup?: (id: string) => void
+    setGroups?: React.Dispatch<React.SetStateAction<Group[]>>
+    setMembersClarify?: (val: boolean) => void
+    setSelectedGroup?: (group: Group | undefined) => void
     setInvite?: (data: any) => void
     accept?: () => void
     reject?: () => void

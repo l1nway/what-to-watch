@@ -9,9 +9,10 @@ interface SlideLeftProps {
     children?: ReactNode
     duration?: number
     className?: string
+    onClick?: () => void
 }
 
-function SlideLeft({in: inProp, visibility, children, duration = 300, className}: SlideLeftProps) {
+function SlideLeft({in: inProp, visibility, children, duration = 300, className, onClick}: SlideLeftProps) {
     const nodeRef = useRef<HTMLDivElement>(null)
 
     return (
@@ -43,12 +44,13 @@ function SlideLeft({in: inProp, visibility, children, duration = 300, className}
             }}
         >
             <div
-                ref={nodeRef}
+                className={`slide-left-enter-done ${className}`}
                 style={{
                     overflow: 'hidden',
                     transition: `width ${duration}ms ease`
                 }}
-                className={`slide-left-enter-done ${className}`}
+                onClick={onClick}
+                ref={nodeRef}
                 tabIndex={-1}
             >
                 {children}

@@ -2,6 +2,14 @@ import './globals.css'
 import PageAnimatePresence from './components/PageAnimatePresence'
 import {AuthProvider} from './components/authProvider'
 import {Suspense} from 'react'
+import {Metadata} from 'next'
+
+export const metadata: Metadata = {
+  title: {
+    template: '%s | What to Watch',
+    default: 'What to Watch',
+  },
+}
 
 export default function RootLayout({children}: Readonly<{children: React.ReactNode}>) {
   return (

@@ -1,11 +1,13 @@
 import {updateProfile, User, EmailAuthProvider, reauthenticateWithCredential, updatePassword, signOut} from 'firebase/auth'
 import {validateName, validatePassword, validateConfirm} from '../components/validation'
 import {useState, useEffect, useCallback, useRef} from 'react'
-import {PasswordField} from './settingsTypes'
 import {shake, clearShake} from '../components/shake'
-import {useRouter} from 'next/navigation'
 import {authError} from '../components/authError'
+import {doc, updateDoc} from 'firebase/firestore'
+import {PasswordField} from './settingsTypes'
+import {useRouter} from 'next/navigation'
 import {auth} from '@/lib/firebase'
+import {db} from '@/lib/firebase'
 
 export default function useSettings(user: User | null, loading: boolean) {
     const router = useRouter()
@@ -207,6 +209,12 @@ export default function useSettings(user: User | null, loading: boolean) {
         ))
         try {
             await updateProfile(user, {displayName: newName})
+
+            const userDocRef = doc(db, 'users', user.uid)
+            await updateDoc(userDocRef, {
+                displayName: newName,
+                updatedAt: new Date()
+            })
             
             setPersonal(prev => prev.map(f => 
                 f.field === 'name' ? {...f, edited: false, loading: false} : f
@@ -217,7 +225,7 @@ export default function useSettings(user: User | null, loading: boolean) {
                 f.field === 'name' ? {...f, loading: false} : f
             ))
         }
-    }, [user, personal, setPersonal])
+    }, [user, personal])
 
     return ({saveName, savePassword, router, user, inputRefs, passwordsRefs, personal, onChange, toggleEdit, passwords, onPasswordChange, setPasswordEdit, passwordEdit, passwordSaving, logout})
 }

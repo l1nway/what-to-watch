@@ -9,7 +9,7 @@ import SlideLeft from '../components/slideLeft'
 import {Button} from '@/components/ui/button'
 import {Select} from 'react-animated-select'
 
-export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, updateGroup, setGroups, setInvite, accept, reject, router, invite, group, index, lists, user, delay}: GroupCardProps) {
+export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, updateGroups, updateGroup, setGroups, setInvite, accept, reject, router, invite, group, index, lists, user, delay}: GroupCardProps) {
     const [inputWidth, setInputWidth] = useState<number | string>('auto')
 
     const inputRef = useRef<HTMLInputElement | null>(null)
@@ -23,9 +23,14 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
     const admin = useMemo(() => owner || editor, [owner, editor])
 
     const del = useCallback((type: DeleteProps['action']) => {
-        setSelectedGroup?.(group?.id)
+        setSelectedGroup?.(group)
         setDelClarify?.(type)
     }, [group, setSelectedGroup, setDelClarify])
+
+    const members = useCallback(() => {
+        setSelectedGroup?.(group)
+        setMembersClarify?.(true)
+    }, [group, setSelectedGroup, setMembersClarify])
 
     const onChange = useCallback((e: {target: {value: string}}) => {
         setGroups?.(prev => prev.map(g => 
@@ -51,7 +56,6 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
             inputRef.current.value = val
         }
     }, [group?.edit])
-    
     return (
         <motion.div
             className='outline-none focus:border-[#7f22fe] min-h-50 flex bg-[#101828] border border-[#1e2939] rounded-[10px] p-6 w-full justify-between cursor-pointer hover:border-[#7f22fe] transition-colors duration-300 mb-3'
@@ -140,7 +144,10 @@ export function GroupCard({setSelectedGroup, setDelClarify, updateGroups, update
                                 : null}
                             </div>
                         </div>
-                        <span className='text-[#99a1af]'>
+                        <span 
+                            className='text-[#99a1af]'
+                            onClick={members}
+                        >
                             {group?.members?.length} members
                         </span>
                     </div>

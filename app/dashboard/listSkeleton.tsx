@@ -25,7 +25,7 @@ export const ListSkeleton = ({loading, onClick}: GroupSkeletonProps) => {
       <div className={`absolute inset-0 opacity-10
         ${loading ? 'animate-pulse bg-gradient-to-br from-[#641aca] via-[#101828] to-[#641aca] bg-[length:200%_200%]' : 'bg-[#101828]'}
       `}/>
-      <div className='relative z-10 flex flex-col h-full gap-2'>
+      <div className='relative z-10 flex flex-col h-full'>
         <div className='flex justify-between items-start w-full gap-4 max-md:flex-col'>
           <div className='p-4 bg-[#1b183d] rounded-[10px] max-md:justify-center max-md:flex max-md:h-fit max-md:w-fit'>
             <Film className='text-[#364153] w-6 h-6' />
@@ -41,7 +41,7 @@ export const ListSkeleton = ({loading, onClick}: GroupSkeletonProps) => {
           <div
             className={
               `${loading ? 'bg-[#1e2939]' : ''} 
-              text-nowrap text-[#99a1af] h-5 max-md:h-4 w-2/3 rounded-[10px] min-w-15`
+              text-nowrap text-[#99a1af] h-5 max-md:h-4 w-2/3 rounded-[10px] min-w-15 break-all`
             }>
             {loading ? null : 'No lists have been created yet.'}
           </div>

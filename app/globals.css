@@ -185,7 +185,8 @@
 .loading-dots {
   display: inline-flex;
   gap: 5px;
-  padding-left: 0.5vw;
+  padding-left: 0.25em;
+  padding-bottom: 0.25em;
   height: 100%;
   align-items: end;
   padding-bottom: 0.5%;
@@ -198,11 +199,6 @@
   background: currentColor;
   border-radius: 50%;
   animation: blink 1.4s infinite both;
-  
-  @media (max-width: 1024px) {
-      width: 1vw;
-      height: 1vw;
-  }
 }
 
 .loading-dots i:nth-child(1) {animation-delay: 0s;}

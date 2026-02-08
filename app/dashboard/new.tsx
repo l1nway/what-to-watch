@@ -1,5 +1,3 @@
-'use client'
-
 import ShowClarify from '../components/showClarify'
 import {X} from 'lucide-react'
 import {Input} from '@/components/ui/input'
@@ -9,7 +7,7 @@ import {Button} from '@/components/ui/button'
 import {Select} from 'react-animated-select'
 import {NewProps} from './dashboardTypes'
 import {clearShake} from '../components/shake'
-import { useState } from 'react'
+import {useState} from 'react'
 
 export default function New({visibility, onClose, page, input, setInput, textarea, setTextarea, create, groupLists, setGroupLists, lists, ref}: NewProps) {
     const [value, setValue] = useState([])
