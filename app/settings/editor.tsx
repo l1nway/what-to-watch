@@ -112,7 +112,7 @@ export default function Editor({visibility, onClose, user}: any) {
                 duration={500}
             >
                 <div
-                    className='touch-none [&>canvas]:!w-175 [&>canvas]:!h-175 max-md:[&>canvas]:!w-90 max-md:[&>canvas]:!h-90'
+                    className='relative touch-none [&>canvas]:!w-175 [&>canvas]:!h-175 max-md:[&>canvas]:!w-90 max-md:[&>canvas]:!h-90'
                     ref={editorContainer}
                 >
                     <AvatarEditor
