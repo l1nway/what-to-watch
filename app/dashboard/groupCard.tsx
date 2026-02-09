@@ -58,7 +58,7 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
     }, [group?.edit])
     return (
         <motion.div
-            className='outline-none focus:border-[#7f22fe] min-h-50 flex bg-[#101828] border border-[#1e2939] rounded-[10px] p-6 w-full justify-between cursor-pointer hover:border-[#7f22fe] transition-colors duration-300 mb-3'
+            className='outline-none focus:border-[#7f22fe] min-h-50 flex bg-[#101828] border border-[#1e2939] rounded-[10px] p-6 w-full justify-between hover:border-[#7f22fe] transition-colors duration-300 mb-3'
             {...animationProps('vertical', true, delay, index)}
             style={{...stylesProps, overflow: 'hidden'}}
             layoutId={group?.id}
@@ -144,12 +144,14 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
                                 : null}
                             </div>
                         </div>
-                        <span 
-                            className='text-[#99a1af]'
+                        <div 
+                            className='cursor-pointer text-[#99a1af] relative w-fit block hover:text-[#a684ff] transition-colors duration-300'
                             onClick={members}
                         >
-                            {group?.members?.length} members
-                        </span>
+                            <span>
+                                {group?.members?.length} members
+                            </span>
+                        </div>
                     </div>
                     {!admin && !invite ?
                         <DoorOpen
@@ -191,7 +193,7 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
                                 className='min-h-20'
                             >
                                 <div
-                                    className='hover:border-[#7f22fe] transition-colors duration-300 mr-4 min-w-25 max-w-25 min-h-20 rounded-[5px] border border-[#1e2939] bg-[#101828] p-2 flex flex-col justify-between'
+                                    className='cursor-pointer hover:border-[#7f22fe] transition-colors duration-300 mr-4 min-w-25 max-w-25 min-h-20 rounded-[5px] border border-[#1e2939] bg-[#101828] p-2 flex flex-col justify-between'
                                     onClick={() => router.push(`/list?id=${encodeURIComponent(list.id)}`)}
                                 >
                                     <div className='flex justify-between items-start'>

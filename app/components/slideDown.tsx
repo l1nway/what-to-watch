@@ -10,19 +10,21 @@ interface SlideDownProps {
     duration?: number
     className?: string
     onClick?: () => void
+    unmountOnExit?: boolean
+    ref?: any
 }
 
-function SlideDown({in: transitionIn, visibility, children, duration = 300, className, onClick}: SlideDownProps) {
+function SlideDown({in: transitionIn, visibility, children, duration = 300, className, onClick, unmountOnExit = true, ref}: SlideDownProps) {
     const nodeRef = useRef<HTMLDivElement>(null)
     const active = Boolean(transitionIn ?? visibility)
 
     return(
         <CSSTransition
             in={active}
-            timeout={300}
+            timeout={duration}
             classNames='slideDown'
-            unmountOnExit
-            nodeRef={nodeRef}
+            unmountOnExit={unmountOnExit}
+            nodeRef={ref? ref : nodeRef}
             onEnter={() => {
                 if (!nodeRef.current) return
                 nodeRef.current.style.height = '0px'

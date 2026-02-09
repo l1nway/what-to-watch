@@ -62,7 +62,7 @@ export default function Dashboard() {
 
     return (
         <div
-            className='bg-[#030712] h-screen flex flex-col'
+            className='bg-[#030712] h-screen flex flex-col relative'
         >
             <Members
                 onClose={() => setMembersClarify(false)}
@@ -119,8 +119,8 @@ export default function Dashboard() {
                 onClose={() => setDelClarify(false)}
                 action={delClarify}
             />
-            <div
-                className='bg-[#101828] flex justify-between items-center border-b border-b-[#1e2939] p-4'
+            <header
+                className='shrink-0 bg-[#101828] flex justify-between items-center border-b border-b-[#1e2939] p-4'
             >
                 <div className='flex gap-5'>
                     <div
@@ -192,16 +192,16 @@ export default function Dashboard() {
                         }
                     </AnimatePresence>
                 </div>
-            </div>
+            </header>
             <div
-                className='flex-1 overflow-y-auto  gap-4 p-4 overflow-y-auto [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939]'
+                className='min-h-0 flex-1 flex flex-col overflow-y-auto gap-4 p-4 [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939]'
                 tabIndex={-1}
             >
                 <div className='flex gap-4 flex-col'>
                     <h1
                         className='text-white text-[2em] flex whitespace-nowrap max-md:hidden'
                     >
-                        Welcome back<SlideLeft visibility={!loading}>, {user?.displayName ? user?.displayName : user?.email}</SlideLeft>
+                        Welcome back<SlideLeft visibility={Boolean(user)}>, {user?.displayName ? user?.displayName : user?.email}</SlideLeft>
                     </h1>
                     <h1
                         className='text-white text-[2em] flex min-md:hidden flex-col'
@@ -209,7 +209,7 @@ export default function Dashboard() {
                         <span className='whitespace-nowrap'>Welcome back,</span>
                         <SlideDown
                             className='whitespace-nowrap'
-                            visibility={!loading}
+                            visibility={Boolean(user)}
                         >
                             {user?.displayName ? user?.displayName : user?.email}
                         </SlideDown>

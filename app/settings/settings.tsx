@@ -10,16 +10,20 @@ import {useAuth} from '../components/authProvider'
 import {GroupCard} from '../dashboard/groupCard'
 import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
+import {AnimationKeys} from '../list/listTypes'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
-import Avatar from './avatar'
 import useSettings from './useSettings'
 import useInvites from './useInvites'
+import Editor from './editor'
+import Avatar from './avatar'
 
 export default function settings() {
     const {user, loading} = useAuth()
     const {saveName, savePassword, router, personal, onChange, inputRefs, passwordsRefs, toggleEdit, passwords, onPasswordChange, setPasswordEdit, passwordEdit, passwordSaving, logout} = useSettings(user, loading)
     const {fullInvites, acceptInvite, rejectInvite} = useInvites(user)
+
+    const [file, setFile] = useState(null)
 
     // cards of groups to which are invited
     const renderInvites = useMemo(() =>
@@ -127,7 +131,7 @@ export default function settings() {
             return (
                 <Field
                     key={element.password}
-                    className='gap-0'
+                    className='gap-0 pb-3'
                 >
                     <FieldLabel
                         className='text-[#959dab] capitalize pb-3'
@@ -163,8 +167,39 @@ export default function settings() {
         setBack(true)
     }, [])
 
+    const animationMap = useMemo(() => ({
+        loading: {
+            key: 'loader',
+            Component: Loader,
+            props: {
+                className: 'text-[#959dab] animate-spin'
+            }},
+        view: {
+            key: 'edit',
+            Component: Pencil,
+            props: {
+                className: 'group-focus-within:text-white outline-none ml-1 text-[#99a1af] cursor-pointer hover:text-white focus:text-white transition-colors duration-300',
+                onClick: () => setPasswordEdit(true)
+            }},
+        edit: {
+            key: 'cancel',
+            Component: X,
+            props: {
+                className: 'w-8 h-8 group-focus-within:text-white outline-none text-[#99a1af] cursor-pointer hover:text-white focus:text-white transition-colors duration-300',
+                onClick: () => setPasswordEdit(false)
+            }},
+    }), [setPasswordEdit])
+
+    let currentState: AnimationKeys = loading ? 'loading' : passwordEdit ? 'edit' : 'view'
+    let {key, Component, props} = animationMap[currentState]
+
     return (
         <div className='h-screen flex flex-col bg-gradient-to-br from-[#030712] to-[#2f0d68]'>
+            <Editor
+                onClose={() => setFile(null)}
+                visibility={file}
+                user={user}
+            />
             <header
                 className='shrink-0 bg-[#101828] flex justify-between items-center border-b border-b-[#1e2939] p-4'
             >
@@ -240,23 +275,11 @@ export default function settings() {
                 </div>
             </header>
             <div className='flex-1 overflow-y-auto flex max-md:flex-col'>
-                <SlideDown
-                    visibility={fullInvites.length}
-                >
-                    <div
-                        className='flex flex-col gap-2 px-4 pt-2'
-                    >
-                        <h2
-                            className='text-white text-2xl pb-2'
-                        >
-                            Invites
-                        </h2>
-                        <TransitionGroup component={null}>
-                            {renderInvites}
-                        </TransitionGroup>
-                    </div>
-                </SlideDown>
-                <Avatar user={user}/>
+                <Avatar
+                    setFile={setFile}
+                    file={file}
+                    user={user}
+                />
                 <div className='flex w-full flex-col'>
                     <div
                         className='bg-[#101828] flex flex-col gap-2 p-4 m-4 rounded-[10px]'
@@ -269,29 +292,27 @@ export default function settings() {
                         {renderPersonal}
                     </div>
                     <div
-                        className='bg-[#101828] flex flex-col gap-2 p-4 m-4 rounded-[10px]'
+                        className='bg-[#101828] flex flex-col p-4 m-4 rounded-[10px]'
                     >
-                        <div className='flex items-center'>
+                        <div className='flex items-center pb-4'>
                             <h2
-                                className='text-white text-2xl pb-2'
+                                className='text-white text-2xl pr-1'
                             >
                                 Change password
                             </h2>
-                            <SlideLeft visibility={loading}>
-                                <Loader className='ml-2 w-5 h-5 text-[#99a1af] cursor-wait animate-spin'/>
-                            </SlideLeft>
-                            <SlideLeft visibility={!passwordEdit && !loading}>
-                                <Pencil
-                                    className='ml-2 w-5 h-5 text-[#99a1af] cursor-pointer hover:text-white transition-colors duration-300'
-                                    onClick={() => setPasswordEdit(true)}
-                                />
-                            </SlideLeft>
-                            <SlideLeft visibility={passwordEdit && !loading}>
-                                <X
-                                    className='ml-2 w-5 h-5 text-[#99a1af] cursor-pointer hover:text-white transition-colors duration-300'
-                                    onClick={() => setPasswordEdit(false)}
-                                />
-                            </SlideLeft>
+                            <AnimatePresence mode='wait'>
+                                <motion.div
+                                    initial={currentState === 'loading' ? undefined : {opacity: 0, scale: 0.5}}
+                                    tabIndex={currentState === 'loading' ? -1 : 0}
+                                    animate={{opacity: 1, scale: 1, rotate: 0}}
+                                    exit={{opacity: 0, scale: 0.5, rotate: 45}}
+                                    className='group outline-none'
+                                    transition={{duration: 0.15}}
+                                    key={key}
+                                >
+                                    <Component {...props}/>
+                                </motion.div>
+                            </AnimatePresence>
                         </div>
                         {renderPasswords}
                         <SlideDown visibility={passwordEdit}>
@@ -313,6 +334,22 @@ export default function settings() {
                     </div>
                 </div>
             </div>
+            <SlideDown
+                visibility={fullInvites.length}
+            >
+                <div
+                    className='flex flex-col gap-2 px-4 pt-2'
+                >
+                    <h2
+                        className='text-white text-2xl pb-2'
+                    >
+                        Invites
+                    </h2>
+                    <TransitionGroup component={null}>
+                        {renderInvites}
+                    </TransitionGroup>
+                </div>
+            </SlideDown>
         </div>
     )
 }

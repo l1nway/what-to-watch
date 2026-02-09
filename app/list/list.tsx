@@ -8,6 +8,7 @@ import {AnimatePresence, motion} from 'framer-motion'
 import {useSearchParams} from 'next/navigation'
 import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
+import {Slider} from '@/components/ui/slider'
 import {Button} from '@/components/ui/button'
 import MovieSkeleton from './movieSkeleton'
 import {useList, statuses} from './useList'
@@ -315,14 +316,12 @@ export default function List() {
                             <span>
                                 Max runtime: {runtime} min
                             </span>
-                            <input
-                                className='outline-none w-full h-2 rounded-lg bg-[#7f22fe] accent-[#7f22fe]'
-                                onChange={e => setRuntime(e.target.value)}
-                                value={runtime}
-                                type='range'
-                                max={600}
-                                step={1}
+                            <Slider
+                                onValueChange={([v]) => setRuntime(v)}
                                 min={10}
+                                max={600}
+                                value={[runtime]}
+                                step={1}
                             />
                         </div>
                     </div>
@@ -334,7 +333,7 @@ export default function List() {
                 </span>
             </SlideDown>
             <div
-                className='px-4 flex flex-wrap flex-1 overflow-y-auto [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939]'
+                className='pb-2 px-4 flex flex-wrap flex-1 overflow-y-auto [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939]'
                 tabIndex={-1}
             >
                 <AnimatePresence mode='popLayout'>

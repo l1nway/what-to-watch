@@ -5,6 +5,7 @@ import {AnimatePresence, motion} from 'framer-motion'
 import ShowClarify from '../components/showClarify'
 import SlideLeft from '../components/slideLeft'
 import {MembersTypes, Member} from './dashboardTypes'
+import SlideDown from '../components/slideDown'
 
 export default function Members({visibility, onClose, group, user, toggleRole, kickMember, fetchMembers, loading, members, processingId, deletingId, delay}: MembersTypes) {
     
@@ -22,7 +23,8 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
     const owner = useMemo(() => user?.uid === group?.ownerId, [user?.uid, group?.ownerId])
     const admin = useMemo(() => owner || editor, [owner, editor])
 
-    const roleClass = 'h-10 w-10 cursor-pointer outline-none text-[#959dab] hover:text-white focus:text-white transition-colors duration-300'
+    const roleClass = 'h-10 w-10 outline-none text-[#959dab] hover:text-white focus:text-white transition-colors duration-300'
+    const editorClass = 'cursor-pointer'
 
     const renderMembers = (members as Member[]).map((member: Member, index: number) => {
         const isCurrentlyAdmin = member.role === 'admin'
@@ -30,7 +32,7 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
         const role = member.role === 'owner' ? (
             <UserStar className={roleClass}/>
         ) : member.role === 'admin' ? (
-            <UserPen className={roleClass}/>
+            <UserPen className={`${roleClass} ${editorClass}`}/>
         ) : (
             <User className={roleClass}/>
         )
@@ -76,10 +78,10 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
                                 </motion.div>
                             :
                                 <motion.div
-                                    onClick={() => member.role === 'owner' ? null : toggleRole(group?.id, member.id, isCurrentlyAdmin)}
+                                    onClick={() => (member.role === 'owner' || !owner) ? null : toggleRole(group?.id, member.id, isCurrentlyAdmin)}
+                                    initial={{opacity: 0, scale: 0.5}}
                                     animate={{opacity: 1, scale: 1}}
                                     exit={{opacity: 0, scale: 0.5}}
-                                    initial={{opacity: 0, scale: 0.5}}
                                     transition={{duration: 0.15}}
                                     key={`role-${member.id}`}
                                     tabIndex={0}
@@ -88,7 +90,7 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
                                 </motion.div>
                         }
                     </AnimatePresence>
-                    {(admin && member.id !== user?.uid && member.id !== group?.ownerId) ?
+                    {(owner && member.id !== user?.uid && member.id !== group?.ownerId) ?
                         <AnimatePresence mode='wait'>
                             {deletingId === member.id
                                 ? 
@@ -133,7 +135,7 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
         // using requestAnimationFrame twice ensures that height animation is calculated correctly; using just one can sometimes get stuck if there's a lag
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                const MAX_HEIGHT = 150 * 4
+                const MAX_HEIGHT = 100 * 5
                 const nextHeight = Math.min(
                     contentRef.current!.scrollHeight,
                     MAX_HEIGHT
@@ -150,7 +152,7 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
 
     // needed to force height to be reset to zero if the user clears the search field and immediately exits without waiting for the animation to play; otherwise, the height gets stuck
     useEffect(() => {
-        if (!visibility && !members.length) {
+        if (!visibility) {
             setHeight(0)
         }
     }, [visibility])
@@ -169,31 +171,33 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
                 </div>
             <X className='text-[#99a1af] hover:text-white cursor-pointer transition-colors duration-300' onClick={onClose}/>
             </div>
-            <div className='pt-2 flex justify-between items-center'>
-                <span className='text-[#99a1af] text-sm'>
-                    By clicking on the user's icon, you can change their rights.<br/>
-                    <span className='inline'>
-                        <UserPen className='w-4 h-4 mr-1 inline' />
-                    </span>can edit the group,{''}
-                    <span className='inline'>
-                        <User className='w-4 h-4 mx-1 inline' />
-                    </span>{''}
-                    — can only view.
-                    <br/>
-                    <span className='inline'>
-                        <Trash2 className='w-4 h-4 mr-1 inline' />
-                    </span>{''}
-                    will remove the user from group.
-                </span>
-                <BadgeInfo className='text-[#99a1af] hover:text-white transition-colors duration-300'/>
-            </div>
+            <SlideDown visibility={owner}>
+                <div className='pt-2 flex justify-between items-center'>
+                    <span className='text-[#99a1af] text-sm'>
+                        By clicking on the user's icon, you can change their rights.<br/>
+                        <span className='inline'>
+                            <UserPen className='w-4 h-4 mr-1 inline' />
+                        </span>can edit the group,{''}
+                        <span className='inline'>
+                            <User className='w-4 h-4 mx-1 inline' />
+                        </span>{''}
+                        — can only view.
+                        <br/>
+                        <span className='inline'>
+                            <Trash2 className='w-4 h-4 mr-1 inline' />
+                        </span>{''}
+                        will remove the user from group.
+                    </span>
+                    <BadgeInfo className='text-[#99a1af] hover:text-white transition-colors duration-300'/>
+                </div>
+            </SlideDown>
             <motion.div
-                className='overflow-hidden'
+                className='overflow-auto [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939] mt-2'
                 transition={{duration: 0.3, ease: 'easeInOut'}}
                 animate={{height}}
             >
                 <div
-                    className='flex flex-col gap-2 pt-4'
+                    className='flex flex-col gap-2'
                     ref={contentRef}
                 >
                     <AnimatePresence

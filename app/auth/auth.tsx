@@ -17,6 +17,8 @@ import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
 import {db} from '@/lib/firebase'
 
+import Footer from '../footer'
+
 export default function Auth() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -198,110 +200,112 @@ export default function Auth() {
 
   return (
     <div
-      className='h-screen w-screen overflow-y-auto bg-gradient-to-br from-[#030712] to-[#2f0d68] flex max-md:flex-col items-center min-md:justify-center min-md:gap-24 max-md:py-8 max-md:gap-4'
+      className='overflow-y-auto [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939] min-h-screen w-screen bg-gradient-to-br from-[#030712] to-[#2f0d68] flex justify-center flex-col pb-4'
     >
-      {/* #959dab */}
-      <div className='flex flex-col items-center gap-4'>
-        <div className='cursor-pointer login-logo'>
-          <Film className='text-[#a684ff] min-md:h-120 min-md:w-120 max-md:h-50 max-md:w-50 hover:scale-[1.05] hover:text-[#ffeafe] transition-[colors, transform] duration-300 cursor-pointer'/>
+      <div className='flex-grow flex max-md:flex-col items-center min-md:justify-center min-md:gap-24 max-md:py-8 max-md:gap-4'>
+        <div className='flex flex-col items-center gap-4'>
+          <div className='cursor-pointer login-logo'>
+            <Film className='text-[#a684ff] min-md:h-120 min-md:w-120 max-md:h-75 max-md:w-75 hover:scale-[1.05] hover:text-[#ffeafe] transition-[colors, transform] duration-300 cursor-pointer'/>
+          </div>
+          <h1 className='text-white text-2xl'>What to Watch</h1>
         </div>
-        <h1 className='text-white text-2xl'>What to Watch</h1>
-      </div>
-      <div className='flex flex-col items-center gap-4 max-md:w-full min-md:w-180 min-md:pr-12'>
-        <form className='max-md:w-screen min-md:w-full flex justify-center' onSubmit={(e) => {e.preventDefault(); auth()}}>
-          <FieldGroup className='min-md:min-w-full bg-[#101828] border-[#1e2939] px-4 py-6 gap-0 rounded-2xl w-[95%] max-w-150'>
-              <Field className='pb-4'>
-                <ButtonGroup className='bg-[#1e2939] rounded-[10px] p-[2px] flex justify-center w-[300px]'>
-                  <Button
-                    onClick={() => switchMode('login')}
-                    type='button'
-                    className={`
-                      flex-1
-                      rounded-[10px_0_0_10px]
-                      px-4 py-2
-                      ${mode === 'login' ? 'bg-[#7f22fe] text-white' : 'bg-[#1e2939] text-[#6a7282]'}
-                      transition-colors duration-300
-                      ${mode === 'login'
-                        ? 'hover:bg-[#641aca]'
-                        : 'hover:bg-[#1e2939] hover:text-white'}
-                    `}
-                  >
-                    Login
-                  </Button>
-                  <Button
-                    onClick={() => switchMode('register')}
-                    type='button'
-                    className={`
-                      flex-1
-                      rounded-[0_10px_10px_0]
-                      px-4 py-2
-                      ${mode === 'register' ? 'bg-[#7f22fe] text-white' : 'bg-[#1e2939] text-[#6a7282]'}
-                      transition-colors duration-300
-                      ${mode === 'register'
-                        ? 'hover:bg-[#641aca]'
-                        : 'hover:bg-[#1e2939] hover:text-white'}
-                    `}
-                  >
-                    Register
-                  </Button>
-                </ButtonGroup>
-              </Field>
+        <div className='flex flex-col items-center gap-4 max-md:w-full min-md:w-180 min-md:pr-12'>
+          <form className='max-md:w-screen min-md:w-full flex justify-center' onSubmit={(e) => {e.preventDefault(); auth()}}>
+            <FieldGroup className='min-md:min-w-full bg-[#101828] border-[#1e2939] px-4 py-6 gap-0 rounded-2xl w-[95%] max-w-150'>
+                <Field className='pb-4'>
+                  <ButtonGroup className='bg-[#1e2939] rounded-[10px] p-[2px] flex justify-center w-[300px]'>
+                    <Button
+                      onClick={() => switchMode('login')}
+                      type='button'
+                      className={`
+                        flex-1
+                        rounded-[10px_0_0_10px]
+                        px-4 py-2
+                        ${mode === 'login' ? 'bg-[#7f22fe] text-white' : 'bg-[#1e2939] text-[#6a7282]'}
+                        transition-colors duration-300
+                        ${mode === 'login'
+                          ? 'hover:bg-[#641aca]'
+                          : 'hover:bg-[#1e2939] hover:text-white'}
+                      `}
+                    >
+                      Login
+                    </Button>
+                    <Button
+                      onClick={() => switchMode('register')}
+                      type='button'
+                      className={`
+                        flex-1
+                        rounded-[0_10px_10px_0]
+                        px-4 py-2
+                        ${mode === 'register' ? 'bg-[#7f22fe] text-white' : 'bg-[#1e2939] text-[#6a7282]'}
+                        transition-colors duration-300
+                        ${mode === 'register'
+                          ? 'hover:bg-[#641aca]'
+                          : 'hover:bg-[#1e2939] hover:text-white'}
+                      `}
+                    >
+                      Register
+                    </Button>
+                  </ButtonGroup>
+                </Field>
+                <SlideDown
+                  visibility={mode === 'register'}
+                >
+                  {fieldElement('Name', 'Set your name', 'text', setName, nameRef)}
+                </SlideDown>
+              {fieldElement('Email', 'name@example.com', 'email', setEmail, loginRef)}
+              {fieldElement('Password', 'Set your password', 'password', setPassword, passwordRef)}
               <SlideDown
                 visibility={mode === 'register'}
               >
-                {fieldElement('Name', 'Set your name', 'text', setName, nameRef)}
+                {fieldElement('Confirm password', 'Confirm your password', 'password', setConfirm, confirmRef)}
               </SlideDown>
-            {fieldElement('Email', 'name@example.com', 'email', setEmail, loginRef)}
-            {fieldElement('Password', 'Set your password', 'password', setPassword, passwordRef)}
-            <SlideDown
-              visibility={mode === 'register'}
+              <SlideDown visibility={errorStatus}>
+                <span className='text-[#a60000] flex items-center justify-center w-full pb-5'>
+                  {messageError}
+                </span>
+              </SlideDown>
+              <Field orientation='horizontal'>
+                <Button
+                  onClick={auth}
+                  disabled={loading}
+                  type='submit'
+                  className='
+                    gap-0
+                    bg-[#7f22fe]
+                    hover:bg-[#641aca]
+                    transition-colors
+                    duration-300
+                    cursor-pointer
+                    disabled:cursor-not-allowed
+                    disabled:opacity-50
+                    w-full
+                  '
+                >
+                  {mode === 'login' ? 'Sign in' : 'Create account'} <SlideLeft visibility={loading}><Loader className='ml-2 animate-spin'/></SlideLeft>
+                </Button>
+              </Field>
+            </FieldGroup>
+          </form>
+          <div
+            className='flex gap-3'
+            onClick={() => switchMode(mode === 'login' ? 'register' :'login')}
+          >
+            <span
+              className='text-white'
             >
-              {fieldElement('Confirm password', 'Confirm your password', 'password', setConfirm, confirmRef)}
-            </SlideDown>
-            <SlideDown visibility={errorStatus}>
-              <span className='text-[#a60000] flex items-center justify-center w-full pb-5'>
-                {messageError}
-              </span>
-            </SlideDown>
-            <Field orientation='horizontal'>
-              <Button
-                onClick={auth}
-                disabled={loading}
-                type='submit'
-                className='
-                  gap-0
-                  bg-[#7f22fe]
-                  hover:bg-[#641aca]
-                  transition-colors
-                  duration-300
-                  cursor-pointer
-                  disabled:cursor-not-allowed
-                  disabled:opacity-50
-                  w-full
-                '
-              >
-                {mode === 'login' ? 'Sign in' : 'Create account'} <SlideLeft visibility={loading}><Loader className='ml-2 animate-spin'/></SlideLeft>
-              </Button>
-            </Field>
-          </FieldGroup>
-        </form>
-        <div
-          className='flex gap-3'
-          onClick={() => switchMode(mode === 'login' ? 'register' :'login')}
-        >
-          <span
-            className='text-white'
-          >
-            {mode === 'login' ? 'Already have an account?' : `Don't have an account?`}
-          </span>
-          <span
-            className='cursor-pointer'
-            style={{color: '#7f22fe'}}
-          >
-            {mode === 'login' ? 'Register now' : 'Sign in'}
-          </span>
+              {mode === 'login' ? 'Already have an account?' : `Don't have an account?`}
+            </span>
+            <span
+              className='cursor-pointer'
+              style={{color: '#7f22fe'}}
+            >
+              {mode === 'login' ? 'Register now' : 'Sign in'}
+            </span>
+          </div>
         </div>
       </div>
+      <Footer/>
     </div>
   )
 }

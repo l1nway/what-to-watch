@@ -1,6 +1,6 @@
 'use client'
 
-import {X, UserRoundPlus, UserStar, UserPen, User, BadgeInfo} from 'lucide-react'
+import {X, UserRoundPlus, UserStar, UserPen, User, BadgeInfo, Loader} from 'lucide-react'
 import {collection, writeBatch, doc} from 'firebase/firestore'
 import {Field, FieldLabel} from '@/components/ui/field'
 import {TransitionGroup} from 'react-transition-group'
@@ -15,6 +15,7 @@ import {Select} from 'react-animated-select'
 import {InviteProps} from './dashboardTypes'
 import {Input} from '@/components/ui/input'
 import {db} from '@/lib/firebase'
+import SlideLeft from '../components/slideLeft'
 
 const generateToken = () => crypto.randomUUID()
 
@@ -52,6 +53,7 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
     }
 
     const [pendings, setPendings] = useState<Pending[]>([])
+    const [loading, setLoading] = useState<boolean>(false)
 
     const sendInvite = useCallback(async () => {
         if ((!validateEmail(input) || input == '') && pendings.length === 0) {
@@ -67,6 +69,7 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
         }
 
         try {
+            setLoading(true)
             const batch = writeBatch(db)
             const expiresAt = getExpirationDate(duration)
 
@@ -95,10 +98,49 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                     message: {
                         subject: `You've been invited to join ${group?.name}!`,
                         html: `
-                            <p>Hello! You have been invited to join the group <strong>${group?.name}</strong>.</p>
-                            <p>Click the link below to accept the invitation:</p>
-                            <a href='${window.location.origin}/invite?token=${token}'>Accept Invitation</a>
-                            <p>This link will expire on ${expiresAt.toLocaleString()}.</p>
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #030712;">
+                                <tr>
+                                    <td align="center" style="padding: 40px 20px;">
+                                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #030712; background-image: linear-gradient(to bottom right, #030712, #2f0d68); border-radius: 8px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #ffffff;">
+                                            <tr>
+                                                <td style="padding: 40px 20px; text-align: center;">
+                                                    
+                                                    <h2 style="color: #ffffff; margin: 0 0 20px 0; font-size: 24px;">Group Invitation</h2>
+                                                    
+                                                    <p style="font-size: 16px; line-height: 1.5; color: #e5e7eb; margin: 0 0 10px 0;">
+                                                        Hello! You have been invited to join the group <strong style="color: #ffffff;">нейм</strong>.
+                                                    </p>
+                                                    
+                                                    <p style="font-size: 16px; line-height: 1.5; color: #e5e7eb; margin: 0 0 30px 0;">
+                                                        Click the button below to accept the invitation:
+                                                    </p>
+
+                                                    <table border="0" cellspacing="0" cellpadding="0" align="center">
+                                                        <tr>
+                                                            <td align="center" bgcolor="#7f22fe" style="border-radius: 5px;">
+                                                                <a href="https://what-to-watch.pro/invite?token=${token}" target="_blank" style="font-size: 16px; font-family: Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; border-radius: 5px; padding: 12px 30px; border: 1px solid #7f22fe; display: inline-block; font-weight: bold;">
+                                                                    Accept Invitation
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+
+                                                    <p style="font-size: 13px; color: #9ca3af; margin: 30px 0 0 0;">
+                                                        This link will expire on <strong>${expiresAt.toLocaleString()}</strong>.
+                                                    </p>
+
+                                                    <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
+
+                                                    <p style="font-size: 12px; color: #6b7280; margin: 0;">
+                                                        If you didn't expect this invitation, you can safely ignore this email.
+                                                    </p>
+                                                    
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        </td>
+                                </tr>
+                            </table>
                         `
                     }
                 })
@@ -109,6 +151,8 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
             onClose()
         } catch (e) {
             console.error('Error sending invites: ', e)
+        } finally {
+            setLoading(false)
         }
     }, [data, pendings, duration, onClose, user])
 
@@ -282,13 +326,22 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                     Cancel
                 </Button>
                 <Button
-                    className={`
+                    className={`gap-0
                         w-[49%] hover:bg-[#641aca] cursor-pointer
                         ${(pendings.length == 0) ? 'bg-[#641aca]' : 'bg-[#7f22fe]'}    
                     `}
                     onClick={sendInvite}
+                    disabled={loading}
                 >
-                    Send invites ({pendings.length})
+                    Send invites
+                        <SlideLeft visibility={!loading}>
+                            <span className='ml-1'>
+                                ({pendings.length})
+                            </span>
+                        </SlideLeft>
+                        <SlideLeft visibility={loading}>
+                            <Loader className='ml-1 text-white animate-spin'/>
+                        </SlideLeft>
                 </Button>
             </div>
         </ShowClarify>

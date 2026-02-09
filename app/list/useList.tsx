@@ -35,7 +35,7 @@ export function useList(listId: string | null) {
     const [film, setFilm] = useState<boolean>(false)
     const [movie, setMovie] = useState<boolean>(false)
 
-    const [runtime, setRuntime] = useState<string>('600')
+    const [runtime, setRuntime] = useState<number>(600)
     const [selected, setSelected] = useState<TMDBMovie | null>()
     const [selectedGenres, setSelectedGenres] = useState<string[]>([])
 
@@ -141,7 +141,7 @@ export function useList(listId: string | null) {
             const matchesGenre = selectedGenres.length === 0 || 
                 movie.genres?.some(g => selectedGenres.includes(g.name))
 
-            const matchesRuntime = movie.runtime ? movie.runtime <= parseInt(runtime) : true
+            const matchesRuntime = movie.runtime ? movie.runtime <= parseInt(String(runtime)) : true
 
             return matchesStatus && matchesGenre && matchesRuntime
         })

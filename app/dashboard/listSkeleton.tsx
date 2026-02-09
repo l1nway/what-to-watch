@@ -25,8 +25,8 @@ export const ListSkeleton = ({loading, onClick}: GroupSkeletonProps) => {
       <div className={`absolute inset-0 opacity-10
         ${loading ? 'animate-pulse bg-gradient-to-br from-[#641aca] via-[#101828] to-[#641aca] bg-[length:200%_200%]' : 'bg-[#101828]'}
       `}/>
-      <div className='relative z-10 flex flex-col h-full'>
-        <div className='flex justify-between items-start w-full gap-4 max-md:flex-col'>
+      <div className={`relative z-10 flex flex-col h-full ${loading ? 'gap-2' : 'gap-0'}`}>
+        <div className='flex justify-between items-start w-full gap-2 max-md:flex-col'>
           <div className='p-4 bg-[#1b183d] rounded-[10px] max-md:justify-center max-md:flex max-md:h-fit max-md:w-fit'>
             <Film className='text-[#364153] w-6 h-6' />
           </div>
@@ -34,16 +34,16 @@ export const ListSkeleton = ({loading, onClick}: GroupSkeletonProps) => {
           <div className='h-4 w-20 bg-[#1e2939] rounded-[10px]' />
         </div>
 
-        <div className='flex flex-col gap-3 max-md:gap-2'>
-          <div className={`${loading ? 'bg-[#1e2939]' : ''} h-7 max-md:h-5 text-nowrap w-1/3 rounded-[10px] text-white text-[1.5em] min-w-25`}>
+        <div className={`flex flex-col ${loading ? 'gap-2' : 'gap-2 max-md:gap-4'}`}>
+          <div className={`${loading ? 'bg-[#1e2939]' : ''} h-7 max-md:h-4 text-nowrap w-1/3 rounded-[10px] text-white text-[1.5em] min-w-25`}>
             {loading ? null : 'Create a list?'}
           </div>
           <div
             className={
-              `${loading ? 'bg-[#1e2939]' : ''} 
-              text-nowrap text-[#99a1af] h-5 max-md:h-4 w-2/3 rounded-[10px] min-w-15 break-all`
+              `${loading ? 'bg-[#1e2939]' : 'w-full text-wrap'} 
+              text-[#99a1af] h-5 max-md:h-4 w-2/3 rounded-[10px] min-w-15 break-all`
             }>
-            {loading ? null : 'No lists have been created yet.'}
+            {loading ? null : 'No lists created yet'}
           </div>
         </div>
       </div>
