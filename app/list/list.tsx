@@ -327,7 +327,7 @@ export default function List() {
                     </div>
                 </div>
             </SlideDown>
-            <SlideDown visibility={!loading && filteredMovies.length}>
+            <SlideDown visibility={!loading || filteredMovies.length}>
                 <span className='pb-4 px-4 text-[#777f8d] block'>
                     Showing {filteredMovies.length} of {moviesData.length} movies
                 </span>

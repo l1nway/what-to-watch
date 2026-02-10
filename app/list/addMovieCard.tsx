@@ -22,9 +22,9 @@ const AddMovieCard = ({delay, currentStatus, toggleFilm, statusChange, movie, in
             tabIndex={0}
         >
             <div className='flex gap-4 h-fit'>
-                {movie.poster_path ?
+                {movie?.poster_path ?
                     <img
-                        src={`https://image.tmdb.org/t/p/w500${movie.poster_path || ''}`}
+                        src={`https://image.tmdb.org/t/p/w500${movie?.poster_path || ''}`}
                         className='rounded-xl min-w-min h-50 max-md:aspect-[2/3]'
                         alt={movie.original_title}
                         key={`poster-${movie.id}`}
@@ -35,35 +35,35 @@ const AddMovieCard = ({delay, currentStatus, toggleFilm, statusChange, movie, in
                     : null}
                 <div className='flex flex-col gap-2 h-fit w-full'>
                     <div className='flex justify-between w-full'>
-                        <h2 className='text-white'>{movie.original_title}</h2>
+                        <h2 className='text-white'>{movie?.original_title}</h2>
                         <a href={url} className='outline-none group'>
                             <Info className='text-[#99a1af] group-hover:text-white group-focus-within:text-white cursor-pointer transition-colors duration-300'/>
                         </a>
                     </div>
                     <div className='flex text-[#99a1af] gap-2 items-center flex-wrap'>
-                        {movie.release_date ?
+                        {movie?.release_date ?
                             <span>
-                                {movie.release_date}
+                                {movie?.release_date}
                             </span>
                         : null}
-                        {movie.genre_ids.length > 0 ?
+                        {movie?.genre_ids?.length > 0 ?
                             <>
                                 <div className='w-1 h-1 bg-[#99a1af] rounded-full'/>
                                 <span>
-                                    {movie.genre_ids}
+                                    {movie?.genre_ids}
                                 </span>
                             </>
                         : null}
-                        {movie.vote_average ?
+                        {movie?.vote_average ?
                             <>
                                 <div className='w-1 h-1 bg-[#99a1af] rounded-full'/>
                                 <span>
-                                    {movie.vote_average}
+                                    {movie?.vote_average}
                                 </span>
                             </>
                         : null}
                     </div>
-                    <span className='text-[#99a1af] text-wrap max-w-150 max-md:hidden'>{movie.overview}</span>
+                    <span className='text-[#99a1af] text-wrap max-w-150 max-md:hidden'>{movie?.overview}</span>
                     <div className='flex gap-4 max-md:flex-col'>
                         <Select
                             offset={2}
@@ -90,7 +90,7 @@ const AddMovieCard = ({delay, currentStatus, toggleFilm, statusChange, movie, in
                             className={`outline-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-[#7f22fe] ${!added ? 'hover:bg-[#641aca] focus:bg-[#641aca]' : 'hover:bg-[#900] focus:bg-[#900]'} cursor-pointer transition-colors duration-300`}
                             onClick={() => toggleFilm(movie)}
                         >
-                            {added ? <><Check/> {alreadyInDb ? 'Already added' : 'Remove from list'}</> : <><Plus/> Add to list</>}
+                            {added ? <><Check/> {alreadyInDb ? 'Already added' : 'Remove from list'}</> : <><Plus/> <span>Add to list</span></>}
                         </Button>
                         {movie.overview ?
                             <Button

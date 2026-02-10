@@ -8,6 +8,7 @@ import {useRef} from 'react'
 
 export const GroupSkeleton = ({loading, onClick, lists}: GroupSkeletonProps) => {
   const groupRef = useRef(null)
+
   return (
     <motion.div className={`
       ${loading ? 'cursor-wait' : 'cursor-pointer'}
@@ -25,7 +26,7 @@ export const GroupSkeleton = ({loading, onClick, lists}: GroupSkeletonProps) => 
       <div className='relative z-10 flex justify-between w-full'>
         
         <div
-          className={`flex flex-col gap-4 ${loading ? 'max-md:max-w-[70%] min-md:max-w-[85%]' : 'min-w-[100%]'}`}
+          className={`flex flex-col gap-4 ${loading ? 'max-md:max-w-[70%] min-md:max-w-[85%] max-md:min-w-[70%] min-md:min-w-[85%]' : 'min-w-[100%]'}`}
         >
           <div className='flex items-center'>
             <div className={`
@@ -64,10 +65,10 @@ export const GroupSkeleton = ({loading, onClick, lists}: GroupSkeletonProps) => 
         </div>
 
         <SlideDown
-          className='w-full flex items-end flex-col'
+          className='w-full flex items-end flex-col max-md:w-fit min-md:w-full'
           visibility={loading}
         >
-          <div className='flex flex-col gap-4 max-md:w-fit min-md:w-full'>
+          <div className='flex flex-col gap-4 w-full'>
             
             <div className='flex items-center justify-center gap-2 h-10 w-full bg-[#1e2939] rounded-[10px] animate-pulse'>
               <UserPlus className='w-4 h-4 text-[#6a7282]'/>

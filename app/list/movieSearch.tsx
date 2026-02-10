@@ -168,7 +168,7 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
         // using requestAnimationFrame twice ensures that height animation is calculated correctly; using just one can sometimes get stuck if there's a lag
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                const MAX_HEIGHT = 150 * 4
+                const MAX_HEIGHT = 150 * 3
                 const nextHeight = Math.min(
                     contentRef.current!.scrollHeight,
                     MAX_HEIGHT
@@ -200,7 +200,10 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
     }, [visibility])
 
     return (
-        <ShowClarify visibility={visibility} onClose={onClose}>
+        <ShowClarify
+            visibility={visibility}
+            onClose={onClose}
+        >
             <div className='flex justify-between text-white border-b border-[#1e2939] pb-4'>
                 <div className='flex'>
                     <h1>
@@ -238,7 +241,7 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
             </label>
             <span className='text-[#6a7282] border-b border-[#1e2939] pb-4'>Powered by TMDB API (The Movie Database)</span>
             <div
-                className='w-250 mb-4 max-md:w-full'
+                className='w-250 mb-4 max-lg:w-full'
             >
                 <motion.div
                     className='overflow-hidden'
@@ -246,7 +249,7 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
                     animate={{height}}
                 >
                     <div
-                        className='flex flex-col w-250 max-h-150 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939] max-md:w-full'
+                        className='flex flex-col w-250 max-h-113 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939] max-lg:w-full pb-1'
                         ref={contentRef}
                         tabIndex={-1}
                     >

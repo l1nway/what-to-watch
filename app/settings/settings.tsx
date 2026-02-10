@@ -274,82 +274,84 @@ export default function settings() {
                     </AnimatePresence>
                 </div>
             </header>
-            <div className='flex-1 overflow-y-auto flex max-md:flex-col'>
-                <Avatar
-                    setFile={setFile}
-                    file={file}
-                    user={user}
-                />
-                <div className='flex w-full flex-col'>
+            <div className='flex-1 overflow-y-auto [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939]'>
+                <div className='flex max-lg:flex-col'>
+                    <Avatar
+                        setFile={setFile}
+                        file={file}
+                        user={user}
+                    />
+                    <div className='flex w-full flex-col'>
+                        <div
+                            className='bg-[#101828] flex flex-col gap-2 p-4 m-4 rounded-[10px]'
+                        >
+                            <h2
+                                className='text-white text-2xl pb-2'
+                            >
+                                Personal data
+                            </h2>
+                            {renderPersonal}
+                        </div>
+                        <div
+                            className='bg-[#101828] flex flex-col p-4 m-4 rounded-[10px]'
+                        >
+                            <div className='flex items-center pb-4'>
+                                <h2
+                                    className='text-white text-2xl pr-1'
+                                >
+                                    Change password
+                                </h2>
+                                <AnimatePresence mode='wait'>
+                                    <motion.div
+                                        initial={currentState === 'loading' ? undefined : {opacity: 0, scale: 0.5}}
+                                        tabIndex={currentState === 'loading' ? -1 : 0}
+                                        animate={{opacity: 1, scale: 1, rotate: 0}}
+                                        exit={{opacity: 0, scale: 0.5, rotate: 45}}
+                                        className='group outline-none'
+                                        transition={{duration: 0.15}}
+                                        key={key}
+                                    >
+                                        <Component {...props}/>
+                                    </motion.div>
+                                </AnimatePresence>
+                            </div>
+                            {renderPasswords}
+                            <SlideDown visibility={passwordEdit}>
+                                <Button
+                                    onClick={savePassword}
+                                    className='mt-4 w-full gap-0 bg-[#7f22fe] hover:bg-[#641aca] transition-[colors, opacity] duration-300 cursor-pointer
+                                    '
+                                    disabled={emptyPassword}
+                                >
+                                    <SlideLeft visibility={passwordSaving}>
+                                        <Loader className='mr-2 w-4 h-4 text-[#99a1af] cursor-wait animate-spin'/>
+                                    </SlideLeft>
+                                    <SlideLeft visibility={!passwordSaving}>
+                                        <Save className='mr-2 w-4 h-4 text-[#99a1af] cursor-wait'/>
+                                    </SlideLeft>
+                                        Save changes
+                                </Button>
+                            </SlideDown>
+                        </div>
+                    </div>
+                </div>
+                <SlideDown
+                    visibility={fullInvites.length}
+                >
                     <div
-                        className='bg-[#101828] flex flex-col gap-2 p-4 m-4 rounded-[10px]'
+                        className='flex flex-col gap-2 px-4 pt-2'
                     >
                         <h2
                             className='text-white text-2xl pb-2'
                         >
-                            Personal data
+                            Invites
                         </h2>
-                        {renderPersonal}
+                        <TransitionGroup component={null}>
+                            {renderInvites}
+                        </TransitionGroup>
                     </div>
-                    <div
-                        className='bg-[#101828] flex flex-col p-4 m-4 rounded-[10px]'
-                    >
-                        <div className='flex items-center pb-4'>
-                            <h2
-                                className='text-white text-2xl pr-1'
-                            >
-                                Change password
-                            </h2>
-                            <AnimatePresence mode='wait'>
-                                <motion.div
-                                    initial={currentState === 'loading' ? undefined : {opacity: 0, scale: 0.5}}
-                                    tabIndex={currentState === 'loading' ? -1 : 0}
-                                    animate={{opacity: 1, scale: 1, rotate: 0}}
-                                    exit={{opacity: 0, scale: 0.5, rotate: 45}}
-                                    className='group outline-none'
-                                    transition={{duration: 0.15}}
-                                    key={key}
-                                >
-                                    <Component {...props}/>
-                                </motion.div>
-                            </AnimatePresence>
-                        </div>
-                        {renderPasswords}
-                        <SlideDown visibility={passwordEdit}>
-                            <Button
-                                onClick={savePassword}
-                                className='mt-4 w-full gap-0 bg-[#7f22fe] hover:bg-[#641aca] transition-[colors, opacity] duration-300 cursor-pointer
-                                '
-                                disabled={emptyPassword}
-                            >
-                                <SlideLeft visibility={passwordSaving}>
-                                    <Loader className='mr-2 w-4 h-4 text-[#99a1af] cursor-wait animate-spin'/>
-                                </SlideLeft>
-                                <SlideLeft visibility={!passwordSaving}>
-                                    <Save className='mr-2 w-4 h-4 text-[#99a1af] cursor-wait'/>
-                                </SlideLeft>
-                                    Save changes
-                            </Button>
-                        </SlideDown>
-                    </div>
-                </div>
+                </SlideDown>
             </div>
-            <SlideDown
-                visibility={fullInvites.length}
-            >
-                <div
-                    className='flex flex-col gap-2 px-4 pt-2'
-                >
-                    <h2
-                        className='text-white text-2xl pb-2'
-                    >
-                        Invites
-                    </h2>
-                    <TransitionGroup component={null}>
-                        {renderInvites}
-                    </TransitionGroup>
-                </div>
-            </SlideDown>
         </div>
     )
 }

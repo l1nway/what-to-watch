@@ -200,17 +200,17 @@ export default function Auth() {
 
   return (
     <div
-      className='overflow-y-auto [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939] min-h-screen w-screen bg-gradient-to-br from-[#030712] to-[#2f0d68] flex justify-center flex-col pb-4'
+      className='overflow-y-auto [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939] h-screen w-full bg-gradient-to-br from-[#030712] to-[#2f0d68] flex justify-center flex-col pb-4'
     >
-      <div className='flex-grow flex max-md:flex-col items-center min-md:justify-center min-md:gap-24 max-md:py-8 max-md:gap-4'>
-        <div className='flex flex-col items-center gap-4'>
+      <div className='flex flex-grow max-lg:flex-col items-center min-md:justify-center min-lg:gap-24 max-lg:py-8 max-lg:gap-4 w-full'>
+        <div className='flex flex-col items-center gap-4 min-lg:pl-12'>
           <div className='cursor-pointer login-logo'>
-            <Film className='text-[#a684ff] min-md:h-120 min-md:w-120 max-md:h-75 max-md:w-75 hover:scale-[1.05] hover:text-[#ffeafe] transition-[colors, transform] duration-300 cursor-pointer'/>
+            <Film className='text-[#a684ff] min-md:h-120 min-md:w-120 max-lg:h-75 max-lg:w-75 hover:scale-[1.05] hover:text-[#ffeafe] transition-[colors, transform] duration-300 cursor-pointer'/>
           </div>
           <h1 className='text-white text-2xl'>What to Watch</h1>
         </div>
-        <div className='flex flex-col items-center gap-4 max-md:w-full min-md:w-180 min-md:pr-12'>
-          <form className='max-md:w-screen min-md:w-full flex justify-center' onSubmit={(e) => {e.preventDefault(); auth()}}>
+        <div className='flex flex-col items-center gap-4 max-lg:w-full min-md:w-180 min-md:pr-12'>
+          <form className='max-lg:w-screen min-md:w-full flex justify-center' onSubmit={(e) => {e.preventDefault(); auth()}}>
             <FieldGroup className='min-md:min-w-full bg-[#101828] border-[#1e2939] px-4 py-6 gap-0 rounded-2xl w-[95%] max-w-150'>
                 <Field className='pb-4'>
                   <ButtonGroup className='bg-[#1e2939] rounded-[10px] p-[2px] flex justify-center w-[300px]'>

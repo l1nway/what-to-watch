@@ -1,7 +1,7 @@
 'use client'
 
 import {X, UserRoundPlus, UserStar, UserPen, User, BadgeInfo, Loader} from 'lucide-react'
-import {collection, writeBatch, doc} from 'firebase/firestore'
+import {collection, writeBatch, doc, getDoc, Timestamp} from 'firebase/firestore'
 import {Field, FieldLabel} from '@/components/ui/field'
 import {TransitionGroup} from 'react-transition-group'
 import {validateEmail} from '../components/validation'
@@ -72,25 +72,27 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
             setLoading(true)
             const batch = writeBatch(db)
             const expiresAt = getExpirationDate(duration)
+            const now = Timestamp.now()
 
             for (const {email, admin} of pendings) {
-                const token = generateToken()
-                const cleanEmail = email.toLowerCase()
+                const cleanEmail = email.trim().toLowerCase()
                 const customInviteId = `${cleanEmail}_${group?.id}`
                 const inviteRef = doc(db, 'invites', customInviteId)
-                
+
+                const token = generateToken()
+
                 batch.set(inviteRef, {
                     email: cleanEmail,
                     groupId: group?.id,
                     groupName: group?.name,
-                    token: token,
-                    expiresAt: expiresAt,
+                    token,
+                    expiresAt,
                     status: 'pending',
                     senderId: user?.uid,
                     senderName: user?.displayName || 'Someone',
-                    createdAt: new Date(),
+                    createdAt: now,
                     role: admin ? 'editor' : 'member'
-                })
+                }, {merge: true})
 
                 const mailRef = doc(collection(db, 'mail'))
                 batch.set(mailRef, {

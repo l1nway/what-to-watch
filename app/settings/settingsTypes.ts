@@ -16,6 +16,7 @@ export interface FirestoreInvite {
     email: string
     groupId: string
     status: 'pending' | 'accepted' | 'rejected'
+    expiresAt: any
 }
 
 export interface EnrichedGroup extends Omit<FirestoreGroup, 'lists'> {

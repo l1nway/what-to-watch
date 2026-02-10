@@ -1,4 +1,4 @@
-import {QuerySnapshot, DocumentData, query, collection, where, onSnapshot, getDocs, deleteDoc} from 'firebase/firestore'
+import {QuerySnapshot, DocumentData, query, collection, where, onSnapshot, getDocs, deleteDoc, Timestamp, getDoc} from 'firebase/firestore'
 import {FirestoreList, FirestoreGroup, FirestoreInvite, EnrichedGroup, FullInvite} from './settingsTypes'
 import {useState, useEffect, useCallback, useMemo} from 'react'
 import {writeBatch, doc, arrayUnion} from 'firebase/firestore'
@@ -11,49 +11,75 @@ export default function useInvites(user: User | null) {
 
     // specification of data that will be requested
     const q = useMemo(() => {
-        if (!user?.email) return null    
+        if (!user?.email) return null
+
+        const now = Timestamp.now()
+
         return query(
             collection(db, 'invites'),
             where('email', '==', user?.email.toLowerCase()),
-            where('status', '==', 'pending')
+            where('status', '==', 'pending'),
+            where('expiresAt', '>', now)
     )}, [user])
 
-    // request for invitation data
     const invitesRequest = useCallback(async (snapshot: QuerySnapshot<DocumentData>) => {
         const invitesData = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})) as FirestoreInvite[]
-        const groupIds = [...new Set(invitesData.map(inv => inv.groupId))]
+        
+        const now = new Date()
+        
+        const validInvites = invitesData.filter(inv => {
+            const expiresAt = inv.expiresAt instanceof Timestamp ? inv.expiresAt.toDate() : inv.expiresAt
+            return expiresAt > now
+        })
 
-        if (groupIds.length > 0) {
+        if (validInvites.length > 0) {
             try {
-                // underscores (__ __) are needed to refer directly to object key; name is unique key ID
-                const groupsQuery = query(collection(db, 'groups'), where('__name__', 'in', groupIds))
-                const groupsSnap = await getDocs(groupsQuery)
-                const groupsMap: Record<string, FirestoreGroup> = {}
+                const groupsPromises = validInvites.map(async (invite) => {
+                    const groupRef = doc(db, 'groups', invite.groupId)
+                    const groupSnap = await getDoc(groupRef)
+
+                    if (groupSnap.exists()) {
+                         const groupData = {id: groupSnap.id, ...groupSnap.data()} as FirestoreGroup
+                         return {invite, group: groupData}
+                    }
+                    return {invite, group: null}
+                })
+
+                const results = await Promise.all(groupsPromises)
                 
                 let allListIds: string[] = []
+                const validResults = results.filter(r => r.group !== null)
                 
-                // unpacking and filtering data to desired
-                groupsSnap.forEach(doc => {
-                    const data = doc.data() as Omit<FirestoreGroup, 'id'>
-                    groupsMap[doc.id] = {id: doc.id, ...data}
-                    if (data.lists) {
-                        allListIds = [...allListIds, ...data.lists]
+                validResults.forEach(r => {
+                    if (r.group?.lists) {
+                        allListIds = [...allListIds, ...r.group.lists]
                     }
                 })
 
                 let listsMap: Record<string, FirestoreList> = {}
+                
                 if (allListIds.length > 0) {
-                    const uniqueListIds = [...new Set(allListIds)]
-                    const listsQuery = query(collection(db, 'lists'), where('__name__', 'in', uniqueListIds))
-                    const listsSnap = await getDocs(listsQuery)
-                    listsSnap.forEach(doc => {
-                        listsMap[doc.id] = {id: doc.id, ...doc.data()} as FirestoreList
-                    })
+                     const uniqueListIds = [...new Set(allListIds)]
+                     
+                     const listPromises = uniqueListIds.map(async (listId) => {
+                        try {
+                            const listSnap = await getDoc(doc(db, 'lists', listId))
+                            if (listSnap.exists()) {
+                                return {id: listSnap.id, ...listSnap.data()} as FirestoreList
+                            }
+                        } catch (e) {
+                            console.warn(`Cannot load list ${listId}`, e)
+                        }
+                        return null
+                     })
+                     
+                     const loadedLists = await Promise.all(listPromises)
+                     loadedLists.forEach(l => {
+                        if (l) listsMap[l.id] = l
+                     })
                 }
 
-                const mergedData = invitesData.map(invite => {
-                    const group = groupsMap[invite.groupId] || null
-                    
+                const mergedData = validResults.map(({invite, group}) => {
                     if (group && group.lists) {
                         const enrichedGroup = {
                             ...group,
@@ -74,14 +100,14 @@ export default function useInvites(user: User | null) {
                     }
                 })
 
-                setFullInvites(mergedData)
+                setFullInvites(mergedData as FullInvite[])
             } catch (error) {
                 console.error('Error fetching data for invites:', error)
             }
         } else {
             setFullInvites([])
         }
-    }, [setFullInvites])
+    }, [])
 
     // agree to join a group
     const acceptInvite = useCallback(async (invite: FullInvite) => {

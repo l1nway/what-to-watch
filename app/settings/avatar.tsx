@@ -23,12 +23,12 @@ export default function Avatar({user, setFile}: any) {
                     ?
                         <img
                             src={`${user.photoURL}`}
-                            className='min-w-122 max-w-122 max-md:min-w-90 max-md:max-w-90 aspect-square object-cover rounded-full block flex-shrink-0'
+                            className='min-w-140 max-w-140 max-lg:min-w-90 max-lg:max-w-90 aspect-square object-cover rounded-full block flex-shrink-0'
                             alt='avatar'
                         />
                     :
                         <User
-                            className='w-122 h-122 max-md:w-90 max-md:h-90 outline-none text-[#959dab] group-hover:text-white focus:text-white transition-colors duration-300'
+                            className='w-140 h-140 max-lg:w-90 max-lg:h-90 outline-none text-[#959dab] group-hover:text-white focus:text-white transition-colors duration-300'
                         />
                 }
                 <div className='flex'>
