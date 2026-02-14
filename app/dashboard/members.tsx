@@ -39,7 +39,7 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
         return (
             <motion.div
                 {...animationProps('vertical', true, delay, index)}
-                className='flex gap-2 text-white justify-between items-center'
+                className='flex gap-2 text-white justify-between items-center hover:bg-[#121e37] rounded-[5px] p-2 transition-colors duration-300'
                 style={{...stylesProps, overflow: 'hidden'}}
                 layoutId={member?.id}
                 key={member?.id}
@@ -172,7 +172,7 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
             <X className='text-[#99a1af] hover:text-white cursor-pointer transition-colors duration-300' onClick={onClose}/>
             </div>
             <SlideDown visibility={owner}>
-                <div className='pt-2 flex justify-between items-center'>
+                <div className='pt-2 flex justify-between items-center border-b border-[#1e2939] pb-4'>
                     <span className='text-[#99a1af] text-sm'>
                         By clicking on the user's icon, you can change their rights.<br/>
                         <span className='inline'>

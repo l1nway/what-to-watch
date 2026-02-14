@@ -2,7 +2,7 @@ import {Github} from "lucide-react"
 
 export default function Footer({className}: {className?: string}) {
     return (
-        <footer className={`${className = ''} text-white w-full h-fit items-center flex justify-between px-8`}>
+        <footer className={`${className ?? ''} text-white w-full h-fit items-center flex justify-between px-8`}>
             <div className='flex flex-col'>
             <span className='text-[#c3abff]'>Developed by l1nway</span>
             </div>

@@ -143,10 +143,10 @@
 }
 
 @media (min-width: 1921px) {
-  .movie-card-sizes {width: 9%;}
+  .movie-card-sizes {width: 13.5%;}
 }
 
-@media (max-width: 301px) {
+@media (max-width: 385px) {
   .movie-card-sizes {width: 98%;}
 }
 
@@ -160,10 +160,6 @@
 
 @media (min-width: 1661px) and (max-width: 1920px) {
   .list-card-sizes {width: 24.25%;}
-}
-
-@media (min-width: 1921px) {
-  .list-card-sizes {width: 16%;}
 }
 
 .rac-title-text {

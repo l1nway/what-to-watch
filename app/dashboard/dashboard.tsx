@@ -23,7 +23,7 @@ export default function Dashboard() {
 
     const dashboardLogic = useDashboard()
 
-    const {deletingId, processingId, members, fetchMembers, setLoading, toggleRole, kickMember, membersClarify, setMembersClarify, logout, delay, leaveGroup, newGroupRef, newListRef, setGroups, updateGroup, delClarify, setDelClarify, selectedGroup, setSelectedGroup, deleteGroup, router, lists, groups, user, loading, list, setList, group, setGroup, invite, setInvite, listName, setListName, listDesc, setListDesc, groupName, setGroupName, groupDesc, setGroupDesc, inviteEmail, setInviteEmail, groupLists, setGroupLists, createList, createGroup, updateGroups} = dashboardLogic
+    const {deletingId, processingId, members, fetchMembers, toggleRole, kickMember, membersClarify, setMembersClarify, logout, delay, leaveGroup, newGroupRef, newListRef, setGroups, updateGroup, delClarify, setDelClarify, selectedGroup, setSelectedGroup, deleteGroup, router, lists, groups, user, loading, list, setList, group, setGroup, invite, setInvite, listName, setListName, listDesc, setListDesc, groupName, setGroupName, groupDesc, setGroupDesc, inviteEmail, setInviteEmail, groupLists, setGroupLists, createList, createGroup, updateGroups} = dashboardLogic
 
     const listHeader = useCallback((text: string, button: string, icon: ReactNode, onClick: () => void) => {
         return(
@@ -47,8 +47,8 @@ export default function Dashboard() {
         )
     }, [loading])
 
-    const [redirect, setRedirect] = useState(false)
-    const [deauth, setDeauth] = useState(false)
+    const [redirect, setRedirect] = useState<boolean>(false)
+    const [deauth, setDeauth] = useState<boolean>(false)
 
     const stng = useCallback(() => {
         router.push('/settings')

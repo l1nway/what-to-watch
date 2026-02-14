@@ -1,7 +1,7 @@
 'use client'
 
 import {X, UserRoundPlus, UserStar, UserPen, User, BadgeInfo, Loader} from 'lucide-react'
-import {collection, writeBatch, doc, getDoc, Timestamp} from 'firebase/firestore'
+import {collection, writeBatch, doc, Timestamp} from 'firebase/firestore'
 import {Field, FieldLabel} from '@/components/ui/field'
 import {TransitionGroup} from 'react-transition-group'
 import {validateEmail} from '../components/validation'

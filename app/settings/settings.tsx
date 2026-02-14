@@ -1,6 +1,6 @@
 'use client'
 
-import {Film, Settings, LogOut, X, Save, Pencil, Loader, ArrowLeft} from 'lucide-react'
+import {Film, Settings, LogOut, X, Save, Pencil, Loader, ArrowLeft, ReceiptText} from 'lucide-react'
 import {GroupCardProps} from '../dashboard/dashboardTypes'
 import {Field, FieldLabel} from '@/components/ui/field'
 import {TransitionGroup} from 'react-transition-group'
@@ -50,7 +50,7 @@ export default function settings() {
         personal.map((element, index) => {
         let value = loading ? 'Loading…' : element.value
         let initial = (element.field == 'name' ? user?.displayName : user?.email) || ''
-        let changed = !loading && element.value !== initial
+        let changed = !loading && element.edited && element.value !== initial
             return (
                 <Field key={element.field}>
                     <div className='flex'>
@@ -76,7 +76,7 @@ export default function settings() {
                             />
                         </SlideLeft>
                     </div>
-                    <div className='flex'>
+                    <div className='flex w-full'>
                         <Input
                             ref={(el) => {inputRefs.current[element.field] = el}}
                             id={`input-field-${element.field}`}
@@ -109,7 +109,7 @@ export default function settings() {
                         />
                         <SlideLeft visibility={changed}>
                             <Button
-                                className='gap-0 mx-5 bg-[#7f22fe] hover:bg-[#641aca] transition-colors duration-300 cursor-pointer'
+                                className='gap-0 ml-5 mr-14 max-md:mr-35 max-lg:mr-10 max-xl:mr-26 bg-[#7f22fe] hover:bg-[#641aca] transition-colors duration-300 cursor-pointer'
                                 onClick={saveName}
                             >
                                 <SlideLeft visibility={element.loading}>
@@ -158,13 +158,18 @@ export default function settings() {
 
     const emptyPassword = passwords.some(p => p.value.trim() === '')
     
-    const [deauth, setDeauth] = useState(false)
-
-    const [back, setBack] = useState(false)
+    const [deauth, setDeauth] = useState<boolean>(false)
+    const [privacy, setPrivacy] = useState<boolean>(false)
+    const [back, setBack] = useState<boolean>(false)
     
     const bck = useCallback(() => {
         router.back()
         setBack(true)
+    }, [])
+
+    const policy = useCallback(() => {
+        router.push('/privacy')
+        setPrivacy(true)
     }, [])
 
     const animationMap = useMemo(() => ({
@@ -246,6 +251,34 @@ export default function settings() {
                 <div className='flex gap-5'>
                     <Settings className='text-white hover:text-white transition-colors duration-300'/>
                     <AnimatePresence mode='wait'>
+                        {!privacy ?
+                            <motion.div
+                                key='privacy'
+                                animate={{opacity: 1, scale: 1, rotate: 0}}
+                                exit={{opacity: 0, scale: 0.5, rotate: 45}}
+                                transition={{duration: 0.15}}
+                            >
+                                <ReceiptText
+                                    className='outline-none cursor-pointer text-[#959dab] hover:text-white focus:text-white transition-colors duration-300'
+                                    onClick={policy}
+                                    tabIndex={0}
+                                />
+                            </motion.div>
+                            :
+                            <motion.div
+                                key='loader'
+                                initial={{opacity: 0, scale: 0.5}}
+                                animate={{opacity: 1, scale: 1}}
+                                exit={{opacity: 0, scale: 0.5}}
+                                transition={{duration: 0.15}}
+                            >
+                                <Loader
+                                    className='text-[#959dab] animate-spin'
+                                />
+                            </motion.div>
+                        }
+                    </AnimatePresence>
+                    <AnimatePresence mode='wait'>
                         {!deauth ?
                             <motion.div
                                 key='settings'
@@ -281,9 +314,9 @@ export default function settings() {
                         file={file}
                         user={user}
                     />
-                    <div className='flex w-full flex-col'>
+                    <div className='flex w-full max-xl:flex-col'>
                         <div
-                            className='bg-[#101828] flex flex-col gap-2 p-4 m-4 rounded-[10px]'
+                            className='bg-[#101828] flex flex-col gap-2 p-4 m-4 rounded-[10px] max-xl:w-auto w-[50%] h-fit'
                         >
                             <h2
                                 className='text-white text-2xl pb-2'
@@ -293,7 +326,7 @@ export default function settings() {
                             {renderPersonal}
                         </div>
                         <div
-                            className='bg-[#101828] flex flex-col p-4 m-4 rounded-[10px]'
+                            className='bg-[#101828] flex flex-col p-4 m-4 rounded-[10px] max-xl:w-auto w-[50%] h-fit'
                         >
                             <div className='flex items-center pb-4'>
                                 <h2
