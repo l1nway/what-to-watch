@@ -58,8 +58,10 @@ export default function Random() {
         if (allIds.length === 0) return
 
         setQuiz(false)
-        setRandom(true)
-        setDone(false)
+        setTimeout(() => {
+            setRandom(true)
+            setDone(false)
+        }, 50)
 
         let activeIds = currentPair ? [...currentPair, ...queue, ...winners] : allIds
         setTitle('Picking your movie…')
@@ -369,7 +371,6 @@ export default function Random() {
                                     variants={cardVariants}
                                     initial='spinning'
                                     key='random-div'
-                                    layout
                                 >
                                     <motion.img
                                         src={done 
