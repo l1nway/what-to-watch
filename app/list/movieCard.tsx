@@ -19,8 +19,8 @@ const MovieCard = memo(function MovieCard({delay, setDelWarning, setSelected, se
     }, [movie, setSelected, setFilm])
     return (
        <motion.div
-            style={{...stylesProps, overflow: 'hidden'}}
             {...animationProps('both', true, delay, index)}
+            style={{...stylesProps, overflow: 'hidden'}}
             className='mb-3 mr-3 movie-card-sizes'
             layoutId={movie.id}
             onClick={onClick}

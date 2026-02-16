@@ -19,7 +19,7 @@ export default function MovieSkeleton({loading, onClick}: {loading: boolean, onC
     >
       <div 
         className={`
-          relative w-full aspect-[2/3] aspect-[2/3] object-cover rounded-xl p-4 flex flex-col justify-between overflow-hidden border border-transparent hover:border-[#7f22fe] transition-colors duration-300
+          relative w-full aspect-[2/3] object-cover rounded-xl p-4 flex flex-col justify-between overflow-hidden border border-transparent hover:border-[#7f22fe] transition-colors duration-300
           ${loading ? 'animate-pulse' : ''}
           `}
         style={{
