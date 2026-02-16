@@ -350,12 +350,13 @@ export default function Random() {
                         </motion.div>
                     }
                 </AnimatePresence>
-                <AnimatePresence>
+                <AnimatePresence initial={false}>
                     {random &&
                         <motion.div
-                            className='grid justify-items-center'
+                            style={{transformStyle: 'preserve-3d', willChange: 'transform', transform: 'translateZ(0)'}}
                             transition={{duration: 0.5, ease: [0.4, 0, 0.2, 1]}}
                             animate={{height: 'auto', opacity: 1}}
+                            className='grid justify-items-center'
                             initial={{height: 0, opacity: 0}}
                             exit={{height: 0, opacity: 0}}
                             key='spinning-card'
