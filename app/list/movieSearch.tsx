@@ -161,23 +161,31 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
 
     const measureHeight = useCallback(() => {
         if (!contentRef.current) return
+
         if (!combinedList.length) {
             setHeight(0)
             return
         }
-        // using requestAnimationFrame twice ensures that height animation is calculated correctly; using just one can sometimes get stuck if there's a lag
+
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                const MAX_HEIGHT = 150 * 3
+                const node = contentRef.current
+                if (!node) return
+
+                const scrollHeight = node.scrollHeight
+                const windowHeight = window.innerHeight
+                const staticOffsets = 280 
+                const availableHeight = windowHeight - staticOffsets
+
                 const nextHeight = Math.min(
-                    contentRef.current!.scrollHeight,
-                    MAX_HEIGHT
+                    scrollHeight,
+                    Math.max(200, availableHeight-5)
                 )
 
                 setHeight(nextHeight)
             })
         })
-    }, [setHeight, combinedList.length])
+    }, [combinedList.length])
 
     const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value)
@@ -199,9 +207,38 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
         }
     }, [visibility])
 
+    const debouncedMeasure = useMemo(() => debounce(() => measureHeight(), 150), [measureHeight])
+
+    useEffect(() => {
+        if (visibility) {
+            measureHeight()
+        }
+
+        window.addEventListener('resize', debouncedMeasure)
+        
+        return () => {
+            debouncedMeasure.cancel()
+            window.removeEventListener('resize', debouncedMeasure)
+        }
+    }, [visibility, debouncedMeasure, measureHeight])
+
+    useEffect(() => {
+        if (visibility) {
+            measureHeight()
+            
+            const timer = setTimeout(() => {
+                measureHeight()
+            }, 300)
+
+            return () => clearTimeout(timer)
+        }
+    }, [visibility, combinedList.length, measureHeight])
+
     return (
         <ShowClarify
+            parentClassName='min-md:min-w-[90%] min-2xl:min-w-[75%] flex max-h-full'
             visibility={visibility}
+            className='w-full'
             onClose={onClose}
         >
             <div className='flex justify-between text-white border-b border-[#1e2939] pb-4'>
@@ -240,16 +277,14 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
                 </SlideLeft>
             </label>
             <span className='text-[#6a7282] border-b border-[#1e2939] pb-4'>Powered by TMDB API (The Movie Database)</span>
-            <div
-                className='w-250 mb-4 max-lg:w-full'
-            >
+            <div className='w-full mb-4 max-lg:w-full'>
                 <motion.div
-                    className='overflow-hidden'
                     transition={{duration: 0.3, ease: 'easeInOut'}}
+                    className='overflow-hidden max-h-full w-full'
                     animate={{height}}
                 >
                     <div
-                        className='flex flex-col w-250 max-h-113 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939] max-lg:w-full pb-1'
+                        className='flex flex-col w-full max-h-full overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939] max-lg:w-full pb-1'
                         ref={contentRef}
                         tabIndex={-1}
                     >

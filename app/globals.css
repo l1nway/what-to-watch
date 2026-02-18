@@ -162,6 +162,28 @@
   .list-card-sizes {width: 24.25%;}
 }
 
+
+.canvas-container > canvas {
+  min-height: 70vh !important;
+  max-height: 70vh !important;
+  max-width: 70vh !important;
+  min-width: 70vh !important;
+}
+
+@media (max-height: 575px) {
+  .canvas-container > canvas {
+    min-height: 100vh !important;
+    min-width: 100vh !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .canvas-container > canvas {
+    min-height: 100% !important;
+    min-width: 100% !important;
+  }
+}
+
 .rac-title-text {
   margin: 0 !important;
 }

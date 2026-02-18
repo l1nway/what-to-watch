@@ -247,7 +247,7 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                     className='text-[#d1d5dc]'
                     htmlFor='input-email'
                 >
-                    Email Adress
+                    Email Address
                 </FieldLabel>
                 <div className='flex gap-2 w-full'>
                     <Input

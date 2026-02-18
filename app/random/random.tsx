@@ -3,7 +3,6 @@
 import {useState, useEffect, useCallback, useMemo} from 'react'
 import {useSearchParams, useRouter} from 'next/navigation'
 import {ArrowLeft, Loader, Sparkles} from 'lucide-react'
-import SlideDown from '../components/slideDown'
 import {doc, getDoc} from 'firebase/firestore'
 import {Button} from '@/components/ui/button'
 import {motion, Easing, AnimatePresence} from 'framer-motion'
@@ -243,6 +242,20 @@ export default function Random() {
         setBack(true)
     }, [])
 
+    const [ready, setReady] = useState(false)
+
+    useEffect(() => {
+    if (selectedMovie?.poster_path) {
+        const img = new Image()
+        img.src = `https://image.tmdb.org/t/p/w500${selectedMovie.poster_path}`
+        img.onload = () => setReady(true)
+    } else if (poster) {
+        const img = new Image()
+        img.src = poster
+        img.onload = () => setReady(true)
+    }
+    }, [selectedMovie, poster])
+
     if (allIds.length > 0) router.back
 
     return (
@@ -364,11 +377,8 @@ export default function Random() {
                             <div className='w-[75%] flex justify-center perspective-1000 py-10 max-md:py-5'>
                                 <motion.div
                                     className='relative overflow-hidden border-4 border-[#7f22fe] rounded-[15px] w-full h-full flex items-center justify-center bg-[#101828] left-0 right-0 mx-auto'
-                                    style={{
-                                        transformStyle: 'preserve-3d',
-                                        willChange: 'transform'
-                                    }}
-                                    animate={done ? 'reveal' : 'spinning'}
+                                    style={{transformStyle: 'preserve-3d', willChange: 'transform'}}
+                                    animate={done && ready ? 'reveal' : 'spinning'}
                                     variants={cardVariants}
                                     initial='spinning'
                                     key='random-div'

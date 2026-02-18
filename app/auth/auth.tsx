@@ -2,7 +2,7 @@
 
 import {useCallback, useState, useRef} from 'react'
 import {useRouter, useSearchParams} from 'next/navigation'
-import {Loader, Film} from 'lucide-react'
+import {Loader, Film, EyeOff, Eye} from 'lucide-react'
 
 import {signIn, signUp, updateUser} from '@/lib/auth'
 import SlideDown from '../components/slideDown'
@@ -18,6 +18,7 @@ import {Input} from '@/components/ui/input'
 import {db} from '@/lib/firebase'
 
 import Footer from '../footer'
+import {AnimatePresence, motion} from 'framer-motion'
 
 export default function Auth() {
   const router = useRouter()
@@ -33,6 +34,9 @@ export default function Auth() {
   const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
   const [confirm, setConfirm] = useState<string>('')
+
+  const [showPassword, setShowPassword] = useState<boolean>(false)
+  const [showConfirm, setShowConfirm] = useState<boolean>(false)
 
   const refs = [loginRef, passwordRef, nameRef, confirmRef]
 
@@ -170,7 +174,7 @@ export default function Auth() {
 }
   }, [mode, email, password, name])
 
-  const fieldElement = useCallback((text: string, placeholder: string, type: string, onChange: (value: string) => void, ref?: React.Ref<HTMLInputElement> | null) => {
+  const fieldElement = useCallback((text: string, placeholder: string, type: string, onChange: (value: string) => void, ref?: React.Ref<HTMLInputElement> | null, visible?: boolean, setVisible?: (v: boolean) => void) => {
     return (
     <Field
       style={{paddingBottom: '1.5em'}}
@@ -181,20 +185,53 @@ export default function Auth() {
       >
         {text}
       </FieldLabel>
-      <Input
-        className='bg-[#1e2939] text-[#6a7282] border-[#364153] placeholder:text-[#4b5563] hover:border-[#7f22fe] focus:border-[#7f22fe] focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:border-[#7f22fe] focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors duration-300'
-        onChange={(e: {target: {value: string}}) => {
-          onChange(e.target.value)
-          setErrorStatus(false)
-          if (ref && 'current' in ref && ref.current) {
-            clearShake(ref.current)
-          }
-        }}
-        placeholder={placeholder}
-        id={`fieldgroup-${text}`}
-        type={type}
-        ref={ref}
-      />
+      <div className='flex gap-2 items-center'>
+        <Input
+          className='bg-[#1e2939] text-[#6a7282] border-[#364153] placeholder:text-[#4b5563] hover:border-[#7f22fe] focus:border-[#7f22fe] focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:border-[#7f22fe] focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors duration-300'
+          onChange={(e: {target: {value: string}}) => {
+            onChange(e.target.value)
+            setErrorStatus(false)
+            if (ref && 'current' in ref && ref.current) {
+              clearShake(ref.current)
+            }
+          }}
+          placeholder={placeholder}
+          id={`fieldgroup-${text}`}
+          type={type == 'password' && visible ? 'text' : type}
+          ref={ref}
+        />
+        {type == 'password' && setVisible &&
+          <AnimatePresence mode='wait'>
+            {visible ?
+              <motion.div
+                animate={{opacity: 1, scale: 1, rotate: 0}}
+                exit={{opacity: 0, scale: 0.5, rotate: 45}}
+                initial={{opacity: 0, scale: 0.5}}
+                transition={{duration: 0.15}}
+                key='!visible'
+              >
+                <EyeOff
+                  className='text-[#6a7282] hover:text-white transition-colors duration-300 cursor-pointer'
+                  onClick={() => setVisible(false)}
+                />
+              </motion.div>
+            :
+              <motion.div
+                animate={{opacity: 1, scale: 1, rotate: 0}}
+                exit={{opacity: 0, scale: 0.5, rotate: 45}}
+                initial={{opacity: 0, scale: 0.5}}
+                transition={{duration: 0.15}}
+                key='visible'
+              >
+                <Eye
+                  className='text-[#6a7282] hover:text-white transition-colors duration-300 cursor-pointer'
+                  onClick={() => setVisible(true)}
+                />
+              </motion.div>
+            }
+          </AnimatePresence>
+        }
+      </div>
     </Field>
   )}, [])
 
@@ -254,11 +291,11 @@ export default function Auth() {
                   {fieldElement('Name', 'Set your name', 'text', setName, nameRef)}
                 </SlideDown>
               {fieldElement('Email', 'name@example.com', 'email', setEmail, loginRef)}
-              {fieldElement('Password', 'Set your password', 'password', setPassword, passwordRef)}
+              {fieldElement('Password', 'Set your password', 'password', setPassword, passwordRef, showPassword, setShowPassword)}
               <SlideDown
                 visibility={mode === 'register'}
               >
-                {fieldElement('Confirm password', 'Confirm your password', 'password', setConfirm, confirmRef)}
+                {fieldElement('Confirm password', 'Confirm your password', 'password', setConfirm, confirmRef, showConfirm, setShowConfirm)}
               </SlideDown>
               <SlideDown visibility={errorStatus}>
                 <span className='text-[#a60000] flex items-center justify-center w-full pb-5'>

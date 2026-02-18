@@ -21,12 +21,15 @@ export default function Editor({visibility, onClose, user}: any) {
     const [loaded, setLoaded] = useState<boolean>(false)
     const [loading, setLoading] = useState<boolean>(false)
 
+    const [done, setDone] = useState<boolean>(false)
+
     useEffect(() => {
         if (!visibility) setLoaded(false)
     }, [visibility])
 
     const reset = useCallback(() => {
         setRotation(0)
+        setDone(false)
         setZoom(1)
         onClose()
     }, [])
@@ -95,8 +98,9 @@ export default function Editor({visibility, onClose, user}: any) {
 
     return (
         <ShowClarify
+            parentClassName='flex min-md:min-w-fit min-md:max-h-full'
+            className='max-md:h-auto w-full items-center overflow-y-auto [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939]'
             visibility={visibility}
-            className='h-full w-full items-center'
             onClose={reset}
         >
             <SlideDown
@@ -106,26 +110,27 @@ export default function Editor({visibility, onClose, user}: any) {
                 <Loader className='h-15 w-15 text-white animate-spin'/>
             </SlideDown>
             <SlideDown
-                className={`${!loaded && 'h-0'}`}
+                className={`${!loaded && 'h-0'} ${done && '!overflow-visible canvas-container'}`}
+                entered={() => setDone(true)}
                 unmountOnExit={false}
                 visibility={loaded}
                 duration={500}
             >
                 <div
-                    className='relative touch-none [&>canvas]:!w-175 [&>canvas]:!h-175 max-md:[&>canvas]:!w-90 max-md:[&>canvas]:!h-90'
+                    className='relative touch-none [&>canvas]:!w-full [&>canvas]:!h-full canvas-container'
                     ref={editorContainer}
                 >
                     <AvatarEditor
                         onLoadSuccess={() => setLoaded(true)}
                         crossOrigin='anonymous'
-                        image={visibility}
                         backgroundColor='gray'
                         borderRadius={500}
+                        image={visibility}
                         rotate={rotation}
                         scale={zoom}
                         ref={editor}
-                        height={512}
-                        width={512}
+                        height={1024}
+                        width={1024}
                         border={0}
                     />
                 </div>
