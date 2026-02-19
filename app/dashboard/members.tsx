@@ -1,10 +1,11 @@
 import {X, UserStar, UserPen, User, Trash2, Image, Loader, BadgeInfo} from 'lucide-react'
 import {animationProps, stylesProps} from '../components/motionProps'
-import {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react'
+import {useDynamicHeight} from '../components/useDynamicHeight'
 import {AnimatePresence, motion} from 'framer-motion'
-import ShowClarify from '../components/showClarify'
-import SlideLeft from '../components/slideLeft'
 import {MembersTypes, Member} from './dashboardTypes'
+import ShowClarify from '../components/showClarify'
+import {useEffect, useMemo, useRef} from 'react'
+import SlideLeft from '../components/slideLeft'
 import SlideDown from '../components/slideDown'
 
 export default function Members({visibility, onClose, group, user, toggleRole, kickMember, fetchMembers, loading, members, processingId, deletingId, delay}: MembersTypes) {
@@ -12,7 +13,7 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
     const memberRef = useRef<HTMLDivElement | null>(null)
     const contentRef = useRef<HTMLDivElement>(null)
 
-    const [height, setHeight] = useState<number>(0)
+    const {height, measureHeight} = useDynamicHeight({contentRef, dependency: members, visibility, staticOffsets: 280})
 
     useEffect(() => {
         if (!group || !visibility) return
@@ -126,39 +127,13 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
         )
     })
 
-    const measureHeight = useCallback(() => {
-        if (!contentRef.current) return
-        if (!members.length) {
-            setHeight(0)
-            return
-        }
-        // using requestAnimationFrame twice ensures that height animation is calculated correctly; using just one can sometimes get stuck if there's a lag
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                const MAX_HEIGHT = 100 * 5
-                const nextHeight = Math.min(
-                    contentRef.current!.scrollHeight,
-                    MAX_HEIGHT
-                )
-
-                setHeight(nextHeight)
-            })
-        })
-    }, [setHeight, members.length])
-
-    useLayoutEffect(() => {
-        measureHeight()
-    }, [members.length, visibility])
-
-    // needed to force height to be reset to zero if the user clears the search field and immediately exits without waiting for the animation to play; otherwise, the height gets stuck
-    useEffect(() => {
-        if (!visibility) {
-            setHeight(0)
-        }
-    }, [visibility])
-
     return (
-        <ShowClarify visibility={visibility} onClose={onClose}>
+        <ShowClarify
+            parentClassName='max-h-full overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939]'
+            visibility={visibility}
+            onClose={onClose}
+            className='!mb-0'
+        >
             <div className='text-white flex justify-between border-b border-[#1e2939] pb-4'>
                 <div className='flex'>
                     <h1>Members</h1>
@@ -192,14 +167,11 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
                 </div>
             </SlideDown>
             <motion.div
-                className='overflow-auto [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939] mt-2'
+                className='overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939] mt-2'
                 transition={{duration: 0.3, ease: 'easeInOut'}}
                 animate={{height}}
             >
-                <div
-                    className='flex flex-col gap-2'
-                    ref={contentRef}
-                >
+                <div className='flex flex-col gap-2' ref={contentRef}>
                     <AnimatePresence
                         onExitComplete={measureHeight}
                         mode='popLayout'

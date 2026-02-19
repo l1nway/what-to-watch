@@ -71,8 +71,8 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
                         <div className='relative flex items-center h-10 w-full'>
                             <div className='absolute flex top-0 items-center h-10 w-full'>
                                 <span
-                                    className={`text-ellipsis max-md:max-w-[90%]
-                                        absolute invisible whitespace-pre text-xl ${group?.edit ? 'pl-2 pr-2' : 'pr-1'} py-2`
+                                    className={`text-ellipsis max-md:max-w-[90%] absolute invisible whitespace-pre text-xl py-2
+                                        ${group?.edit ? 'pl-2 pr-2' : 'pr-1'}`
                                     }
                                     ref={spanRef}
                                 >
@@ -89,16 +89,16 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
                                     onChange={onChange}  
                                     className={`text-ellipsis max-md:max-w-[90%] py-2 text-left whitespace-nowrap border border-[#7f22fe] text-xl rounded-[10px] outline-none bg-[#7f22fe] text-white disabled:bg-[#101828] disabled:border-[#101828] duration-300
                                         ${group?.edit ? 'pl-2 pr-2' : 'pr-1'} 
-                                        `}
+                                    `}
                                 />
                                 {admin ?
                                     <div className='relative w-6 h-6'>
                                         <CSSTransition
+                                            classNames='icon-fade'
+                                            nodeRef={editRef}
                                             in={group?.edit}
                                             timeout={700}
-                                            classNames='icon-fade'
                                             unmountOnExit
-                                            nodeRef={editRef}
                                         >
                                             <div
                                                 ref={editRef}
@@ -120,11 +120,11 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
                                             </div>
                                         </CSSTransition>
                                         <CSSTransition
-                                            in={!group?.edit}
-                                            timeout={700}
                                             classNames='icon-fade'
-                                            unmountOnExit
+                                            in={!group?.edit}
                                             nodeRef={viewRef}
+                                            timeout={700}
+                                            unmountOnExit
                                         >
                                             <div
                                                 ref={viewRef}
@@ -155,7 +155,7 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
                     </div>
                     {!admin && !invite ?
                         <DoorOpen
-                            className='outline-none w-9 h-9 text-[#959dab] hover:text-white focus:text-white transition-colors duration-300'
+                            className='cursor-pointer outline-none w-9 h-9 text-[#959dab] hover:text-white focus:text-white transition-colors duration-300'
                             onClick={() => del('leave')}
                             tabIndex={0}
                         />
@@ -226,7 +226,7 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
                 <div className='flex flex-col gap-4 max-md:w-fit min-md:w-full'>
                     <Button
                         className='outline-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-[#1e2939] rounded-[10px] p-4 cursor-pointer hover:bg-[#303844] focus:bg-[#303844] transition-colors duration-300'
-                        onClick={() => setInvite?.({id: group?.id, name: group?.name})}
+                        onClick={() => setInvite?.({id: group?.id, name: group?.name, ownerId: group?.ownerId})}
                         disabled={!admin}
                     >
                         <UserRoundPlus/> Invite
@@ -247,14 +247,13 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
                             '--rac-scroll-color': '#7f22fe',
                             '--rac-scroll-track': '#1e2939'
                         } as React.CSSProperties}
-                        optionsClassName='list-select-list max-md:w-[50%]! max-md:left-[40%]!'
-                        
                         onChange={(fullObjects, ids) => updateGroups?.(group?.id, fullObjects, ids as unknown as string[])}
+                        optionsClassName='list-select-list max-md:w-[50%]! max-md:left-[40%]!'
+                        disabled={!admin || !lists?.length}
                         value={group?.lists?.map(l => l)}
-                        disabledText='Not available'
                         selectedText='+ Add list'
                         placeholder='+ Add list'
-                        disabled={!admin}
+                        disabledText='No lists'
                         options={lists}
                         offset={2}
                         multiple
@@ -275,9 +274,7 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
                         className='h-fit text-xl bg-[#7f22fe] rounded-[10px] p-2 cursor-pointer hover:bg-[#641aca] transition-colors duration-300'
                         onClick={() => accept?.()}
                     >
-                        <CircleCheck
-                            className='w-5! h-5!'
-                        /> Accept
+                        <CircleCheck className='w-5! h-5!'/> Accept
                     </Button>
                     <Button
                         className='h-fit text-xl bg-red-500 rounded-[10px] p-2 cursor-pointer hover:bg-red-700 transition-colors duration-300'

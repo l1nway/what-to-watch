@@ -69,6 +69,7 @@ export interface MembersTypes {
 
 export type Data = boolean | {
     id: number | string
+    ownerId: string
     name: string
 }
 

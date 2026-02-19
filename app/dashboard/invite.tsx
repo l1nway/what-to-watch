@@ -47,10 +47,7 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
     const [duration, setDuration] = useState<string>('30 min')
     const durations = ['5 min', '30 min', '1 hour', '2 hours', '6 hours', '12 hours', '1 day', '1 week', '1 month']
 
-    type Pending = {
-        email: string
-        admin: boolean
-    }
+    type Pending = {email: string; admin: boolean}
 
     const [pendings, setPendings] = useState<Pending[]>([])
     const [loading, setLoading] = useState<boolean>(false)
@@ -110,7 +107,7 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                                                     <h2 style="color: #ffffff; margin: 0 0 20px 0; font-size: 24px;">Group Invitation</h2>
                                                     
                                                     <p style="font-size: 16px; line-height: 1.5; color: #e5e7eb; margin: 0 0 10px 0;">
-                                                        Hello! You have been invited to join the group <strong style="color: #ffffff;">нейм</strong>.
+                                                        Hello! You have been invited to join the group <strong style="color: #ffffff;">${group?.name}</strong>.
                                                     </p>
                                                     
                                                     <p style="font-size: 16px; line-height: 1.5; color: #e5e7eb; margin: 0 0 30px 0;">
@@ -231,16 +228,18 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
             />
             </div>
             
-            <div className='pt-2 flex justify-between'>
-                <span className='text-[#99a1af] text-sm'>
-                    By inviting user with admin{''}
-                    <span className='inline'>
-                        <UserStar className='w-4 h-4 mx-1 inline' />
-                    </span>{''}
-                    rights, he will be able to edit group.
-                    </span>
-                <BadgeInfo className='text-[#99a1af] hover:text-white cursor-pointer transition-colors duration-300'/>
-            </div>
+            <SlideDown visibility={user?.uid === group?.ownerId}>
+                <div className='pt-2 flex justify-between'>
+                    <span className='text-[#99a1af] text-sm'>
+                        By inviting user with admin{''}
+                        <span className='inline'>
+                            <UserStar className='w-4 h-4 mx-1 inline' />
+                        </span>{''}
+                        rights, he will be able to edit group.
+                        </span>
+                    <BadgeInfo className='text-[#99a1af] hover:text-white cursor-pointer transition-colors duration-300'/>
+                </div>
+            </SlideDown>
 
             <Field className='pb-4 pt-2 min-w-97 w-full'>
                 <FieldLabel
@@ -259,13 +258,15 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                         placeholder='friend@email.com'
                         className='max-md:w-[65%] bg-[#1e2939] text-white border-[#364153] placeholder:text-[#4b5563] hover:border-[#7f22fe] focus:border-[#7f22fe] focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:border-[#7f22fe] focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors duration-300'
                     />
-                    <Button
-                        className='max-md:w-[10%] bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'
-                        onClick={() => addEmail(true)}
-                        ref={adminRef}
-                    >
-                        <UserStar/>
-                    </Button>
+                    {user?.uid == group?.ownerId &&
+                        <Button
+                            className='max-md:w-[10%] bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'
+                            onClick={() => addEmail(true)}
+                            ref={adminRef}
+                        >
+                            <UserStar/>
+                        </Button>
+                    }
                     <Button
                         className='max-md:w-[10%] bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'
                         onClick={() => addEmail(false)}
@@ -328,8 +329,7 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                     Cancel
                 </Button>
                 <Button
-                    className={`gap-0
-                        w-[49%] hover:bg-[#641aca] cursor-pointer
+                    className={`gap-0 w-[49%] hover:bg-[#641aca] cursor-pointer
                         ${(pendings.length == 0) ? 'bg-[#641aca]' : 'bg-[#7f22fe]'}    
                     `}
                     onClick={sendInvite}

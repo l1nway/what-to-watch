@@ -145,14 +145,28 @@ export default function UseDashboard() {
         }
     }, [user, lists, groupLists])
 
-    const deleteGroup = useCallback(async (id: string | number) => {
+    const deleteGroup = useCallback(async (id: string) => {
         try {
             setLoading(true)
-            await deleteDoc(doc(db, 'groups', String(id)))
+            const batch = writeBatch(db)
+
+            const listsQuery = query(collection(db, 'lists'), where('groupId', '==', id))
+            const listsSnap = await getDocs(listsQuery)
+
+            listsSnap.docs.forEach(listDoc => {
+                batch.update(listDoc.ref, {groupId: null})
+            })
+
+            batch.delete(doc(db, 'groups', String(id)))
+
+            await batch.commit()
+
             setGroups(prev => prev.filter(g => g.id !== id))
+            setLists(prev => prev.map(l => l.groupId === id ? {...l, groupId: null } : l))
+            
             setDelClarify(false)
         } catch (e) {
-            console.error(e)
+            console.error('Delete group error:', e)
         } finally {
             setLoading(false)
         }
@@ -204,7 +218,6 @@ export default function UseDashboard() {
 
     const createList = useCallback(async () => {
         if (!user) return
-
         if (!listName.trim()) {
             shake(newListRef.current)
             return
@@ -213,38 +226,46 @@ export default function UseDashboard() {
         const targetGroupId = groupLists.length > 0 ? groupLists[0] : null
 
         try {
-            setLoading(true)
+            setLoading(true);
+            const batch = writeBatch(db);
+            const newListRef = doc(collection(db, 'lists'))
+
             const newListData = {
-                name: listName,
+                name: listName.trim(),
                 ownerId: user.uid,
                 groupId: targetGroupId, 
                 desc: listDesc,
                 created: serverTimestamp(),
                 movies: []
             }
-            const res = await addDoc(collection(db, 'lists'), newListData);
+
+            batch.set(newListRef, newListData)
 
             if (targetGroupId) {
-                await updateDoc(doc(db, 'groups', targetGroupId), {
-                    lists: arrayUnion(res.id)
+                const groupDocRef = doc(db, 'groups', targetGroupId)
+                batch.update(groupDocRef, {
+                    lists: arrayUnion(newListRef.id)
                 })
             }
 
-            const newList = {id: res.id, ...newListData} as ListItem
+            await batch.commit();
+
+            const newList = {id: newListRef.id, ...newListData, created: new Date()} as ListItem
             setLists(prev => [...prev, newList])
 
             if (targetGroupId) {
                 setGroups(prev => prev.map(g => 
                     g.id === targetGroupId 
-                    ? {...g, lists: [...(g.lists || []), newList]} 
+                    ? { ...g, lists: [...(g.lists || []), newList] } 
                     : g
                 ))
             }
             
             setList(false)
             setListName('')
+            setListDesc('')
         } catch (e) {
-            console.error(e)
+            console.error('Create list error:', e)
         } finally {
             setLoading(false)
         }

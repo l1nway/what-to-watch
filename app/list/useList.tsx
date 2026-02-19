@@ -3,12 +3,12 @@ import {doc, getDoc, updateDoc, arrayRemove, deleteDoc} from 'firebase/firestore
 import {Funnel, Loader, Plus, Shuffle, Trash2} from 'lucide-react'
 import {ButtonItem, Status, TMDBMovie} from './listTypes'
 import {shake, clearShake} from '../components/shake'
+import {AnimatePresence, motion} from 'framer-motion'
 import {useAuth} from '../components/authProvider'
 import {httpsCallable} from 'firebase/functions'
 import {useRouter} from 'next/navigation'
 import {functions} from '@/lib/firebase'
 import {db} from '@/lib/firebase'
-import { AnimatePresence, motion } from 'framer-motion'
 
 export const statuses = [{
     name: 'Plan to watch',
@@ -24,7 +24,7 @@ export const statuses = [{
     color: '#ff0000'
 }]
 
-export function useList(listId: string | null) {
+export function useList(listId: string | null, bck: () => void) {
     const router = useRouter()
     const {user} = useAuth()
 
@@ -97,7 +97,7 @@ export function useList(listId: string | null) {
     ], [filter, movie, listId, shuffle])
 
     const fetchListAndMovies = useCallback(async () => {
-        if (!listId) return
+        if (!listId) {bck(); return}
 
         setLoading(true)
         const getMovieDetails = httpsCallable(functions, 'getMovieDetails')
@@ -144,7 +144,9 @@ export function useList(listId: string | null) {
                 setGenres(uniqueGenres as any)
             }
         } catch (e) {
+            setName('You do not have access to this list')
             console.error('Error fetching movies:', e)
+            bck()
         } finally {
             setLoading(false)
         }

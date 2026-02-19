@@ -27,7 +27,14 @@ export default function List() {
     const searchParams = useSearchParams()
     const listId = searchParams.get('id')
 
-    const {delay, setFilter, owner, user, loading, delClarify, setDelClarify, inputWidth, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, onChange, edit, setEdit, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime, name, deleteList} = useList(listId)
+    const [back, setBack] = useState(false)
+
+    const bck = useCallback(() => {
+        router.back()
+        setBack(true)
+    }, [])
+
+    const {delay, setFilter, owner, user, loading, delClarify, setDelClarify, inputWidth, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, onChange, edit, setEdit, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime, name, deleteList} = useList(listId, bck)
 
     const renderButtons = useCallback((mobile: boolean) => {
         return buttons.map((element, index) => {
@@ -156,13 +163,6 @@ export default function List() {
     let currentState: AnimationKeys = loading ? 'loading' : edit ? 'edit' : 'view'
     let {key, Component, props} = animationMap[currentState]
 
-    const [back, setBack] = useState(false)
-
-    const bck = useCallback(() => {
-        router.back()
-        setBack(true)
-    }, [])
-
     return (
         <div className='bg-[#030712] h-screen flex flex-col overflow-hidden'>
             <Film
@@ -225,8 +225,8 @@ export default function List() {
                     </AnimatePresence>
                     <h1 className='whitespace-nowrap flex items-center relative'>
                         <span
-                            ref={spanRef}
                             className='absolute invisible whitespace-pre text-xl pl-2 pr-4 py-2.5'
+                            ref={spanRef}
                         >
                             {name}
                         </span>
@@ -238,19 +238,21 @@ export default function List() {
                             ref={inputRef}
                             value={name}
                         />
-                        <AnimatePresence mode='wait'>
-                            <motion.div
-                                initial={currentState === 'loading' ? undefined : {opacity: 0, scale: 0.5}}
-                                tabIndex={currentState === 'loading' ? -1 : 0}
-                                animate={{opacity: 1, scale: 1, rotate: 0}}
-                                exit={{opacity: 0, scale: 0.5, rotate: 45}}
-                                className='group outline-none'
-                                transition={{duration: 0.15}}
-                                key={key}
-                            >
-                                <Component {...props}/>
-                            </motion.div>
-                        </AnimatePresence>
+                        {(user?.uid === owner || loading) &&
+                            <AnimatePresence mode='wait'>
+                                <motion.div
+                                    initial={currentState === 'loading' ? undefined : {opacity: 0, scale: 0.5}}
+                                    tabIndex={currentState === 'loading' ? -1 : 0}
+                                    animate={{opacity: 1, scale: 1, rotate: 0}}
+                                    exit={{opacity: 0, scale: 0.5, rotate: 45}}
+                                    className='group outline-none'
+                                    transition={{duration: 0.15}}
+                                    key={key}
+                                >
+                                    <Component {...props}/>
+                                </motion.div>
+                            </AnimatePresence>
+                        }
                     </h1>
                 </div>
                 <div

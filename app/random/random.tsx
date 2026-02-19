@@ -43,7 +43,8 @@ export default function Random() {
     const getMovieDetails = httpsCallable(functions, 'getMovieDetails')
 
     const fetchIds = useCallback(async () => {
-        if (!listId) return
+        if (!listId) {bck(); return}
+
         try {
             const listRef = doc(db, 'lists', listId)
             const snap = await getDoc(listRef)

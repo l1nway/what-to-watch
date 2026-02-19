@@ -1,13 +1,11 @@
-'use client'
-
 import {useState, useEffect} from 'react'
 
 type ShowClarifyProps = {
     visibility?: boolean | string | Record<string, any> | null | undefined
-    onClose?: () => void
     children?: React.ReactNode
-    className?: string
     parentClassName?: string
+    onClose?: () => void
+    className?: string
     ref?: any
 }
 
@@ -31,10 +29,7 @@ export default function ShowClarify({visibility, onClose, children, className, p
     return (
         <div
             // max-md:items-start
-            className={`
-                max-md:overflow-y-auto
-                fixed inset-0 z-50 flex items-center justify-center p-4
-                transition-all duration-300 ease-in-out
+            className={` max-md:overflow-y-auto fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 ease-in-out
                 ${show ? 'opacity-100 backdrop-blur-md bg-black/50' : 'opacity-0 backdrop-blur-0 bg-transparent'}
             `}
             onClick={onClose}

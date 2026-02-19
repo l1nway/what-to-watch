@@ -1,4 +1,5 @@
-import {useState, useCallback, useEffect, useLayoutEffect, useRef, useMemo} from 'react'
+import {useState, useCallback, useEffect, useRef, useMemo} from 'react'
+import {useDynamicHeight} from '../components/useDynamicHeight'
 import {FilmItem, MovieSearchProps} from './listTypes'
 import {AnimatePresence, motion} from 'framer-motion'
 import ShowClarify from '../components/showClarify'
@@ -26,8 +27,6 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
 
     const [search, setSearch] = useState<string>('')
     const [text, setText] = useState<string>('')
-    
-    const [height, setHeight] = useState<number>(0)
 
     const [loading, setLoading] = useState<boolean>(false)
 
@@ -159,80 +158,14 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
         }
     }, [films, id, onClose, movies, setMoviesData])
 
-    const measureHeight = useCallback(() => {
-        if (!contentRef.current) return
-
-        if (!combinedList.length) {
-            setHeight(0)
-            return
-        }
-
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                const node = contentRef.current
-                if (!node) return
-
-                const scrollHeight = node.scrollHeight
-                const windowHeight = window.innerHeight
-                const staticOffsets = 280 
-                const availableHeight = windowHeight - staticOffsets
-
-                const nextHeight = Math.min(
-                    scrollHeight,
-                    Math.max(200, availableHeight-5)
-                )
-
-                setHeight(nextHeight)
-            })
-        })
-    }, [combinedList.length])
+    const {height, measureHeight} = useDynamicHeight({contentRef, dependency: combinedList, visibility, staticOffsets: 280})
 
     const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value)
         search == '' ? setText('Enter movie title') : setText('Searching…')
     }, [search])
 
-    useLayoutEffect(() => {
-        measureHeight()
-    }, [combinedList.length, visibility])
-
-    useEffect(() => {
-        fetchSuggestions(search)
-    }, [search, fetchSuggestions])
-
-    // needed to force height to be reset to zero if the user clears the search field and immediately exits without waiting for the animation to play; otherwise, the height gets stuck
-    useEffect(() => {
-        if (!visibility && search == '') {
-            setHeight(0)
-        }
-    }, [visibility])
-
-    const debouncedMeasure = useMemo(() => debounce(() => measureHeight(), 150), [measureHeight])
-
-    useEffect(() => {
-        if (visibility) {
-            measureHeight()
-        }
-
-        window.addEventListener('resize', debouncedMeasure)
-        
-        return () => {
-            debouncedMeasure.cancel()
-            window.removeEventListener('resize', debouncedMeasure)
-        }
-    }, [visibility, debouncedMeasure, measureHeight])
-
-    useEffect(() => {
-        if (visibility) {
-            measureHeight()
-            
-            const timer = setTimeout(() => {
-                measureHeight()
-            }, 300)
-
-            return () => clearTimeout(timer)
-        }
-    }, [visibility, combinedList.length, measureHeight])
+    useEffect(() => {fetchSuggestions(search)}, [search, fetchSuggestions])
 
     return (
         <ShowClarify
