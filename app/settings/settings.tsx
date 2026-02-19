@@ -85,27 +85,7 @@ export default function settings() {
                             disabled={!element.edited || loading}
                             value={value}
                             onChange={(e) => onChange(index, e.target.value)}
-                            className='
-                                disabled:border-[#364153]
-                                disabled:opacity-100
-                                bg-[#1e2939]
-                                text-[#6a7282]
-                                placeholder:text-[#4b5563]
-
-                                border-[#7f22fe]
-
-                                focus:outline-none
-                                focus:ring-0
-                                focus:ring-offset-0
-
-                                focus-visible:outline-none
-                                focus-visible:border-[#7f22fe]
-                                focus-visible:ring-0
-                                focus-visible:ring-offset-0
-
-                                transition-colors
-                                duration-300
-                            '
+                            className='disabled:border-[#364153] disabled:opacity-100 bg-[#1e2939] text-[#6a7282] placeholder:text-[#4b5563] border-[#7f22fe] focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:border-[#7f22fe] focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors duration-300'
                         />
                         <SlideLeft visibility={changed}>
                             <Button
@@ -212,10 +192,10 @@ export default function settings() {
                     <AnimatePresence mode='wait'>
                         {!back ?
                             <motion.div
-                                key='settings'
                                 animate={{opacity: 1, scale: 1, rotate: 0}}
                                 exit={{opacity: 0, scale: 0.5, rotate: 45}}
                                 transition={{duration: 0.15}}
+                                key='settings'
                             >
                                 <ArrowLeft
                                     className='cursor-pointer text-[#777f8d] hover:text-white focus:text-white outline-none transition-colors duration-300 w-8 h-8'
@@ -225,15 +205,13 @@ export default function settings() {
                             </motion.div>
                             :
                             <motion.div
-                                key='loader'
                                 initial={{opacity: 0, scale: 0.5}}
                                 animate={{opacity: 1, scale: 1}}
                                 exit={{opacity: 0, scale: 0.5}}
                                 transition={{duration: 0.15}}
+                                key='loader'
                             >
-                                <Loader
-                                    className='text-[#959dab] animate-spin w-8 h-8'
-                                />
+                                <Loader className='text-[#959dab] animate-spin w-8 h-8'/>
                             </motion.div>
                         }
                     </AnimatePresence>

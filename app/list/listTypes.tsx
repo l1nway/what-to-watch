@@ -80,6 +80,7 @@ export type ButtonItem = {
   color: string
   hover: string
   onClick?: () => void
+  disabled?: boolean
 }
 
 export interface TMDBMovie {

@@ -21,15 +21,12 @@ export default function Editor({visibility, onClose, user}: any) {
     const [loaded, setLoaded] = useState<boolean>(false)
     const [loading, setLoading] = useState<boolean>(false)
 
-    const [done, setDone] = useState<boolean>(false)
-
     useEffect(() => {
         if (!visibility) setLoaded(false)
     }, [visibility])
 
     const reset = useCallback(() => {
         setRotation(0)
-        setDone(false)
         setZoom(1)
         onClose()
     }, [])
@@ -46,7 +43,7 @@ export default function Editor({visibility, onClose, user}: any) {
                 canvas.toBlob((b) => resolve(b), 'image/jpeg', 0.9)
             )
 
-            if (!blob) throw new Error("Failed to create blob")
+            if (!blob) throw new Error('Failed to create blob')
 
             const fileRef = ref(storage, `avatars/${user.uid}/avatar.jpg`)
 
@@ -109,32 +106,24 @@ export default function Editor({visibility, onClose, user}: any) {
             >
                 <Loader className='h-15 w-15 text-white animate-spin'/>
             </SlideDown>
-            <SlideDown
-                className={`${!loaded && 'h-0'} ${done && '!overflow-visible canvas-container'}`}
-                entered={() => setDone(true)}
-                unmountOnExit={false}
-                visibility={loaded}
-                duration={500}
+            <div
+                className='relative touch-none [&>canvas]:!w-full [&>canvas]:!h-full canvas-container'
+                ref={editorContainer}
             >
-                <div
-                    className='relative touch-none [&>canvas]:!w-full [&>canvas]:!h-full canvas-container'
-                    ref={editorContainer}
-                >
-                    <AvatarEditor
-                        onLoadSuccess={() => setLoaded(true)}
-                        crossOrigin='anonymous'
-                        backgroundColor='gray'
-                        borderRadius={500}
-                        image={visibility}
-                        rotate={rotation}
-                        scale={zoom}
-                        ref={editor}
-                        height={1024}
-                        width={1024}
-                        border={0}
-                    />
-                </div>
-            </SlideDown>
+                <AvatarEditor
+                    onLoadSuccess={() => setLoaded(true)}
+                    crossOrigin='anonymous'
+                    backgroundColor='gray'
+                    borderRadius={500}
+                    image={visibility}
+                    rotate={rotation}
+                    height={512}
+                    scale={zoom}
+                    ref={editor}
+                    width={512}
+                    border={0}
+                />
+            </div>
             <div className='w-full flex flex-col gap-3 pt-3 pb-2'>
                 <label className='flex flex-col gap-3'>
                     <span className='text-white'>

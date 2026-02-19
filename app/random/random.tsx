@@ -1,12 +1,13 @@
 'use client'
 
 import {useState, useEffect, useCallback, useMemo} from 'react'
+import {motion, Easing, AnimatePresence} from 'framer-motion'
 import {useSearchParams, useRouter} from 'next/navigation'
 import {ArrowLeft, Loader, Sparkles} from 'lucide-react'
+import {httpsCallable} from 'firebase/functions'
 import {doc, getDoc} from 'firebase/firestore'
 import {Button} from '@/components/ui/button'
-import {motion, Easing, AnimatePresence} from 'framer-motion'
-import {db} from '@/lib/firebase'
+import {db, functions} from '@/lib/firebase'
 
 interface MovieData {
     id: number
@@ -24,7 +25,7 @@ export default function Random() {
     const [loading, setLoading] = useState<boolean>(true)
     
     const [selectedMovie, setSelectedMovie] = useState<MovieData | null>(null)
-    const [poster, setPoster] = useState<string | undefined>(undefined)
+    const [poster, setPoster] = useState<string | undefined>('https://image.tmdb.org/t/p/w500/7G9915LfUQ2lVfwMEEhDsn3kT4B.jpg')
     const [allIds, setAllIds] = useState<number[]>([])
 
     const [done, setDone] = useState<boolean>(false) 
@@ -33,10 +34,14 @@ export default function Random() {
     const [queue, setQueue] = useState<number[]>([])
     const [winners, setWinners] = useState<number[]>([])
     const [currentPair, setCurrentPair] = useState<[number, number] | null>(null)
-    const [totalRounds, setTotalRounds] = useState(0)
-    const [currentRoundNum, setCurrentRoundNum] = useState(1)
+    const [totalRounds, setTotalRounds] = useState<number>(0)
+    const [currentRoundNum, setCurrentRoundNum] = useState<number>(1)
     const [pairData, setPairData] = useState<{f: MovieData, s: MovieData} | null>(null)
+
+    const [animate, setAnimate] = useState<'spinning' | 'reveal'>('reveal')
     
+    const getMovieDetails = httpsCallable(functions, 'getMovieDetails')
+
     const fetchIds = useCallback(async () => {
         if (!listId) return
         try {
@@ -56,11 +61,12 @@ export default function Random() {
     const pickRandomMovie = useCallback(async () => {
         if (allIds.length === 0) return
 
-        setQuiz(false)
+        setRandom(true)
         setTimeout(() => {
-            setRandom(true)
+            setAnimate('spinning')
+            setQuiz(false)
             setDone(false)
-        }, 50)
+        }, 10)
 
         let activeIds = currentPair ? [...currentPair, ...queue, ...winners] : allIds
         setTitle('Picking your movie…')
@@ -69,14 +75,15 @@ export default function Random() {
         const randomId = activeIds[Math.floor(Math.random() * activeIds.length)]
 
         try {
-            const res = await fetch(`https://api.themoviedb.org/3/movie/${randomId}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`)
-            const data = await res.json()
+            const result = await getMovieDetails({id: randomId})
+            const data = result.data as MovieData
 
-            setPoster(`https://image.tmdb.org/t/p/w500${data.poster_path}`)
             setTimeout(() => {
+                setPoster(`https://image.tmdb.org/t/p/w500${data.poster_path}`)
                 setDesc('Your randomly selected movie')
                 setTitle('Watch this!')
                 setSelectedMovie(data)
+                setAnimate('reveal')
                 setDone(true)
             }, 2000)
         } catch (e) {
@@ -84,17 +91,49 @@ export default function Random() {
         }
     }, [allIds, currentPair, queue, winners])
 
-    const startQuiz = useCallback((ids: number[]) => {
-        const shuffled = [...ids].sort(() => Math.random() - 0.5)
-        
-        const rounds = Math.ceil(Math.log2(shuffled.length))
-        setTotalRounds(rounds)
-        setCurrentRoundNum(1)
-        
-        setupNextPair(shuffled, [])
+    const handleRoundEnd = useCallback(async (nextRoundMovies: number[]) => {
+        if (nextRoundMovies.length === 1) {
+            const winnerId = nextRoundMovies[0]
+
+            setRandom(true)
+            
+            setTimeout(() => {
+                setAnimate('spinning')
+                setDone(false)
+                setQuiz(false)
+            }, 10)
+
+            setTitle('Calculating results…')
+            setDesc('Determining your perfect match…')
+
+            try {
+                const result = await getMovieDetails({id: winnerId})
+                const data = result.data as MovieData
+
+                setSelectedMovie(data)
+                setPoster(`https://image.tmdb.org/t/p/w500${data.poster_path}`)
+                
+                setTimeout(() => {
+                    setDesc('Based on your choices, this is the perfect movie:')
+                    setAnimate('reveal')
+                    setTitle('Winner!')
+                    setDone(true)
+                }, 500)
+            } catch (e) {
+                console.error(e)
+                setDone(true)
+            }
+        } else {
+            setCurrentRoundNum((prev) => prev + 1)
+            const shuffledWinners = [...nextRoundMovies].sort(() => Math.random() - 0.5)
+            const [first, second, ...rest] = shuffledWinners
+            setCurrentPair([first, second])
+            setQueue(rest)
+            setWinners([])
+        }
     }, [])
 
-    const setupNextPair = (currentQueue: number[], currentWinners: number[]) => {
+    const setupNextPair = useCallback((currentQueue: number[], currentWinners: number[]) => {
         if (currentQueue.length >= 2) {
             const [first, second, ...rest] = currentQueue
             setCurrentPair([first, second])
@@ -108,11 +147,20 @@ export default function Random() {
         } else {
             handleRoundEnd(currentWinners)
         }
-    }
+    }, [handleRoundEnd])
 
-    const pickFilm = (winnerId: number) => {
+    const startQuiz = useCallback((ids: number[]) => {
+        const shuffled = [...ids].sort(() => Math.random() - 0.5)
+        
+        const rounds = Math.ceil(Math.log2(shuffled.length))
+        setTotalRounds(rounds)
+        setCurrentRoundNum(1)
+        
+        setupNextPair(shuffled, [])
+    }, [setupNextPair])
+
+    const pickFilm = useCallback((winnerId: number) => {
         const updatedWinners = [...winners, winnerId]
-
 
         if (queue.length >= 2) {
             const [nextFirst, nextSecond, ...rest] = queue
@@ -125,43 +173,7 @@ export default function Random() {
         } else {
             handleRoundEnd(updatedWinners)
         }
-    }
-
-    const handleRoundEnd = async (nextRoundMovies: number[]) => {
-        if (nextRoundMovies.length === 1) {
-            const winnerId = nextRoundMovies[0]
-            
-            setQuiz(false)
-            setRandom(true)
-            setDone(false)
-            setTitle('Calculating results…')
-            setDesc('Determining your perfect match…')
-
-            try {
-                const res = await fetch(`https://api.themoviedb.org/3/movie/${winnerId}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`)
-                const data = await res.json()
-
-                setSelectedMovie(data)
-                setPoster(`https://image.tmdb.org/t/p/w500${data.poster_path}`)
-                
-                setTimeout(() => {
-                    setDone(true)
-                    setTitle('Winner!')
-                    setDesc('Based on your choices, this is the perfect movie:')
-                }, 2000)
-            } catch (e) {
-                console.error(e)
-                setDone(true)
-            }
-        } else {
-            setCurrentRoundNum((prev) => prev + 1)
-            const shuffledWinners = [...nextRoundMovies].sort(() => Math.random() - 0.5)
-            const [first, second, ...rest] = shuffledWinners
-            setCurrentPair([first, second])
-            setQueue(rest)
-            setWinners([])
-        }
-    }
+    }, [queue, winners, handleRoundEnd])
 
     useEffect(() => {
         fetchIds()
@@ -181,11 +193,19 @@ export default function Random() {
         if (currentPair) {
             const fetchPair = async () => {
                 const [id1, id2] = currentPair
-                const res1 = await fetch(`https://api.themoviedb.org/3/movie/${id1}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`)
-                const res2 = await fetch(`https://api.themoviedb.org/3/movie/${id2}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`)
-                const d1 = await res1.json()
-                const d2 = await res2.json()
-                setPairData({f: d1, s: d2})
+                try {
+                    const p1 = getMovieDetails({id: id1})
+                    const p2 = getMovieDetails({id: id2})
+                    
+                    const [res1, res2] = await Promise.all([p1, p2])
+                    
+                    const d1 = res1.data as MovieData
+                    const d2 = res2.data as MovieData
+                    
+                    setPairData({f: d1, s: d2})
+                } catch (e) {
+                    console.error('Error fetching pair:', e)
+                }
             }
             fetchPair()
         }
@@ -242,22 +262,6 @@ export default function Random() {
         setBack(true)
     }, [])
 
-    const [ready, setReady] = useState(false)
-
-    useEffect(() => {
-    if (selectedMovie?.poster_path) {
-        const img = new Image()
-        img.src = `https://image.tmdb.org/t/p/w500${selectedMovie.poster_path}`
-        img.onload = () => setReady(true)
-    } else if (poster) {
-        const img = new Image()
-        img.src = poster
-        img.onload = () => setReady(true)
-    }
-    }, [selectedMovie, poster])
-
-    if (allIds.length > 0) router.back
-
     return (
         <div className='bg-[#030712] h-screen flex flex-col '>
             <header className='shrink-0 flex w-full justify-between bg-[#101828] border-b border-b-[#1e2939] p-4'>
@@ -294,7 +298,7 @@ export default function Random() {
                 </div>
             </header>
             
-            <div className='[scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939] flex-1 overflow-y-auto overflow-x-hidden min-h-0 flex items-center flex-col gap-2 pt-4 max-md:gap-1 max-md:pt-2'>
+            <div className='[scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939] flex-1 overflow-y-auto overflow-x-hidden min-h-0 flex items-center flex-col gap-2 py-4 max-md:gap-1 max-md:pt-2'>
                 <div className='bg-[#1b0c41] p-4 rounded-full max-w-min'>
                     <Sparkles className='text-[#a684ff]'/>
                 </div>
@@ -363,7 +367,7 @@ export default function Random() {
                         </motion.div>
                     }
                 </AnimatePresence>
-                <AnimatePresence initial={false}>
+                <AnimatePresence>
                     {random &&
                         <motion.div
                             style={{transformStyle: 'preserve-3d', willChange: 'transform', transform: 'translateZ(0)'}}
@@ -378,9 +382,9 @@ export default function Random() {
                                 <motion.div
                                     className='relative overflow-hidden border-4 border-[#7f22fe] rounded-[15px] w-full h-full flex items-center justify-center bg-[#101828] left-0 right-0 mx-auto'
                                     style={{transformStyle: 'preserve-3d', willChange: 'transform'}}
-                                    animate={done && ready ? 'reveal' : 'spinning'}
                                     variants={cardVariants}
                                     initial='spinning'
+                                    animate={animate}
                                     key='random-div'
                                 >
                                     <motion.img

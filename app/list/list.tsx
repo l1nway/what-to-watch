@@ -35,7 +35,7 @@ export default function List() {
 
             const button = (
                 <Button
-                    disabled={!filteredMovies.length && element.text !== 'Delete' && element.text !== 'Add movie'}
+                    disabled={(!filteredMovies.length && element.text !== 'Delete' && element.text !== 'Add movie') || element.disabled}
                     onClick={element.onClick}
                     style={{backgroundColor: element.color}}
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = element.hover)}
@@ -198,10 +198,10 @@ export default function List() {
                     <AnimatePresence mode='wait'>
                         {!back ?
                             <motion.div
-                                key='settings'
                                 animate={{opacity: 1, scale: 1, rotate: 0}}
                                 exit={{opacity: 0, scale: 0.5, rotate: 45}}
                                 transition={{duration: 0.15}}
+                                key='settings'
                             >
                                 <ArrowLeft
                                     className='cursor-pointer text-[#777f8d] hover:text-white focus:text-white outline-none transition-colors duration-300 w-8 h-8'
@@ -211,11 +211,11 @@ export default function List() {
                             </motion.div>
                             :
                             <motion.div
-                                key='loader'
                                 initial={{opacity: 0, scale: 0.5}}
                                 animate={{opacity: 1, scale: 1}}
                                 exit={{opacity: 0, scale: 0.5}}
                                 transition={{duration: 0.15}}
+                                key='loader'
                             >
                                 <Loader
                                     className='text-[#959dab] animate-spin w-8 h-8'
@@ -231,12 +231,12 @@ export default function List() {
                             {name}
                         </span>
                         <input
-                            style={{width: inputWidth}}
-                            ref={inputRef}
-                            disabled={!edit}
-                            value={name}
-                            onChange={onChange}
                             className='border border-[#7f22fe] text-xl pl-2 pr-4 py-2.5 rounded-[10px] outline-none bg-[#7f22fe] disabled:bg-[#101828] disabled:border-[#101828] transition-colors duration-300'
+                            style={{width: inputWidth}}
+                            onChange={onChange}
+                            disabled={!edit}
+                            ref={inputRef}
+                            value={name}
                         />
                         <AnimatePresence mode='wait'>
                             <motion.div
@@ -258,10 +258,7 @@ export default function List() {
                     onClick={() => setMenu(!menu)}
                 >
                     <div
-                        className={`
-                            transition-colors duration-300 w-9 h-6
-                            hamburger-icon ${menu ? 'open' : ''}
-                        `}
+                        className={`transition-colors duration-300 w-9 h-6 hamburger-icon ${menu ? 'open' : ''}`}
                     >
                         <span/>
                         <span/>
@@ -270,7 +267,7 @@ export default function List() {
                     </div>
                 </div>
                 <Dropdown
-                    className='flex gap-3 flex-col p-2'
+                    className='flex gap-3 flex-col p-2 md:hidden'
                     toggle={() => setMenu(!menu)}
                     visibility={menu}
                     ref={headerRef}
@@ -318,9 +315,9 @@ export default function List() {
                             </span>
                             <Slider
                                 onValueChange={([v]) => setRuntime(v)}
-                                min={10}
-                                max={600}
                                 value={[runtime]}
+                                max={600}
+                                min={10}
                                 step={1}
                             />
                         </div>

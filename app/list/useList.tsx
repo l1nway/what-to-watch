@@ -1,11 +1,14 @@
 import {useCallback, useState, useMemo, useEffect, useRef, useLayoutEffect} from 'react'
 import {doc, getDoc, updateDoc, arrayRemove, deleteDoc} from 'firebase/firestore'
-import {Funnel, Plus, Shuffle, Trash2} from 'lucide-react'
+import {Funnel, Loader, Plus, Shuffle, Trash2} from 'lucide-react'
 import {ButtonItem, Status, TMDBMovie} from './listTypes'
 import {shake, clearShake} from '../components/shake'
 import {useAuth} from '../components/authProvider'
+import {httpsCallable} from 'firebase/functions'
 import {useRouter} from 'next/navigation'
+import {functions} from '@/lib/firebase'
 import {db} from '@/lib/firebase'
+import { AnimatePresence, motion } from 'framer-motion'
 
 export const statuses = [{
     name: 'Plan to watch',
@@ -40,39 +43,65 @@ export function useList(listId: string | null) {
     const [selectedGenres, setSelectedGenres] = useState<string[]>([])
 
     const [owner, setOwner] = useState<string>('')
+    const [shuffle, setShuffle] = useState<boolean>(false)
 
     const buttons = useMemo<ButtonItem[]>(() => [
         {
             icon: <Plus className='max-md:h-6! max-md:w-6!'/>,
-            text: 'Add movie',
             color: movie ? '#7f22fe' : '#1e2939',
             hover: movie ? '#641aca': '#303844',
-            onClick: () => setMovie(!movie)
+            onClick: () => setMovie(!movie),
+            text: 'Add movie'
         },{
             icon: <Funnel className='max-md:h-6! max-md:w-6!'/>,
-            text: 'Filter',
             color: filter ? '#7f22fe' : '#1e2939',
             hover: filter ? '#641aca': '#303844',
-            onClick: () => setFilter(!filter)
+            onClick: () => setFilter(!filter),
+            text: 'Filter'
         },{
-            icon: <Shuffle className='max-md:h-6! max-md:w-6!'/>,
+            icon: 
+                <AnimatePresence mode='wait'>
+                    {!shuffle ?
+                            <motion.div
+                                animate={{opacity: 1, scale: 1, rotate: 0}}
+                                exit={{opacity: 0, scale: 0.5, rotate: 45}}
+                                transition={{duration: 0.15}}
+                                key='shuffle'
+                            >
+                                <Shuffle className='max-md:h-6! max-md:w-6!'/>
+                            </motion.div>
+                        :
+                            <motion.div
+                                initial={{opacity: 0, scale: 0.5}}
+                                animate={{opacity: 1, scale: 1}}
+                                exit={{opacity: 0, scale: 0.5}}
+                                transition={{duration: 0.15}}
+                                key='loader'
+                            >
+                                <Loader className='animate-spin max-md:h-6! max-md:w-6!'/>
+                            </motion.div>
+                    }
+                </AnimatePresence>,
+            onClick: () => {setShuffle(true); router.push(`./random?id=${listId}`)},
             text: 'Random pick',
             color: '#7f22fe',
             hover: '#641aca',
-            onClick: () => router.push(`./random?id=${listId}`)
+            disabled: shuffle
         },{
             icon: <Trash2 className='max-md:h-6! max-md:w-6!'/>,
-            text: 'Delete',
+            onClick: () => setDelClarify(true),
             color: '#fb2c36',
             hover: '#c10007',
-            onClick: () => setDelClarify(true)
-
+            text: 'Delete'
         }
-    ], [filter, movie, listId])
+    ], [filter, movie, listId, shuffle])
 
     const fetchListAndMovies = useCallback(async () => {
         if (!listId) return
+
         setLoading(true)
+        const getMovieDetails = httpsCallable(functions, 'getMovieDetails')
+
         try {
             const listRef = doc(db, 'lists', listId)
             const listSnap = await getDoc(listRef)
@@ -80,34 +109,42 @@ export function useList(listId: string | null) {
             if (listSnap.exists()) {
                 const data = listSnap.data()
                 setOwner(data.ownerId)
-                const storedMovies = listSnap.data().movies || []
+                const storedMovies = data.movies || []
                 const fetchedName = data.name || 'Untitled List'
                 setName(fetchedName)
                 setOriginalName(fetchedName)
 
                 const moviePromises = storedMovies.map(async (movieObj: {id: number, status: string}) => {
-                    const res = await fetch(
-                        `https://api.themoviedb.org/3/movie/${movieObj.id}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}`
-                    )
-                    const tmdbData = await res.json()
-                    
-                    return {
-                        ...tmdbData,
-                        status: movieObj.status
+                    try {
+                        const res = await getMovieDetails({ id: movieObj.id })
+                        const tmdbData = res.data as any
+
+                        return {
+                            ...tmdbData,
+                            status: movieObj.status
+                        }
+                    } catch (err) {
+                        console.error(`Failed to fetch movie ${movieObj.id}`, err)
+                        return null
                     }
                 })
 
                 const results = await Promise.all(moviePromises)
-                setMoviesData(results)
-                const allGenres = results
-                    .flatMap(movie => movie.genres || [])
+                
+                const validResults = results.filter(m => m !== null)
+
+                setMoviesData(validResults)
+
+                const allGenres = validResults
+                    .flatMap((movie: any) => movie.genres || [])
+                
                 const uniqueGenres = Array.from(
-                    new Map(allGenres.map(g => [g.name, g])).values()
+                    new Map(allGenres.map((g: any) => [g.name, g])).values()
                 )
-                setGenres(uniqueGenres)
+                setGenres(uniqueGenres as any)
             }
         } catch (e) {
-            console.error("Error fetching movies:", e)
+            console.error('Error fetching movies:', e)
         } finally {
             setLoading(false)
         }
