@@ -34,7 +34,7 @@ const MovieCard = memo(function MovieCard({delay, setDelWarning, setSelected, se
                 >
                     <img
                         src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                        className='max-md:w-full h-full aspect-[2/3] object-cover block transition-transform duration-300 ease-out group-hover:scale-110 group-focus-within:scale-110'
+                        className='min-w-full min-h-full aspect-[2/3] object-cover block transition-transform duration-300 ease-out group-hover:scale-110 group-focus-within:scale-110'
                     />
                     <div
                         className='w-2 h-2 absolute right-2 top-2 rounded-full'

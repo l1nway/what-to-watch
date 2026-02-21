@@ -1,16 +1,30 @@
-import ShowClarify from '../components/showClarify'
-import {X} from 'lucide-react'
-import {Input} from '@/components/ui/input'
 import {Field, FieldLabel} from '@/components/ui/field'
+import ShowClarify from '../components/showClarify'
 import {Textarea} from '@/components/ui/textarea'
+import {clearShake} from '../components/shake'
+import {updateActivity} from '@/lib/presence'
 import {Button} from '@/components/ui/button'
 import {Select} from 'react-animated-select'
+import {Input} from '@/components/ui/input'
 import {NewProps} from './dashboardTypes'
-import {clearShake} from '../components/shake'
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
+import {X} from 'lucide-react'
 
-export default function New({visibility, onClose, page, input, setInput, textarea, setTextarea, create, groupLists, setGroupLists, lists, ref}: NewProps) {
+export default function New({visibility, onClose, page, input, setInput, textarea, setTextarea, create, setGroupLists, lists, ref}: NewProps) {
     const [value, setValue] = useState([])
+    
+    useEffect(() => {
+        if (page == 'group') {
+            updateActivity('creating_group')
+        } else {
+            updateActivity('creating_list')
+        }
+
+        return () => {
+            updateActivity('idle')
+        }
+    }, [visibility])
+
     return (
         <ShowClarify visibility={visibility} onClose={onClose}>
             <div className='text-white flex justify-between border-b border-[#1e2939] pb-4'>

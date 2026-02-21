@@ -7,8 +7,29 @@ import ShowClarify from '../components/showClarify'
 import {useEffect, useMemo, useRef} from 'react'
 import SlideLeft from '../components/slideLeft'
 import SlideDown from '../components/slideDown'
+import {ref, onValue} from 'firebase/database'
+import {updateActivity} from '@/lib/presence'
+import {rtdb} from '@/lib/firebase'
 
-export default function Members({visibility, onClose, group, user, toggleRole, kickMember, fetchMembers, loading, members, processingId, deletingId, delay}: MembersTypes) {
+const activity: Record<string, string> = {
+    adding_list_to_group: 'Adding movies to group',
+    using_random_picker: 'Picking a random movie',
+    reading_movie_info: 'Reading movie details',
+    deleting_group: 'Managing group deletion',
+    reading_privacy: 'Reading privacy policy',
+    viewing_members: 'Checking members list',
+    leaving_group: 'Managing group leaving',
+    creating_group: 'Creating a new group',
+    creating_list: 'Creating a new list',
+    changing_avatar: 'Changing avatar',
+    creating_invite: 'Creating invite',
+    browsing_list: 'Browsing list',
+    adding_movie: 'Adding a movie',
+    in_settings: 'In settings',
+    idle: 'Idle'
+}
+
+export default function Members({visibility, onClose, group, user, toggleRole, kickMember, fetchMembers, loading, members, setMembers, processingId, deletingId, delay}: MembersTypes) {
     
     const memberRef = useRef<HTMLDivElement | null>(null)
     const contentRef = useRef<HTMLDivElement>(null)
@@ -19,6 +40,48 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
         if (!group || !visibility) return
         fetchMembers()
     }, [visibility, group?.editors, group?.members, fetchMembers])
+
+    useEffect(() => {
+        if (!visibility || members.length === 0) return;
+
+        const unsubscribes: (() => void)[] = []
+
+        members.forEach((member) => {
+            const statusRef = ref(rtdb, `status/${member.id}`)
+            
+            const unsub = onValue(statusRef, (snapshot) => {
+                const val = snapshot.val()
+                if (!val) return
+
+                setMembers((prev: Member[]) => 
+                    prev.map(m => m.id === member.id 
+                        ? {
+                            ...m,
+                            online: val.state === 'online',
+                            last_seen: val.last_changed,
+                            activity: val.activity
+                        }
+                        : m
+                    )
+                )
+            })
+            
+            unsubscribes.push(unsub)
+        })
+
+        return () => {
+            unsubscribes.forEach(unsub => unsub())
+        }
+    }, [visibility, members.length])
+
+    useEffect(() => {
+        if (visibility) updateActivity('viewing_members')
+        
+
+        return () => {
+            updateActivity('idle')
+        }
+    }, [visibility])
 
     const editor = useMemo(() => group?.editors?.includes(user?.uid ?? ''), [user?.uid, group?.editors])
     const owner = useMemo(() => user?.uid === group?.ownerId, [user?.uid, group?.ownerId])
@@ -47,7 +110,7 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
                 ref={memberRef}
                 tabIndex={0}
             >
-                <div className='flex gap-4 items-center'>
+                <div className='flex gap-4 items-center relative'>
                     {member.avatar ?
                             <img
                                 className='min-h-12 min-w-12 max-h-12 max-w-12 aspect-square object-cover rounded-full block flex-shrink-0'
@@ -61,8 +124,21 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
                         :
                             <Image className='min-h-12 min-w-12 max-h-12 max-w-12 text-[#99a1af] hover:text-white transition-colors duration-300'/>
                     }
-                    
-                    <span className='text-2xl'>{member.name}</span>
+                    <div className='flex flex-col'>
+                        <span className='text-2xl'>{member.name}</span>
+                        <span className='text-xs text-gray-500 pl-1'>{member.online ?
+                            <>
+                                {activity[member.activity ?? ''] || 'Online'}
+                            </>
+                        : 
+                            <>
+                                {member.last_seen 
+                                    ? `Last seen ${new Date(member.last_seen).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` 
+                                    : 'Offline'}
+                            </>
+                        }</span>
+                    </div>
+                    <div className={`w-3 h-3 ${member.online ? 'bg-green-500' : 'bg-red-500'} absolute bottom-0 left-11 rounded-full transition-colors duration-300`}/>
                 </div>
                 <div className='flex gap-2'>
                     <AnimatePresence mode='wait'>

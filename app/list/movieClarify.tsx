@@ -1,24 +1,28 @@
 import {doc, getDoc, updateDoc} from 'firebase/firestore'
+import {useState, useEffect, useCallback} from 'react'
+import ShowClarify from '../components/showClarify'
+import SlideLeft from '../components/slideLeft'
+import SlideDown from '../components/slideDown'
+import {updateActivity} from '@/lib/presence'
 import {MovieClarifyProps} from './listTypes'
 import {Button} from '@/components/ui/button'
 import {Select} from 'react-animated-select'
 import {Info, Trash2, X} from 'lucide-react'
-import {useState, useEffect} from 'react'
-import ShowClarify from '../components/showClarify'
-import SlideLeft from '../components/slideLeft'
-import SlideDown from '../components/slideDown'
+import {Gemini} from '../components/gemini'
 import {db} from '@/lib/firebase'
 
-export default function MovieClarify({url, visibility, onClose, statuses, selected, listId, onRefresh, deleteMovie, delWarning, setDelWarning}: MovieClarifyProps) {
+export default function MovieClarify({url, visibility, onClose, statuses, selected, listId, onRefresh, deleteMovie, delWarning, setDelWarning, setSimilar, setMovie}: MovieClarifyProps) {
     const [status, setStatus] = useState<MovieClarifyProps['statuses'][number] | undefined>(undefined)
 
     useEffect(() => {
-        if (selected?.status) {
-            setStatus(statuses.find(s => s.name === selected.status))
-        }
-    }, [selected, statuses])
+        if (visibility) updateActivity('reading_movie_info')
+        
+        return () => {updateActivity('browsing_list')}
+    }, [visibility])
 
-    const updateStatus = async () => {
+    useEffect(() => {selected?.status && setStatus(statuses.find(s => s.name === selected.status))}, [selected, statuses])
+
+    const updateStatus = useCallback(async () => {
         if (!listId || !selected?.id || !status?.name) return
 
         try {
@@ -42,7 +46,7 @@ export default function MovieClarify({url, visibility, onClose, statuses, select
         } catch (e) {
             console.error('Error updating status:', e)
         }
-    }
+    }, [listId, selected?.id, status?.name])
 
     return (
         <ShowClarify
@@ -75,6 +79,10 @@ export default function MovieClarify({url, visibility, onClose, statuses, select
                     <a href={url}>
                         <Info className='text-[#99a1af] hover:text-white cursor-pointer transition-colors duration-300'/>
                     </a>
+                    <Gemini
+                        className='text-[#99a1af] hover:text-white cursor-pointer transition-colors duration-300 w-6 h-6'
+                        onClick={() => {onClose(); setSimilar(true); setMovie(selected)}}
+                    />
                 </div>
             </div>
             <SlideDown visibility={delWarning}>

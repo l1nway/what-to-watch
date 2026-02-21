@@ -462,5 +462,5 @@ export default function UseDashboard() {
         }
     }, [fetchMembers])
 
-    return ({deletingId, processingId, members, fetchMembers, setLoading, toggleRole, kickMember, membersClarify, setMembersClarify, logout, delay, newGroupRef, newListRef, groupRef, setGroups, updateGroup, delClarify, setDelClarify, selectedGroup, setSelectedGroup, deleteGroup, leaveGroup, router, lists, groups, user, loading, list, setList, group, setGroup, invite, setInvite, listName, setListName, listDesc, setListDesc, groupName, setGroupName, groupDesc, setGroupDesc, inviteEmail, setInviteEmail, groupLists, setGroupLists, createList, createGroup, updateGroups})
+    return ({deletingId, processingId, members, setMembers, fetchMembers, setLoading, toggleRole, kickMember, membersClarify, setMembersClarify, logout, delay, newGroupRef, newListRef, groupRef, setGroups, updateGroup, delClarify, setDelClarify, selectedGroup, setSelectedGroup, deleteGroup, leaveGroup, router, lists, groups, user, loading, list, setList, group, setGroup, invite, setInvite, listName, setListName, listDesc, setListDesc, groupName, setGroupName, groupDesc, setGroupDesc, inviteEmail, setInviteEmail, groupLists, setGroupLists, createList, createGroup, updateGroups})
 }

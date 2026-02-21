@@ -45,12 +45,14 @@ export function useList(listId: string | null, bck: () => void) {
     const [owner, setOwner] = useState<string>('')
     const [shuffle, setShuffle] = useState<boolean>(false)
 
+    const [similar, setSimilar] = useState<boolean>(false)
+
     const buttons = useMemo<ButtonItem[]>(() => [
         {
             icon: <Plus className='max-md:h-6! max-md:w-6!'/>,
             color: movie ? '#7f22fe' : '#1e2939',
             hover: movie ? '#641aca': '#303844',
-            onClick: () => setMovie(!movie),
+            onClick: () => {setMovie(!movie); setSimilar(false)},
             text: 'Add movie'
         },{
             icon: <Funnel className='max-md:h-6! max-md:w-6!'/>,
@@ -152,9 +154,7 @@ export function useList(listId: string | null, bck: () => void) {
         }
     }, [listId])
 
-    useEffect(() => {
-        fetchListAndMovies()
-    }, [fetchListAndMovies])
+    useEffect(() => {fetchListAndMovies()}, [fetchListAndMovies])
 
     const [status, setStatus] = useState<Status[]>(statuses)
 
@@ -200,9 +200,7 @@ export function useList(listId: string | null, bck: () => void) {
     const inputRef = useRef<HTMLInputElement>(null)
     const spanRef = useRef<HTMLSpanElement>(null)
     
-    useEffect(() => {
-        if (edit) inputRef.current?.focus()
-    }, [edit])
+    useEffect(() => {edit && inputRef.current?.focus()}, [edit])
 
     useLayoutEffect(() => {
         if (!spanRef.current) return
@@ -281,5 +279,5 @@ export function useList(listId: string | null, bck: () => void) {
         }
     }, [name])
 
-    return {delay, setFilter, owner, user, loading, delClarify, setDelClarify, deleteList, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, inputWidth, onChange, edit, setEdit, name, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime}
+    return {similar, setSimilar, delay, setFilter, owner, user, loading, delClarify, setDelClarify, deleteList, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, inputWidth, onChange, edit, setEdit, name, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime}
 }

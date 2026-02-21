@@ -1,10 +1,24 @@
-import {Button} from '@/components/ui/button'
-import {DeleteProps} from './dashboardTypes'
 import ShowClarify from '../components/showClarify'
 import SlideDown from '../components/slideDown'
+import {updateActivity} from '@/lib/presence'
+import {Button} from '@/components/ui/button'
+import {DeleteProps} from './dashboardTypes'
+import {useEffect} from 'react'
 import {X} from 'lucide-react'
 
 export default function Delete({action, onClose, deleteGroup}: DeleteProps) {
+    
+    useEffect(() => {
+        if (action == 'delete') {
+            updateActivity('deleting_group')
+        } else {
+            updateActivity('leaving_group')
+        }
+
+        return () => {
+            updateActivity('idle')
+        }
+    }, [action])
 
     return (
         <ShowClarify visibility={action} onClose={onClose}>

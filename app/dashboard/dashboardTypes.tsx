@@ -46,8 +46,11 @@ export interface Group {
 export type Member = {
     role: 'owner' | 'admin' | 'member'
     updatedAt?: Timestamp
-    avatar: string
+    last_seen?: string
+    activity?: string
+    online?: boolean
     length?: number
+    avatar: string
     name: string
     id: string
 }
@@ -59,6 +62,7 @@ export interface MembersTypes {
     deletingId: string | null
     group: Group | undefined
     fetchMembers: () => void
+    setMembers: any
     visibility: boolean
     onClose: () => void
     members: Member[]

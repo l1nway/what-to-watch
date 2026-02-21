@@ -8,17 +8,25 @@ import {doc, updateDoc} from 'firebase/firestore'
 import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
 import {Loader, Search, X} from 'lucide-react'
+import {updateActivity} from '@/lib/presence'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
 import AddMovieCard from './addMovieCard'
 import {functions} from '@/lib/firebase'
 import debounce from 'lodash.debounce'
+import {getSimilar} from '@/lib/ai'
 import {statuses} from './useList'
 import {db} from '@/lib/firebase'
 
 export const TMDB_MOVIE_URL = 'https://themoviedb.org/movie/'
 
-export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesData, onRefresh}: MovieSearchProps) => {
+export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesData, onRefresh, similar}: MovieSearchProps) => {
+
+    useEffect(() => {
+        visibility && updateActivity('adding_movie')
+        
+        return () => {updateActivity('browsing_list')}
+    }, [visibility])
 
     const contentRef = useRef<HTMLDivElement>(null)
 
@@ -26,7 +34,7 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
     const [suggestions, setSuggestions] = useState<any[]>([])
 
     const [search, setSearch] = useState<string>('')
-    const [text, setText] = useState<string>('')
+    const [text, setText] = useState<string>('Enter movie title')
 
     const [loading, setLoading] = useState<boolean>(false)
 
@@ -167,17 +175,76 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
 
     useEffect(() => {fetchSuggestions(search)}, [search, fetchSuggestions])
 
+    const fetchAiSuggestions = useCallback(async () => {
+        if (!similar || !visibility) return
+
+        try {
+            setLoading(true)
+            setText('AI is thinking…')
+
+            const movieNames = await getSimilar(
+                visibility.title || visibility.name, 
+                visibility.overview
+            )
+
+            if (movieNames.length === 0) {
+                setText('AI could not find anything')
+                setLoading(false)
+                return
+            }
+
+            const searchMovies = httpsCallable(functions, 'searchMovies')
+            const enrichedResults = []
+
+            for (const name of movieNames) {
+                const response = await searchMovies({query: name})
+                const results = response.data as any[]
+                
+                if (results && results.length > 0) {
+                    const movie = results[0]
+                    const existingMovie = movies?.find((m: any) => m.id === movie.id)
+                    
+                    enrichedResults.push({
+                        ...movie,
+                        status: existingMovie ? existingMovie.status : null,
+                        isSavedInDb: !!existingMovie 
+                    })
+                }
+            }
+
+            setSuggestions(enrichedResults)
+            setLoading(false)
+        } catch (e) {
+            console.error('AI Integration Error:', e)
+            setText('Error with AI recommendations')
+            setLoading(false)
+        }
+    }, [similar, visibility, movies])
+
+    useEffect(() => {
+        if (visibility && similar) {
+            fetchAiSuggestions()
+        } else {
+            setText('Enter movie title')
+        }
+    }, [visibility, similar, fetchAiSuggestions])
+
+    const close = useCallback(() => {
+        setSuggestions([])
+        onClose()
+    }, [])
+
     return (
         <ShowClarify
             parentClassName='min-md:min-w-[90%] min-2xl:min-w-[75%] flex max-h-full'
             visibility={visibility}
             className='w-full'
-            onClose={onClose}
+            onClose={close}
         >
-            <div className='flex justify-between text-white border-b border-[#1e2939] pb-4'>
+            <div className={`flex justify-between text-white ${!similar ? 'border-b border-[#1e2939] pb-4' : 'pb-2'}`}>
                 <div className='flex'>
                     <h1>
-                        Add movie
+                        {!similar ? 'Add movie' : 'Similar movies'}
                     </h1>
                     <SlideLeft className='ml-2' visibility={loading}>
                         <Loader className='text-[#959dab] animate-spin'/>
@@ -185,31 +252,39 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
                 </div>
                 <X
                     className='text-[#99a1af] outline-none hover:text-white focus:text-white cursor-pointer transition-colors duration-300'
-                    onClick={onClose}
+                    onClick={close}
                     tabIndex={0}
                 />
             </div>
-            <label
-                className='group items-center rounded-[10px] flex gap-2 my-4 bg-[#1e2939] border border-[#364153] hover:border-[#7f22fe] focus:border-[#7f22fe] focus-within:border-[#7f22fe] transition-colors duration-300 outline-none'
-                tabIndex={0}
-            >
-                <Search className='ml-2 text-[#99a1af] cursor-pointer group-hover:text-white group-focus:text-white group-focus-within:text-white transition-colors duration-300'/>
-                <Input
-                    className='p-0 border-0 text-white outline-none placeholder:text-[#4b5563] ring-0 ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors duration-300'
-                    placeholder='Search for movies on TMTB…'
-                    onChange={onChange}
-                    value={search}
-                    tabIndex={-1}
-                />
-                <SlideLeft visibility={search.length > 0}>
-                    <X
-                        className='mr-2 text-[#99a1af] hover:text-red-500 cursor-pointer transition-colors duration-300 outline-none'
-                        onClick={() => setSearch('')}
+            {!similar ?
+                <>
+                    <label
+                        className='group items-center rounded-[10px] flex gap-2 my-4 bg-[#1e2939] border border-[#364153] hover:border-[#7f22fe] focus:border-[#7f22fe] focus-within:border-[#7f22fe] transition-colors duration-300 outline-none'
                         tabIndex={0}
-                    />
-                </SlideLeft>
-            </label>
-            <span className='text-[#6a7282] border-b border-[#1e2939] pb-4'>Powered by TMDB API (The Movie Database)</span>
+                    >
+                        <Search className='ml-2 text-[#99a1af] cursor-pointer group-hover:text-white group-focus:text-white group-focus-within:text-white transition-colors duration-300'/>
+                        <Input
+                            className='p-0 border-0 text-white outline-none placeholder:text-[#4b5563] ring-0 ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors duration-300'
+                            placeholder='Search for movies on TMTB…'
+                            onChange={onChange}
+                            value={search}
+                            tabIndex={-1}
+                        />
+                        <SlideLeft visibility={search.length > 0}>
+                            <X
+                                className='mr-2 text-[#99a1af] hover:text-red-500 cursor-pointer transition-colors duration-300 outline-none'
+                                onClick={() => setSearch('')}
+                                tabIndex={0}
+                            />
+                        </SlideLeft>
+                    </label>
+                    <span className='text-[#6a7282] border-b border-[#1e2939] pb-4'>Powered by TMDB API (The Movie Database)</span>
+                </>
+            :
+                <span className='text-[#6a7282] border-b border-[#1e2939] pb-4'>
+                    Powered by Gemini 3 Flash
+                </span>
+            }
             <div className='w-full mb-4 max-lg:w-full'>
                 <motion.div
                     transition={{duration: 0.3, ease: 'easeInOut'}}
@@ -237,7 +312,7 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
                 <span
                     className='mb-4 text-white w-full flex items-center justify-center'
                 >
-                    {(search == '' && !combinedList.length) ? 'Enter movie title' : text}
+                    {(search == '' && !similar) ? 'Enter movie title' : text}
                 </span>
             </SlideDown>
             <SlideDown visibility={films.length > 0}>

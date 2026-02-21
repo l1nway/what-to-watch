@@ -2,20 +2,21 @@
 
 import {X, UserRoundPlus, UserStar, UserPen, User, BadgeInfo, Loader} from 'lucide-react'
 import {collection, writeBatch, doc, Timestamp} from 'firebase/firestore'
+import {useState, useCallback, useRef, useEffect} from 'react'
 import {Field, FieldLabel} from '@/components/ui/field'
 import {TransitionGroup} from 'react-transition-group'
 import {validateEmail} from '../components/validation'
 import {shake, clearShake} from '../components/shake'
-import {useState, useCallback, useRef} from 'react'
 import ShowClarify from '../components/showClarify'
 import {useAuth} from '../components/authProvider'
 import SlideDown from '../components/slideDown'
+import SlideLeft from '../components/slideLeft'
+import {updateActivity} from '@/lib/presence'
 import {Button} from '@/components/ui/button'
 import {Select} from 'react-animated-select'
 import {InviteProps} from './dashboardTypes'
 import {Input} from '@/components/ui/input'
 import {db} from '@/lib/firebase'
-import SlideLeft from '../components/slideLeft'
 
 const generateToken = () => crypto.randomUUID()
 
@@ -155,6 +156,16 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
         }
     }, [data, pendings, duration, onClose, user])
 
+    useEffect(() => {
+        if (data) {
+            updateActivity('creating_invite')
+        }
+
+        return () => {
+            updateActivity('idle')
+        }
+    }, [data])
+
     const renderPendings = pendings.map((element, index) => {
         return (
             <SlideDown key={element.email}>
@@ -209,10 +220,7 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
     }, [])
 
     return (
-        <ShowClarify
-            visibility={group}
-            onClose={onClose}
-        >
+        <ShowClarify visibility={group} onClose={onClose}>
             <div className='text-white flex justify-between border-b border-[#1e2939] pb-4 items-center'>
                 <div className='flex flex-col gap-2 whitespace-nowrap'>
                     <h1 className='text-white'>
@@ -250,13 +258,13 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                 </FieldLabel>
                 <div className='flex gap-2 w-full'>
                     <Input
-                        ref={emailRef}
-                        onChange={onChange}
-                        value={input}
-                        id='input-email'
-                        type='email'
-                        placeholder='friend@email.com'
                         className='max-md:w-[65%] bg-[#1e2939] text-white border-[#364153] placeholder:text-[#4b5563] hover:border-[#7f22fe] focus:border-[#7f22fe] focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:border-[#7f22fe] focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors duration-300'
+                        placeholder='friend@email.com'
+                        onChange={onChange}
+                        id='input-email'
+                        ref={emailRef}
+                        value={input}
+                        type='email'
                     />
                     {user?.uid == group?.ownerId &&
                         <Button

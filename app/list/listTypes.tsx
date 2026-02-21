@@ -3,44 +3,46 @@ import {ReactNode, RefObject} from 'react'
 export type AnimationKeys = 'loading' | 'view' | 'edit'
 
 export interface DropdownProps {
+    ref: RefObject<HTMLElement | null>
+    className?: string
     toggle: () => void
     visibility: boolean
-    ref: RefObject<HTMLElement | null>
     children: ReactNode
-    offset?: number
     duration?: number
-    className?: string
+    offset?: number
 }
 
 export interface DropdownCoords {
-  top: number
+  isUpward: boolean
   bottom: number
   right: number
-  isUpward: boolean
+  top: number
 }
 
 export interface Status {
+  color?: string | undefined
+  checked?: boolean
   name: string
   id?: string
-  checked?: boolean
-  color?: string | undefined
 }
 
 export type AddMovieCardProps = {
-  url: string
-  currentStatus: string
-  toggleFilm: (movie: any) => void
   statusChange: (movie: any, status: Status | null) => void
-  delay: boolean
-  movie: any
-  index: number
-  added: boolean
+  toggleFilm: (movie: any) => void
+  currentStatus: string
   addedLocally: boolean
   alreadyInDb: boolean
   statuses: Status[]
+  delay: boolean
+  added: boolean
+  index: number
+  url: string
+  movie: any
 }
 
 export type MovieClarifyProps = {
+  setSimilar: any
+  setMovie: any
   url: string
   delWarning: boolean
   setDelWarning: (delWarning: boolean) => void
@@ -75,53 +77,55 @@ export type MovieClarifyProps = {
 }
 
 export type ButtonItem = {
-  icon: ReactNode
-  text: string
-  color: string
-  hover: string
   onClick?: () => void
   disabled?: boolean
+  icon: ReactNode
+  color: string
+  hover: string
+  text: string
 }
 
 export interface TMDBMovie {
-  id: number
-  title: string
-  poster_path: string
+  genres?: {name: string}[]
   release_date: string
   vote_average: number
+  poster_path: string
   runtime?: number
-  genres?: {name: string}[]
   status?: string
+  title: string
+  id: number
 }
 
 export interface MovieCardProps {
-  delay: boolean
-  onClick: () => void
   setSelected: (selected: TMDBMovie) => void
   setDelWarning: (warning: boolean) => void
   setFilm: (film: boolean) => void
   statusColor: string | undefined
+  onClick: () => void
+  delay: boolean
   index: number
   movie: any
 }
 
 export interface FilmItem {
-    id: number
-    name: string
-    year: number
-    genre: string
-    duration: number
-    desc: string
     status: string | null
     poster_path: string
+    duration: number
+    genre: string
+    name: string
+    year: number
+    desc: string
+    id: number
 }
 
 export interface MovieSearchProps {
-  delay: boolean
-  visibility: boolean,
-  onClose: () => void,
-  id: string | null,
-  movies: any,
-  setMoviesData: React.Dispatch<React.SetStateAction<any[]>>,
+  selected: any
+  setMoviesData: React.Dispatch<React.SetStateAction<any[]>>
   onRefresh: () => Promise<void>
+  visibility: any
+  onClose: () => void
+  id: string | null
+  similar?: boolean
+  delay: boolean
+  movies: any
 }

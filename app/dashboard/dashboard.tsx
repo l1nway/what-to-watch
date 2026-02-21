@@ -1,14 +1,18 @@
 'use client'
 
 import {Film, Settings, LogOut, List, Users, Loader} from 'lucide-react'
-import {ReactNode, useCallback, useState} from 'react'
+import {ref, set, serverTimestamp} from 'firebase/database'
+import {ReactNode, useCallback, useEffect, useState} from 'react'
 import {AnimatePresence, motion} from 'framer-motion'
+import {onAuthStateChanged} from 'firebase/auth'
 import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
 import {useSearchParams} from 'next/navigation'
 import {Button} from '@/components/ui/button'
 import {GroupSkeleton} from './groupSkeleton'
+import {updateActivity} from '@/lib/presence'
 import {ListSkeleton} from './listSkeleton'
+import {rtdb, auth} from '@/lib/firebase'
 import useDashboard from './useDashboard'
 import {GroupCard} from './groupCard'
 import {ListCard} from './listCard'
@@ -21,9 +25,16 @@ export default function Dashboard() {
     const searchParams = useSearchParams()
     const groupId = searchParams.get('groupId')
 
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            user && updateActivity('idle')
+        })
+        return () => unsubscribe()
+    }, [])
+
     const dashboardLogic = useDashboard()
 
-    const {deletingId, processingId, members, fetchMembers, toggleRole, kickMember, membersClarify, setMembersClarify, logout, delay, leaveGroup, newGroupRef, newListRef, setGroups, updateGroup, delClarify, setDelClarify, selectedGroup, setSelectedGroup, deleteGroup, router, lists, groups, user, loading, list, setList, group, setGroup, invite, setInvite, listName, setListName, listDesc, setListDesc, groupName, setGroupName, groupDesc, setGroupDesc, inviteEmail, setInviteEmail, groupLists, setGroupLists, createList, createGroup, updateGroups} = dashboardLogic
+    const {deletingId, processingId, members, setMembers, fetchMembers, toggleRole, kickMember, membersClarify, setMembersClarify, logout, delay, leaveGroup, newGroupRef, newListRef, setGroups, updateGroup, delClarify, setDelClarify, selectedGroup, setSelectedGroup, deleteGroup, router, lists, groups, user, loading, list, setList, group, setGroup, invite, setInvite, listName, setListName, listDesc, setListDesc, groupName, setGroupName, groupDesc, setGroupDesc, inviteEmail, setInviteEmail, groupLists, setGroupLists, createList, createGroup, updateGroups} = dashboardLogic
 
     const listHeader = useCallback((text: string, button: string, icon: ReactNode, onClick: () => void) => {
         return(
@@ -55,10 +66,20 @@ export default function Dashboard() {
         setRedirect(true)
     }, [])
     
-    const de_auth = useCallback(() => {
+    const de_auth = useCallback(async () => {
         setDeauth(true)
+        
+        const user = auth.currentUser
+        if (user) {
+            await set(ref(rtdb, `/status/${user.uid}`), {
+                last_changed: serverTimestamp(),
+                state: 'offline',
+                activity: 'idle'
+            })
+        }
+
         logout()
-    }, [])
+    }, [logout])
 
     return (
         <div
@@ -69,6 +90,7 @@ export default function Dashboard() {
                 processingId={processingId}
                 visibility={membersClarify}
                 fetchMembers={fetchMembers}
+                setMembers={setMembers}
                 toggleRole={toggleRole}
                 kickMember={kickMember}
                 deletingId={deletingId}

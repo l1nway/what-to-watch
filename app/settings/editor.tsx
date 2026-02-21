@@ -11,6 +11,7 @@ import {Loader} from 'lucide-react'
 import SlideLeft from '../components/slideLeft'
 import {Slider} from '@/components/ui/slider'
 import {useGesture} from '@use-gesture/react'
+import { updateActivity } from '@/lib/presence'
 
 export default function Editor({visibility, onClose, user}: any) {
 
@@ -22,7 +23,15 @@ export default function Editor({visibility, onClose, user}: any) {
     const [loading, setLoading] = useState<boolean>(false)
 
     useEffect(() => {
-        if (!visibility) setLoaded(false)
+        if (!visibility) {
+            setLoaded(false)
+        } else {
+            updateActivity('changing_avatar')
+        }
+
+        return () => {
+            updateActivity('in_settings')
+        }
     }, [visibility])
 
     const reset = useCallback(() => {

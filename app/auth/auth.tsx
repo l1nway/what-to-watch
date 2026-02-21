@@ -1,24 +1,21 @@
 'use client'
 
-import {useCallback, useState, useRef} from 'react'
-import {useRouter, useSearchParams} from 'next/navigation'
-import {Loader, Film, EyeOff, Eye} from 'lucide-react'
-
-import {signIn, signUp, updateUser} from '@/lib/auth'
-import SlideDown from '../components/slideDown'
-import SlideLeft from '../components/slideLeft'
-import {shake, clearShake} from '../components/shake'
-
 import {validateEmail, validatePassword, validateConfirm} from '../components/validation'
 import {Field, FieldGroup, FieldLabel} from '@/components/ui/field'
 import {doc, setDoc, serverTimestamp} from 'firebase/firestore'
 import {ButtonGroup} from '@/components/ui/button-group'
+import {useRouter, useSearchParams} from 'next/navigation'
+import {Loader, Film, EyeOff, Eye} from 'lucide-react'
+import {signIn, signUp, updateUser} from '@/lib/auth'
+import {shake, clearShake} from '../components/shake'
+import {AnimatePresence, motion} from 'framer-motion'
+import {useCallback, useState, useRef} from 'react'
+import SlideDown from '../components/slideDown'
+import SlideLeft from '../components/slideLeft'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
 import {db} from '@/lib/firebase'
-
 import Footer from '../footer'
-import {AnimatePresence, motion} from 'framer-motion'
 
 export default function Auth() {
   const router = useRouter()
@@ -236,8 +233,7 @@ export default function Auth() {
   )}, [])
 
   return (
-    <div
-      className='overflow-y-auto [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939] h-screen w-full bg-gradient-to-br from-[#030712] to-[#2f0d68] flex justify-center flex-col pb-4'
+    <div className='overflow-y-auto [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939] h-screen w-full bg-gradient-to-br from-[#030712] to-[#2f0d68] flex justify-center flex-col pb-4'
     >
       <div className='flex flex-grow max-lg:flex-col items-center min-md:justify-center min-lg:gap-24 max-lg:py-8 max-lg:gap-4 w-full'>
         <div className='flex flex-col items-center gap-4 min-lg:pl-12'>
@@ -270,12 +266,11 @@ export default function Auth() {
                     <Button
                       onClick={() => switchMode('register')}
                       type='button'
-                      className={`
-                        flex-1
-                        rounded-[0_10px_10px_0]
-                        px-4 py-2
-                        ${mode === 'register' ? 'bg-[#7f22fe] text-white' : 'bg-[#1e2939] text-[#6a7282]'}
-                        transition-colors duration-300
+                      className={`flex-1 rounded-[0_10px_10px_0] px-4 py-2 transition-colors duration-300
+                        ${mode === 'register'
+                          ? 'bg-[#7f22fe] text-white'
+                          : 'bg-[#1e2939] text-[#6a7282]'
+                        }
                         ${mode === 'register'
                           ? 'hover:bg-[#641aca]'
                           : 'hover:bg-[#1e2939] hover:text-white'}
@@ -307,17 +302,7 @@ export default function Auth() {
                   onClick={auth}
                   disabled={loading}
                   type='submit'
-                  className='
-                    gap-0
-                    bg-[#7f22fe]
-                    hover:bg-[#641aca]
-                    transition-colors
-                    duration-300
-                    cursor-pointer
-                    disabled:cursor-not-allowed
-                    disabled:opacity-50
-                    w-full
-                  '
+                  className='gap-0 bg-[#7f22fe] hover:bg-[#641aca] transition-colors duration-300 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 w-full'
                 >
                   {mode === 'login' ? 'Sign in' : 'Create account'} <SlideLeft visibility={loading}><Loader className='ml-2 animate-spin'/></SlideLeft>
                 </Button>

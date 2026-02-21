@@ -1,8 +1,8 @@
-import './globals.css'
 import PageAnimatePresence from './components/PageAnimatePresence'
 import {AuthProvider} from './components/authProvider'
 import {Suspense} from 'react'
 import {Metadata} from 'next'
+import './globals.css'
 
 export const metadata: Metadata = {
   title: 'What2Watch',

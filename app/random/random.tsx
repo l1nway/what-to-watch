@@ -4,10 +4,13 @@ import {useState, useEffect, useCallback, useMemo} from 'react'
 import {motion, Easing, AnimatePresence} from 'framer-motion'
 import {useSearchParams, useRouter} from 'next/navigation'
 import {ArrowLeft, Loader, Sparkles} from 'lucide-react'
+import {onAuthStateChanged} from 'firebase/auth'
 import {httpsCallable} from 'firebase/functions'
 import {doc, getDoc} from 'firebase/firestore'
+import {updateActivity} from '@/lib/presence'
 import {Button} from '@/components/ui/button'
 import {db, functions} from '@/lib/firebase'
+import {auth} from '@/lib/firebase'
 
 interface MovieData {
     id: number
@@ -41,6 +44,13 @@ export default function Random() {
     const [animate, setAnimate] = useState<'spinning' | 'reveal'>('reveal')
     
     const getMovieDetails = httpsCallable(functions, 'getMovieDetails')
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            user && updateActivity('using_random_picker')
+        })
+        return () => unsubscribe()
+    }, [])
 
     const fetchIds = useCallback(async () => {
         if (!listId) {bck(); return}
@@ -259,7 +269,7 @@ export default function Random() {
     const [back, setBack] = useState<boolean>(false)
     
     const bck = useCallback(() => {
-        router.back()
+        router.push(`/list?id=${listId}`)
         setBack(true)
     }, [])
 
@@ -328,19 +338,19 @@ export default function Random() {
 
                             <motion.div
                                 className='flex gap-4 max-md:w-full w-[75%] justify-center items-center'
-                                animate={{opacity: 1, x: 0, scale: 1}}
                                 key={`round-${currentPair?.join('-')}`}
                                 exit={{opacity: 0, x: -20, scale: 0.5}}
+                                animate={{opacity: 1, x: 0, scale: 1}}
                                 initial={{opacity: 0, scale: 0.5}}
                             >
-                                <button 
-                                    onClick={() => pickFilm(pairData.f.id)}
+                                <button
                                     className='cursor-pointer group relative overflow-hidden rounded-2xl border-2 border-transparent hover:border-[#7f22fe] transition-all duration-300 active:scale-95'
+                                    onClick={() => pickFilm(pairData.f.id)}
                                 >
-                                    <img 
+                                    <img
+                                        className='h-full w-full aspect-[2/3] object-cover group-hover:opacity-80 transition-opacity'
                                         src={`https://image.tmdb.org/t/p/w500${pairData.f.poster_path}`} 
                                         alt={pairData.f.title}
-                                        className='h-full w-full aspect-[2/3] object-cover group-hover:opacity-80 transition-opacity'
                                     />
                                     <div className='absolute bottom-0 left-0 right-0 p-2 bg-black/60 backdrop-blur-sm text-white text-xs text-center opacity-0 group-hover:opacity-100 transition-opacity'>
                                         {pairData.f.title}

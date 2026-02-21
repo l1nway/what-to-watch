@@ -1,24 +1,33 @@
 'use client'
 
 import {ArrowLeft, Pencil, Save, Check, X, Loader} from 'lucide-react'
-import {useCallback, useMemo, useRef, useState} from 'react'
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import {MovieClarifyProps, AnimationKeys} from './listTypes'
 import {MovieSearch, TMDB_MOVIE_URL} from './movieSearch'
 import {AnimatePresence, motion} from 'framer-motion'
+import {onAuthStateChanged} from 'firebase/auth'
 import {useSearchParams} from 'next/navigation'
 import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
 import {Slider} from '@/components/ui/slider'
 import {Button} from '@/components/ui/button'
+import {updateActivity} from '@/lib/presence'
 import MovieSkeleton from './movieSkeleton'
 import {useList, statuses} from './useList'
 import {useRouter} from 'next/navigation'
 import Delete from '../dashboard/delete'
 import MovieCard from './movieCard'
+import {auth} from '@/lib/firebase'
 import Dropdown from './dropdown'
 import Film from './movieClarify'
 
 export default function List() {
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            user && updateActivity('browsing_list')
+        })
+        return () => unsubscribe()
+    }, [])
     
     const headerRef = useRef<HTMLElement>(null)
     const [menu, setMenu] = useState<boolean>(false)
@@ -30,11 +39,11 @@ export default function List() {
     const [back, setBack] = useState(false)
 
     const bck = useCallback(() => {
-        router.back()
+        router.push('/dashboard')
         setBack(true)
     }, [])
 
-    const {delay, setFilter, owner, user, loading, delClarify, setDelClarify, inputWidth, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, onChange, edit, setEdit, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime, name, deleteList} = useList(listId, bck)
+    const {similar, setSimilar, delay, setFilter, owner, user, loading, delClarify, setDelClarify, inputWidth, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, onChange, edit, setEdit, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime, name, deleteList} = useList(listId, bck)
 
     const renderButtons = useCallback((mobile: boolean) => {
         return buttons.map((element, index) => {
@@ -172,23 +181,27 @@ export default function List() {
                 setDelWarning={setDelWarning}
                 deleteMovie={deleteMovie}
                 delWarning={delWarning}
+                setSimilar={setSimilar}
+                setMovie={setMovie}
                 statuses={statuses}
                 visibility={film}
                 listId={listId}
             />
             <MovieSearch
+                selected={selected as MovieClarifyProps['selected']}
                 onClose={() => setMovie(false)}
                 onRefresh={fetchListAndMovies}
                 setMoviesData={setMoviesData}
                 movies={moviesData}
                 visibility={movie}
+                similar={similar}
                 delay={delay}
                 id={listId}
             />
             <Delete
-                action={delClarify}
-                onClose={() => setDelClarify(false)}
                 deleteGroup={() => deleteList(listId)}
+                onClose={() => setDelClarify(false)}
+                action={delClarify}
             />
             <header
                 className='flex w-full justify-between bg-[#101828] border-b border-b-[#1e2939] p-4 items-center mb-4'

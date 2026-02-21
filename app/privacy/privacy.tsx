@@ -1,10 +1,14 @@
 'use client'
 
 import {ArrowLeft, Film, Loader, LogOut, ReceiptText, Settings} from 'lucide-react'
+import {ref, set, serverTimestamp} from 'firebase/database'
+import {useCallback, useEffect, useState} from 'react'
 import {AnimatePresence, motion} from 'framer-motion'
 import useDashboard from '../dashboard/useDashboard'
+import {onAuthStateChanged} from 'firebase/auth'
+import {updateActivity} from '@/lib/presence'
 import {Button} from '@/components/ui/button'
-import {useCallback, useState} from 'react'
+import {rtdb, auth} from '@/lib/firebase'
 import {useRouter} from 'next/navigation'
 import Footer from '../footer'
 
@@ -12,6 +16,13 @@ export default function Privacy() {
     const dashboardLogic = useDashboard()
     const {logout} = dashboardLogic
     const router = useRouter()
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            user && updateActivity('reading_privacy')
+        })
+        return () => unsubscribe()
+    }, [])
 
     const [redirect, setRedirect] = useState<boolean>(false)
     const [deauth, setDeauth] = useState<boolean>(false)
@@ -27,33 +38,38 @@ export default function Privacy() {
         setRedirect(true)
     }, [])
     
-    const de_auth = useCallback(() => {
+    const de_auth = useCallback(async () => {
         setDeauth(true)
+        
+        const user = auth.currentUser
+        if (user) {
+            await set(ref(rtdb, `/status/${user.uid}`), {
+                last_changed: serverTimestamp(),
+                state: 'offline',
+                activity: 'idle'
+            })
+        }
+
         logout()
-    }, [])
+    }, [logout])
     
-    const sections = [
-    {
+    const sections = [{
       id: 1,
       title: 'Data Collection',
       content: 'We collect your email, username, encrypted password, and the lists of movies you create. We log usage data like pages visited to improve the service.'
-    },
-    {
+    }, {
       id: 2,
       title: 'How We Use It',
       content: 'To personalize movie recommendations, sync your lists across devices, and communicate important updates. Your data is never sold to third parties.'
-    },
-    {
+    }, {
       id: 3,
       title: 'Cookies',
       content: 'We use essential cookies to maintain your login session. You can disable them in your browser, but some core features of What2Watch might not work.'
-    },
-    {
+    }, {
       id: 4,
       title: 'Your Rights',
       content: 'You can access, modify, or delete your account and all associated data at any time via your settings or by contacting our support team.'
-    }
-  ]
+    }]
 
     return (
         <div className='bg-[#030712] h-screen flex flex-col relative'>

@@ -2,6 +2,7 @@ import {initializeAppCheck, ReCaptchaV3Provider} from 'firebase/app-check'
 import {initializeApp, getApps, getApp} from 'firebase/app'
 import {getFunctions} from 'firebase/functions'
 import {getFirestore} from 'firebase/firestore'
+import {getDatabase} from 'firebase/database'
 import {getStorage} from 'firebase/storage'
 import {getAuth} from 'firebase/auth'
 
@@ -28,7 +29,8 @@ if (typeof window !== 'undefined') {
     })
 }
 
+export const rtdb = getDatabase(app, 'https://filmdecider-default-rtdb.europe-west1.firebasedatabase.app')
 export const functions = getFunctions(app, 'europe-central2')
+export const storage = getStorage(app)
 export const db = getFirestore(app)
 export const auth = getAuth(app)
-export const storage = getStorage(app)

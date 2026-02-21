@@ -1,18 +1,22 @@
 'use client'
 
 import {Film, Settings, LogOut, X, Save, Pencil, Loader, ArrowLeft, ReceiptText} from 'lucide-react'
+import {useCallback, useEffect, useMemo, useState} from 'react'
+import {ref, set, serverTimestamp} from 'firebase/database'
 import {GroupCardProps} from '../dashboard/dashboardTypes'
 import {Field, FieldLabel} from '@/components/ui/field'
 import {TransitionGroup} from 'react-transition-group'
 import {AnimatePresence, motion} from 'framer-motion'
-import {useCallback, useMemo, useState} from 'react'
 import {useAuth} from '../components/authProvider'
+import {onAuthStateChanged} from 'firebase/auth'
 import {GroupCard} from '../dashboard/groupCard'
 import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
 import {AnimationKeys} from '../list/listTypes'
+import {updateActivity} from '@/lib/presence'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
+import {rtdb, auth} from '@/lib/firebase'
 import useSettings from './useSettings'
 import useInvites from './useInvites'
 import Editor from './editor'
@@ -22,6 +26,13 @@ export default function settings() {
     const {user, loading} = useAuth()
     const {saveName, savePassword, router, personal, onChange, inputRefs, passwordsRefs, toggleEdit, passwords, onPasswordChange, setPasswordEdit, passwordEdit, passwordSaving, logout} = useSettings(user, loading)
     const {fullInvites, acceptInvite, rejectInvite} = useInvites(user)
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            user && updateActivity('in_settings')
+        })
+        return () => unsubscribe()
+    }, [])
 
     const [file, setFile] = useState(null)
 
@@ -178,6 +189,21 @@ export default function settings() {
     let currentState: AnimationKeys = loading ? 'loading' : passwordEdit ? 'edit' : 'view'
     let {key, Component, props} = animationMap[currentState]
 
+    const de_auth = useCallback(async () => {
+        setDeauth(true)
+        
+        const user = auth.currentUser
+        if (user) {
+            await set(ref(rtdb, `/status/${user.uid}`), {
+                last_changed: serverTimestamp(),
+                state: 'offline',
+                activity: 'idle'
+            })
+        }
+
+        logout()
+    }, [logout])
+
     return (
         <div className='h-screen flex flex-col bg-gradient-to-br from-[#030712] to-[#2f0d68]'>
             <Editor
@@ -265,8 +291,8 @@ export default function settings() {
                                 transition={{duration: 0.15}}
                             >
                                 <LogOut
-                                    onClick={() => {logout(); setDeauth(true)}}
                                     className='cursor-pointer text-[#959dab] hover:text-white transition-colors duration-300'
+                                    onClick={de_auth}
                                 />
                             </motion.div>
                             :
