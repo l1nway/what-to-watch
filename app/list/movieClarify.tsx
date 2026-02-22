@@ -15,7 +15,7 @@ export default function MovieClarify({url, visibility, onClose, statuses, select
     const [status, setStatus] = useState<MovieClarifyProps['statuses'][number] | undefined>(undefined)
 
     useEffect(() => {
-        if (visibility) updateActivity('reading_movie_info')
+        visibility && updateActivity('reading_movie_info')
         
         return () => {updateActivity('browsing_list')}
     }, [visibility])
@@ -137,14 +137,14 @@ export default function MovieClarify({url, visibility, onClose, statuses, select
                         } as React.CSSProperties}
                         className='h-9 w-full rounded-md bg-[#1e2939!important] border border-[#364153!important] !text-white items-center'
                         placeholder='Choose status'
-                        value={status}
                         onChange={setStatus}
                         options={statuses}
+                        value={status}
                     />
                     <SlideLeft visibility={status != statuses.find(s => s?.name == selected?.status)}>
                         <Button
-                            onClick={() => updateStatus()}
                             className='w-25 ml-4 mr-10 bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'
+                            onClick={() => updateStatus()}
                         >Save</Button>
                     </SlideLeft>
                 </div>

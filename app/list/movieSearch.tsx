@@ -14,7 +14,6 @@ import {Input} from '@/components/ui/input'
 import AddMovieCard from './addMovieCard'
 import {functions} from '@/lib/firebase'
 import debounce from 'lodash.debounce'
-import {getSimilar} from '@/lib/ai'
 import {statuses} from './useList'
 import {db} from '@/lib/firebase'
 
@@ -182,10 +181,14 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
             setLoading(true)
             setText('AI is thinking…')
 
-            const movieNames = await getSimilar(
-                visibility.title || visibility.name, 
-                visibility.overview
-            )
+            const getAiRecs = httpsCallable(functions, 'getAiRecommendations')
+            const result = await getAiRecs({
+                movieId: visibility.id,
+                movieTitle: visibility.title || visibility.name,
+                movieDescription: visibility.overview
+            })
+
+            const movieNames = result.data as string[]
 
             if (movieNames.length === 0) {
                 setText('AI could not find anything')

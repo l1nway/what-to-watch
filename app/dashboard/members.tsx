@@ -102,8 +102,8 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
         )
         return (
             <motion.div
-                {...animationProps('vertical', true, delay, index)}
                 className='flex gap-2 text-white justify-between items-center hover:bg-[#121e37] rounded-[5px] p-2 transition-colors duration-300'
+                {...animationProps('vertical', true, delay, index)}
                 style={{...stylesProps, overflow: 'hidden'}}
                 layoutId={member?.id}
                 key={member?.id}
@@ -227,15 +227,15 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
                     <span className='text-[#99a1af] text-sm'>
                         By clicking on the user's icon, you can change their rights.<br/>
                         <span className='inline'>
-                            <UserPen className='w-4 h-4 mr-1 inline' />
+                            <UserPen className='w-4 h-4 mr-1 inline'/>
                         </span>can edit the group,{''}
                         <span className='inline'>
-                            <User className='w-4 h-4 mx-1 inline' />
+                            <User className='w-4 h-4 mx-1 inline'/>
                         </span>{''}
                         — can only view.
                         <br/>
                         <span className='inline'>
-                            <Trash2 className='w-4 h-4 mr-1 inline' />
+                            <Trash2 className='w-4 h-4 mr-1 inline'/>
                         </span>{''}
                         will remove the user from group.
                     </span>
