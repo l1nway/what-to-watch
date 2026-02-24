@@ -1,8 +1,8 @@
 'use client'
 
 import {Film, Settings, LogOut, List, Users, Loader} from 'lucide-react'
-import {ref, set, serverTimestamp} from 'firebase/database'
 import {ReactNode, useCallback, useEffect, useState} from 'react'
+import {ref, set, serverTimestamp} from 'firebase/database'
 import {AnimatePresence, motion} from 'framer-motion'
 import {onAuthStateChanged} from 'firebase/auth'
 import SlideDown from '../components/slideDown'
@@ -82,9 +82,7 @@ export default function Dashboard() {
     }, [logout])
 
     return (
-        <div
-            className='bg-[#030712] h-screen flex flex-col relative'
-        >
+        <div className='bg-[#030712] h-screen flex flex-col relative'>
             <Members
                 onClose={() => setMembersClarify(false)}
                 processingId={processingId}
@@ -145,14 +143,10 @@ export default function Dashboard() {
                 className='shrink-0 bg-[#101828] flex justify-between items-center border-b border-b-[#1e2939] p-4'
             >
                 <div className='flex gap-5'>
-                    <div
-                        className='bg-[#7f22fe] rounded-[10px] w-min p-2'
-                    >
+                    <div className='bg-[#7f22fe] rounded-[10px] w-min p-2'>
                         <Film className='text-white'/>
                     </div>
-                    <h1
-                        className='text-white flex items-center'
-                    >
+                    <h1 className='text-white flex items-center'>
                         What2Watch
                     </h1>
                 </div>
@@ -207,9 +201,7 @@ export default function Dashboard() {
                                 exit={{opacity: 0, scale: 0.5}}
                                 transition={{duration: 0.15}}
                             >
-                                <Loader
-                                    className='text-[#959dab] animate-spin'
-                                />
+                                <Loader className='text-[#959dab] animate-spin'/>
                             </motion.div>
                         }
                     </AnimatePresence>
@@ -220,14 +212,10 @@ export default function Dashboard() {
                 tabIndex={-1}
             >
                 <div className='flex gap-4 flex-col'>
-                    <h1
-                        className='text-white text-[2em] flex whitespace-nowrap max-md:hidden'
-                    >
+                    <h1 className='text-white text-[2em] flex whitespace-nowrap max-md:hidden'>
                         Welcome back<SlideLeft visibility={Boolean(user)}>, {user?.displayName ? user?.displayName : user?.email}</SlideLeft>
                     </h1>
-                    <h1
-                        className='text-white text-[2em] flex min-md:hidden flex-col'
-                    >
+                    <h1 className='text-white text-[2em] flex min-md:hidden flex-col'>
                         <span className='whitespace-nowrap'>Welcome back,</span>
                         <SlideDown
                             className='whitespace-nowrap'
@@ -236,9 +224,7 @@ export default function Dashboard() {
                             {user?.displayName ? user?.displayName : user?.email}
                         </SlideDown>
                     </h1>
-                    <h2
-                        className='text-white'
-                    >
+                    <h2 className='text-white'>
                         Ready to find your next movie?
                     </h2>
                 </div>

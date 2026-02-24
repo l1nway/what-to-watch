@@ -1,9 +1,11 @@
 'use client'
 
+import {UserCog, Zap, SearchCode, Loader} from 'lucide-react'
 import {Card, CardContent} from '@/components/ui/card'
 import {useRouter, usePathname} from 'next/navigation'
-import {UserCog, Zap, SearchCode} from 'lucide-react'
+import SlideLeft from './components/slideLeft'
 import {Button} from '@/components/ui/button'
+import {useCallback, useState} from 'react'
 import {Gemini} from './components/gemini'
 import {motion} from 'framer-motion'
 import Footer from './footer'
@@ -11,6 +13,12 @@ import Footer from './footer'
 export default function Intro() {
     const pathname = usePathname()
     const router = useRouter()
+    const [loading, setLoading] = useState<boolean>(false)
+
+    const auth = useCallback(() => {
+        router.push('/auth')
+        setLoading(true)
+    }, [])
     
     return (
         <div className='overflow-y-auto [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939] h-screen w-full bg-gradient-to-br from-[#2f0d68] to-[#030712] flex flex-col pb-4 text-white'>
@@ -32,31 +40,36 @@ export default function Intro() {
                 </motion.p>
                 <Button
                     className='outline-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-[#7f22fe] hover:bg-[#641aca] focus:bg-[#641aca] transition-colors duration-300 cursor-pointer h-13 w-fit text-2xl'
-                    onClick={() => router.push('/auth')}
+                    disabled={loading}
+                    onClick={auth}
                 >
-                    Let's start
+                    Let's start <SlideLeft visibility={loading}><Loader className='ml-2 animate-spin'/></SlideLeft>
                 </Button>
             </section>
 
             <section className='px-6 pb-24 w-full gap-6 flex flex-wrap'>
                 {features.map((f, i) => (
                     <motion.div
-                        className='intro-card hover:border-[#7f22fe] transition-colors duration-300 border border-[#1e2939] rounded-2xl'
+                        // className='intro-card flex'
+                        className={`flex gap-6 intro-card ${i % 2 !== 0 ? '' : 'desktop-reverse'} max-md:!flex-col`}
                         whileInView={{opacity: 1, y: 0}}
                         transition={{delay: i * 0.05}}
                         initial={{opacity: 0, y: 30}}
                         key={`${pathname}-${i}`}
                         viewport={{once: true}}
                     >
-                        <Card className='bg-white/5 border-white/10 rounded-2xl h-full'>
+                        <Card className='max-md:max-w-full w-fit min-w-auto max-w-[40%] hover:border-[#7f22fe] transition-colors duration-300 border border-[#1e2939] rounded-2xl bg-white/5 border-white/10 rounded-2xl h-full'>
                             <CardContent className='p-6'>
-                                <div className='flex gap-2 pb-3 items-center'>
+                                <div className='min-w-fit flex gap-2 pb-3 items-center'>
                                     <f.icon className='w-8 h-8 text-purple-400'/>
-                                    <h3 className='font-semibold text-lg text-white'>{f.title}</h3>
+                                    <h3 className='font-semibold text-lg text-white whitespace-nowrap'>{f.title}</h3>
                                 </div>
                                 <p className='text-sm text-white/60'>{f.desc}</p>
                             </CardContent>
                         </Card>
+                        <div className='max-md:min-w-full w-[69%] hover:border-[#7f22fe] transition-colors duration-300 border border-[#1e2939] rounded-2xl bg-white/5 border-white/10 rounded-2xl'>
+                            <img className='p-6 rounded-2xl aspect-[4/3]' src='\images\Screen Shot 2026-02-23 at 10.26.25.png'/>
+                        </div>
                     </motion.div>
                 ))}
             </section>

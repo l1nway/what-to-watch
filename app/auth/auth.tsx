@@ -2,7 +2,6 @@
 
 import {validateEmail, validatePassword, validateConfirm} from '../components/validation'
 import {Field, FieldGroup, FieldLabel} from '@/components/ui/field'
-import {doc, setDoc, serverTimestamp} from 'firebase/firestore'
 import {ButtonGroup} from '@/components/ui/button-group'
 import {useRouter, useSearchParams} from 'next/navigation'
 import {Loader, Film, EyeOff, Eye} from 'lucide-react'
@@ -14,7 +13,6 @@ import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
-import {db} from '@/lib/firebase'
 import Footer from '../footer'
 
 export default function Auth() {
@@ -82,14 +80,6 @@ export default function Auth() {
         const user = userCredential.user
 
         await updateUser(name)
-
-        await setDoc(doc(db, 'users', user.uid), {
-          uid: user.uid,
-          displayName: name,
-          email: email,
-          photoURL: '',
-          createdAt: serverTimestamp()
-        })
 
         const idToken = await user.getIdToken()
         await fetch('/api/login', {
@@ -169,7 +159,7 @@ export default function Auth() {
       break
   }
 }
-  }, [mode, email, password, name])
+  }, [mode, email, password, name, confirm])
 
   const fieldElement = useCallback((text: string, placeholder: string, type: string, onChange: (value: string) => void, ref?: React.Ref<HTMLInputElement> | null, visible?: boolean, setVisible?: (v: boolean) => void) => {
     return (
@@ -299,10 +289,10 @@ export default function Auth() {
               </SlideDown>
               <Field orientation='horizontal'>
                 <Button
-                  onClick={auth}
-                  disabled={loading}
-                  type='submit'
                   className='gap-0 bg-[#7f22fe] hover:bg-[#641aca] transition-colors duration-300 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 w-full'
+                  disabled={loading}
+                  onClick={auth}
+                  type='submit'
                 >
                   {mode === 'login' ? 'Sign in' : 'Create account'} <SlideLeft visibility={loading}><Loader className='ml-2 animate-spin'/></SlideLeft>
                 </Button>
@@ -316,7 +306,7 @@ export default function Auth() {
             <span
               className='text-white'
             >
-              {mode === 'login' ? 'Already have an account?' : `Don't have an account?`}
+              {mode === 'login' ? `Don't have an account?` : 'Already have an account?'}
             </span>
             <span
               className='cursor-pointer'

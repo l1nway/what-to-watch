@@ -184,20 +184,24 @@
     min-width: 100% !important;
   }
 }
-@media (max-width: 768px) {
+
+.intro-card {
+  flex-direction: row;
+}
+
+.intro-card.desktop-reverse {
+  flex-direction: row-reverse;
+}
+
+@media (max-width: 1281px) {
   .intro-card {width: 100%;}
 }
 
-@media (min-width: 769px) and (max-width: 1024px) {
-  .intro-card {width: 45%;}
-}
-
-@media (min-width: 1025px) and (max-width: 1660px) {
-  .intro-card {width: 31%;}
-}
-
-@media (min-width: 1661px) and (max-width: 1920px) {
-  .intro-card {width: 23%;}
+@media (min-width: 1280px){
+  .intro-card {
+    flex-direction: row !important;
+    width: 48%;
+  }
 }
 
 .rac-title-text {

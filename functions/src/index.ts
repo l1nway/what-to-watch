@@ -2,12 +2,26 @@ import {onDocumentWritten} from 'firebase-functions/v2/firestore'
 import {getFirestore, FieldValue} from 'firebase-admin/firestore'
 import {onCall, HttpsError} from 'firebase-functions/v2/https'
 import {GoogleGenerativeAI} from '@google/generative-ai'
+import * as authV1 from 'firebase-functions/v1/auth'
 import * as admin from 'firebase-admin'
 import axios from 'axios'
 
 if (admin.apps.length === 0) {admin.initializeApp()}
 
 const db = getFirestore()
+
+export const onUserCreate = authV1.user().onCreate(async (user) => {
+    await db.collection('users').doc(user.uid).set({
+        uid: user.uid,
+        displayName: user.displayName || '',
+        email: user.email || '',
+        photoURL: user.photoURL || '',
+        groups: [],
+        online: false,
+        createdAt: FieldValue.serverTimestamp()
+      })
+})
+
 export const onGroupSync = onDocumentWritten({
     document: 'groups/{groupId}',
     region: 'europe-central2',

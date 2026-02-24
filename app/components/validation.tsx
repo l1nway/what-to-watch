@@ -11,5 +11,5 @@ export const validatePassword = (value: string): boolean => {
 }
 
 export const validateConfirm = (password: string, confirm: string): boolean => {
-  return confirm == password
+  return confirm === password
 }
