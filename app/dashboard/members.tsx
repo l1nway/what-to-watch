@@ -77,7 +77,6 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
     useEffect(() => {
         if (visibility) updateActivity('viewing_members')
         
-
         return () => {
             updateActivity('idle')
         }
