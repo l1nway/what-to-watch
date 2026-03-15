@@ -5,7 +5,7 @@ import {ReactNode, useRef} from 'react'
 
 interface SlideDownProps {
     in?: boolean
-    visibility?: boolean | number
+    visibility?: boolean | number | string
     children?: ReactNode
     duration?: number
     className?: string

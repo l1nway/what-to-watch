@@ -10,7 +10,7 @@ export default function MovieSkeleton({loading, onClick}: {loading: boolean, onC
     <motion.div
       className={`
         ${loading ? 'cursor-wait' : 'cursor-pointer'}
-        group mb-3 mr-3 movie-card-sizes
+        group mb-3 mr-3 movie-card-sizes mt-4
       `}
       style={{...stylesProps}}
       {...animationProps('both')}

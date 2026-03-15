@@ -1,4 +1,4 @@
-import {writeBatch, doc, addDoc, updateDoc, collection, serverTimestamp, arrayUnion, query, where, getDocs, deleteDoc, arrayRemove, documentId} from 'firebase/firestore'
+import {writeBatch, doc, updateDoc, collection, serverTimestamp, arrayUnion, query, where, getDocs, arrayRemove, documentId} from 'firebase/firestore'
 import {useCallback, useState, useEffect, useRef} from 'react'
 import {ListItem, Group, Data, Member, MembersTypes} from './dashboardTypes'
 import {useAuth} from '../components/authProvider'
@@ -226,8 +226,8 @@ export default function UseDashboard() {
         const targetGroupId = groupLists.length > 0 ? groupLists[0] : null
 
         try {
-            setLoading(true);
-            const batch = writeBatch(db);
+            setLoading(true)
+            const batch = writeBatch(db)
             const newListRef = doc(collection(db, 'lists'))
 
             const newListData = {
@@ -292,7 +292,7 @@ export default function UseDashboard() {
             
             listsToRemove.forEach(list => {
                 const listRef = doc(db, 'lists', list.id)
-                batch.update(listRef, { groupId: null })
+                batch.update(listRef, {groupId: null})
             })
 
             selectedIds.forEach((listId) => {
@@ -317,9 +317,7 @@ export default function UseDashboard() {
     
     useEffect(() => {
         if (!loading) {
-            const timer = setTimeout(() => {
-            setDelay(false)
-            }, 1000)
+            const timer = setTimeout(() => setDelay(false), 1000)
 
             return () => clearTimeout(timer)
         } else {

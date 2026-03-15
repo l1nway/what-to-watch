@@ -1,14 +1,14 @@
 'use client'
 
 import {validateEmail, validatePassword, validateConfirm} from '../components/validation'
+import {useCallback, useState, useRef, useEffect, useMemo} from 'react'
 import {Field, FieldGroup, FieldLabel} from '@/components/ui/field'
-import {ButtonGroup} from '@/components/ui/button-group'
 import {useRouter, useSearchParams} from 'next/navigation'
+import {ButtonGroup} from '@/components/ui/button-group'
 import {Loader, Film, EyeOff, Eye} from 'lucide-react'
 import {signIn, signUp, updateUser} from '@/lib/auth'
 import {shake, clearShake} from '../components/shake'
 import {AnimatePresence, motion} from 'framer-motion'
-import {useCallback, useState, useRef} from 'react'
 import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
 import {Button} from '@/components/ui/button'
@@ -33,25 +33,34 @@ export default function Auth() {
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [showConfirm, setShowConfirm] = useState<boolean>(false)
 
-  const refs = [loginRef, passwordRef, nameRef, confirmRef]
+  const refs = useMemo(() => [loginRef, passwordRef, nameRef, confirmRef], [])
 
-  const clearAllShakes = () => {
-    refs.forEach(ref => {
-      if (ref.current) clearShake(ref.current)
-    })
-  }
+  const clearAllShakes = useCallback(() => refs.forEach(ref => ref.current && clearShake(ref.current)), [refs])
 
   const mode = searchParams.get('mode') === 'register' ? 'register' : 'login'
 
-  const [errorStatus, setErrorStatus] = useState(false)
-  const [messageError, setMessageError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [errorStatus, setErrorStatus] = useState<boolean>(false)
+  const [messageError, setMessageError] = useState<string>('')
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const [changeMode, setChangeMode] = useState<boolean>(false)
+
+  const changeModeTimer = useRef<NodeJS.Timeout | null>(null)
 
   const switchMode = useCallback((newMode: 'login' | 'register') => {
     setErrorStatus(false)
     clearAllShakes()
+
+    changeModeTimer.current = setTimeout(() => setChangeMode(true), 250)
+
     router.replace(`/auth?mode=${newMode}`, {scroll: false})
-  }, [router, mode])
+  }, [router])
+
+  useEffect(() => {
+    changeModeTimer.current && clearTimeout(changeModeTimer.current)
+
+    setChangeMode(false)
+  }, [mode])
 
   const auth = useCallback(async () => {
     if (!validateEmail(email)) {
@@ -163,9 +172,7 @@ export default function Auth() {
 
   const fieldElement = useCallback((text: string, placeholder: string, type: string, onChange: (value: string) => void, ref?: React.Ref<HTMLInputElement> | null, visible?: boolean, setVisible?: (v: boolean) => void) => {
     return (
-    <Field
-      style={{paddingBottom: '1.5em'}}
-    >
+    <Field className='pb-6'>
       <FieldLabel
         htmlFor={`fieldgroup-${text}`}
         className='text-[#d1d5dc]'
@@ -175,6 +182,7 @@ export default function Auth() {
       <div className='flex gap-2 items-center'>
         <Input
           className='bg-[#1e2939] text-[#6a7282] border-[#364153] placeholder:text-[#4b5563] hover:border-[#7f22fe] focus:border-[#7f22fe] focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:border-[#7f22fe] focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors duration-300'
+          type={type == 'password' && visible ? 'text' : type}
           onChange={(e: {target: {value: string}}) => {
             onChange(e.target.value)
             setErrorStatus(false)
@@ -184,7 +192,6 @@ export default function Auth() {
           }}
           placeholder={placeholder}
           id={`fieldgroup-${text}`}
-          type={type == 'password' && visible ? 'text' : type}
           ref={ref}
         />
         {type == 'password' && setVisible &&
@@ -238,25 +245,23 @@ export default function Auth() {
                 <Field className='pb-4'>
                   <ButtonGroup className='bg-[#1e2939] rounded-[10px] p-[2px] flex justify-center w-[300px]'>
                     <Button
-                      onClick={() => switchMode('login')}
-                      type='button'
-                      className={`
-                        flex-1
-                        rounded-[10px_0_0_10px]
-                        px-4 py-2
+                      className={`flex-1 gap-0 rounded-[10px_0_0_10px] px-4 py-2 transition-colors duration-300
                         ${mode === 'login' ? 'bg-[#7f22fe] text-white' : 'bg-[#1e2939] text-[#6a7282]'}
-                        transition-colors duration-300
                         ${mode === 'login'
                           ? 'hover:bg-[#641aca]'
                           : 'hover:bg-[#1e2939] hover:text-white'}
+                        ${mode === 'login' ? '' : 'cursor-pointer'}
+                        ${changeMode && mode === 'register' ? 'cursor-wait' : ''}
                       `}
+                      onClick={() => {mode === 'register' ? switchMode('login') : null}}
+                      type='button'
                     >
-                      Login
+                      Login <SlideLeft visibility={changeMode && mode === 'register'}><Loader className='ml-2 animate-spin'/></SlideLeft>
                     </Button>
                     <Button
-                      onClick={() => switchMode('register')}
+                      onClick={() => {mode === 'login' ? switchMode('register') : null}}
                       type='button'
-                      className={`flex-1 rounded-[0_10px_10px_0] px-4 py-2 transition-colors duration-300
+                      className={`flex-1 gap-0 rounded-[0_10px_10px_0] px-4 py-2 transition-colors duration-300
                         ${mode === 'register'
                           ? 'bg-[#7f22fe] text-white'
                           : 'bg-[#1e2939] text-[#6a7282]'
@@ -264,9 +269,11 @@ export default function Auth() {
                         ${mode === 'register'
                           ? 'hover:bg-[#641aca]'
                           : 'hover:bg-[#1e2939] hover:text-white'}
+                        ${mode === 'register' ? '' : 'cursor-pointer'}
+                        ${changeMode && mode === 'login' ? 'cursor-wait' : ''}
                       `}
                     >
-                      Register
+                      Register <SlideLeft visibility={changeMode && mode === 'login'}><Loader className='ml-2 animate-spin'/></SlideLeft>
                     </Button>
                   </ButtonGroup>
                 </Field>
@@ -300,18 +307,13 @@ export default function Auth() {
             </FieldGroup>
           </form>
           <div
-            className='flex gap-3'
             onClick={() => switchMode(mode === 'login' ? 'register' :'login')}
+            className='flex gap-3'
           >
-            <span
-              className='text-white'
-            >
+            <span className='text-white'>
               {mode === 'login' ? `Don't have an account?` : 'Already have an account?'}
             </span>
-            <span
-              className='cursor-pointer'
-              style={{color: '#7f22fe'}}
-            >
+            <span className='cursor-pointer text-[#7f22fe]'>
               {mode === 'login' ? 'Register now' : 'Sign in'}
             </span>
           </div>

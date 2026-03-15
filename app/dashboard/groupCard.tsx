@@ -194,7 +194,10 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
                             >
                                 <div
                                     className='cursor-pointer hover:border-[#7f22fe] transition-colors duration-300 mr-4 min-w-25 max-w-25 min-h-20 rounded-[5px] border border-[#1e2939] bg-[#101828] p-2 flex flex-col justify-between'
-                                    onClick={() => router.push(`/list?id=${encodeURIComponent(list.id)}`)}
+                                    onClick={() => {
+                                        sessionStorage.setItem('role', owner ? 'owner' : editor ? 'editor' : 'member')
+                                        router.push(`/list?id=${encodeURIComponent(list.id)}`)
+                                    }}
                                 >
                                     <div className='flex justify-between items-start'>
                                     <Film className='w-7 h-7 text-[#a684ff]' />
@@ -210,9 +213,7 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
                         ))}
                     </AnimatePresence>
                     <SlideLeft visibility={!group?.lists?.length}>
-                        <div className={`
-                            min-w-25 min-h-20 rounded-[5px] border border-[#1e2939] bg-[#101828] p-2 flex flex-col justify-between
-                        `}>
+                        <div className={`min-w-25 min-h-20 rounded-[5px] border border-[#1e2939] bg-[#101828] p-2 flex flex-col justify-between`}>
                             <div className='flex justify-between items-start'>
                             <Film className='w-7 h-7 text-[#364153]'/>
                             <div className='h-3 w-6 bg-[#1e2939] rounded-[10px]'/>

@@ -1,7 +1,7 @@
 'use client'
 
-import {ArrowLeft, Pencil, Save, Check, X, Loader} from 'lucide-react'
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
+import {ArrowLeft, Pencil, Save, Check, X, Loader} from 'lucide-react'
 import {MovieClarifyProps, AnimationKeys} from './listTypes'
 import {MovieSearch, TMDB_MOVIE_URL} from './movieSearch'
 import {AnimatePresence, motion} from 'framer-motion'
@@ -36,29 +36,29 @@ export default function List() {
     const searchParams = useSearchParams()
     const listId = searchParams.get('id')
 
-    const [back, setBack] = useState(false)
+    const [back, setBack] = useState<boolean>(false)
 
     const bck = useCallback(() => {
         router.push('/dashboard')
         setBack(true)
     }, [])
 
-    const {similar, setSimilar, delay, setFilter, owner, user, loading, delClarify, setDelClarify, inputWidth, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, onChange, edit, setEdit, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime, name, deleteList} = useList(listId, bck)
+    const {similar, setSimilar, delay, setFilter, role, user, loading, delClarify, setDelClarify, inputWidth, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, onChange, edit, setEdit, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime, name, deleteList, resetFilters} = useList(listId, bck)
 
     const renderButtons = useCallback((mobile: boolean) => {
         return buttons.map((element, index) => {
-            const visible = user?.uid === owner || (filteredMovies.length > 0 && (element.text === 'Filter' || element.text === 'Random pick'))
+            const visible = role === 'owner' || role === 'editor' || (filteredMovies.length > 0 && (element.text === 'Filter' || element.text === 'Random pick'))
 
             const button = (
                 <Button
+                    className={`outline-none focus-visible:ring-0 focus-visible:ring-offset-0 max-md:w-[100%] max-md:h-9 max-md:text-xl bg-[${element.color}] hover:bg-[${element.hover}] focus:bg-[${element.hover}] cursor-pointer transition-colors duration-300`}
                     disabled={(!filteredMovies.length && element.text !== 'Delete' && element.text !== 'Add movie') || element.disabled}
-                    onClick={element.onClick}
-                    style={{backgroundColor: element.color}}
                     onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = element.hover)}
                     onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = element.color)}
                     onFocus={(e) => (e.currentTarget.style.backgroundColor = element.hover)}
                     onBlur={(e) => (e.currentTarget.style.backgroundColor = element.color)}
-                    className={`outline-none focus-visible:ring-0 focus-visible:ring-offset-0 max-md:w-[100%] max-md:h-9 max-md:text-xl bg-[${element.color}] hover:bg-[${element.hover}] focus:bg-[${element.hover}] cursor-pointer transition-colors duration-300`}
+                    style={{backgroundColor: element.color}}
+                    onClick={element.onClick}
                 >
                     {element.icon} {element.text}
                 </Button>
@@ -74,7 +74,7 @@ export default function List() {
                 </SlideLeft>
             )
         })
-    }, [buttons, filteredMovies, user?.uid, owner])
+    }, [buttons, filteredMovies, user?.uid, role])
 
     const movieCard = useMemo(() => {
         return filteredMovies.map((movie, index) => {
@@ -99,7 +99,7 @@ export default function List() {
         return status.map((element, index) => {
             return (
                 <label
-                    className='outline-none group flex gap-3 cursor-pointer'
+                    className='outline-none group flex gap-3 max-md:gap-2 cursor-pointer'
                     key={element.name}
                     tabIndex={0}
                 >
@@ -204,7 +204,7 @@ export default function List() {
                 action={delClarify}
             />
             <header
-                className='flex w-full justify-between bg-[#101828] border-b border-b-[#1e2939] p-4 items-center mb-4'
+                className='flex w-full justify-between bg-[#101828] border-b border-b-[#1e2939] p-4 items-center'
                 ref={headerRef}
             >
                 <div className='flex text-white gap-3 items-center'>
@@ -251,7 +251,7 @@ export default function List() {
                             ref={inputRef}
                             value={name}
                         />
-                        {(user?.uid === owner || loading) &&
+                        {(role === 'owner' || role === 'editor' || loading) &&
                             <AnimatePresence mode='wait'>
                                 <motion.div
                                     initial={currentState === 'loading' ? undefined : {opacity: 0, scale: 0.5}}
@@ -293,66 +293,56 @@ export default function List() {
                     {renderButtons(false)}
                 </div>
             </header>
-            <SlideDown
-                visibility={filter}
-            >
-                <div className='mx-4 text-white border border-[#1e2939] bg-[#101828] rounded-[10px] mb-4 mb-0 p-4 flex gap-2 flex-col'>
-                    <div className='flex justify-between'>
-                        <h2>
-                            Filters
-                        </h2>
-                        <X
-                            className='outline-none text-[#99a1af] cursor-pointer hover:text-white focus:text-white transition-colors duration-300'
-                            onClick={() => setFilter(false)}
-                            tabIndex={0}
-                        />
-                    </div>
-                    <div className='flex justify-between max-md:flex-col-reverse max-md:gap-2'>
-                        <div className='flex flex-col gap-2 pr-4 min-md:w-[20%]'>
-                            <span>
-                                Status
-                            </span>
-                            <div className='flex gap-2 max-md:justify-between min-md:flex-col'>
-                                {renderStatuses}
-                            </div>
-                        </div>
-                        <div className='flex flex-col gap-2 min-md:w-[55%]'>
-                            <span>
-                                Genre
-                            </span>
-                            <div className='[scrollbar-width:thin] flex gap-2 flex-wrap min-md:max-w-185 max-md:overflow-x-auto max-md:max-h-11 max-md:flex max-md:flex-col'>
-                                {renderGenres}
-                            </div>
-                        </div>
-                        <div className='flex flex-col gap-2 min-md:w-[25%]'>
-                            <span>
-                                Max runtime: {runtime} min
-                            </span>
-                            <Slider
-                                onValueChange={([v]) => setRuntime(v)}
-                                value={[runtime]}
-                                max={600}
-                                min={10}
-                                step={1}
-                            />
-                        </div>
-                    </div>
-                </div>
-            </SlideDown>
-            <SlideDown visibility={!loading || filteredMovies.length}>
-                <span className='pb-4 px-4 text-[#777f8d] block'>
-                    Showing {filteredMovies.length} of {moviesData.length} movies
-                </span>
-            </SlideDown>
             <div
-                className='pb-2 px-4 flex flex-wrap flex-1 overflow-y-auto [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939]'
+                className='pb-2 px-4 flex flex-wrap overflow-y-auto [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939]'
                 tabIndex={-1}
             >
+                <SlideDown className='w-full' visibility={!loading || filteredMovies.length}>
+                    <span className='py-4 text-[#777f8d] block'>
+                        Showing {filteredMovies.length} of {moviesData.length} movies
+                    </span>
+                </SlideDown>
+                <SlideDown className='w-full' visibility={filter}>
+                    <div className='h-fit text-white border border-[#1e2939] bg-[#101828] rounded-[10px] mb-4 mb-0 p-4 flex gap-2 flex-col'>
+                        <div className='flex justify-between'>
+                            <h2>Filters</h2>
+                            <X
+                                className='outline-none text-[#99a1af] cursor-pointer hover:text-white focus:text-white transition-colors duration-300'
+                                onClick={() => {setFilter(false); resetFilters()}}
+                                tabIndex={0}
+                            />
+                        </div>
+                        <div className='flex justify-between max-md:flex-col-reverse max-md:gap-2'>
+                            <div className='flex flex-col gap-2 pr-4 min-md:w-[20%]'>
+                                <span>Status</span>
+                                <div className='flex gap-2 max-md:justify-between min-md:flex-col'>
+                                    {renderStatuses}
+                                </div>
+                            </div>
+                            <div className='flex flex-col gap-2 min-md:w-[55%]'>
+                                <span>Genre</span>
+                                <div className='[scrollbar-width:thin] flex gap-2 flex-wrap min-md:max-w-185 max-md:overflow-x-auto max-md:max-h-11 max-md:flex max-md:flex-col'>
+                                    {renderGenres}
+                                </div>
+                            </div>
+                            <div className='flex flex-col gap-2 min-md:w-[25%]'>
+                                <span>Max runtime: {runtime} min</span>
+                                <Slider
+                                    onValueChange={([v]) => setRuntime(v)}
+                                    value={[runtime]}
+                                    max={600}
+                                    min={10}
+                                    step={1}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </SlideDown>
                 <AnimatePresence mode='popLayout'>
                     {!filteredMovies.length ?
                         <MovieSkeleton
-                            loading={loading}
                             onClick={setMovie}
+                            loading={loading}
                         />
                     : null}
                     {movieCard}

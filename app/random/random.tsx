@@ -56,6 +56,16 @@ export default function Random() {
         if (!listId) {bck(); return}
 
         try {
+            const savedIds = sessionStorage.getItem('filtered_movie_ids')
+            
+            if (savedIds) {
+                const parsedIds = JSON.parse(savedIds)
+                if (Array.isArray(parsedIds) && parsedIds.length > 0) {
+                    setAllIds(parsedIds)
+                    return
+                }
+            }
+
             const listRef = doc(db, 'lists', listId)
             const snap = await getDoc(listRef)
             if (snap.exists()) {
@@ -186,9 +196,7 @@ export default function Random() {
         }
     }, [queue, winners, handleRoundEnd])
 
-    useEffect(() => {
-        fetchIds()
-    }, [listId])
+    useEffect(() => {fetchIds()}, [listId])
 
     useEffect(() => {
         if (allIds.length > 0) {
@@ -196,9 +204,7 @@ export default function Random() {
         }
     }, [allIds, startQuiz])
 
-    useEffect(() => {
-        if (!loading && allIds.length === 0) router.back()
-    }, [loading, allIds.length])
+    useEffect(() => {if (!loading && allIds.length === 0) router.back()}, [loading, allIds.length])
 
     useEffect(() => {
         if (currentPair) {

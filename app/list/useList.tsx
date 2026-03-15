@@ -42,10 +42,41 @@ export function useList(listId: string | null, bck: () => void) {
     const [selected, setSelected] = useState<TMDBMovie | null>()
     const [selectedGenres, setSelectedGenres] = useState<string[]>([])
 
-    const [owner, setOwner] = useState<string>('')
     const [shuffle, setShuffle] = useState<boolean>(false)
 
     const [similar, setSimilar] = useState<boolean>(false)
+
+    const [role, setRole] = useState<string>('owner')
+
+    useEffect(() => {
+        const savedRole = sessionStorage.getItem('role')
+        if (savedRole) {
+            setRole(savedRole)
+            sessionStorage.removeItem('role')
+        }
+    }, [])
+
+    const resetFilters = useCallback(() => {
+        setStatus(statuses)
+        setSelectedGenres([])
+        setRuntime(600)
+    }, [])
+
+    const [status, setStatus] = useState<Status[]>(statuses)
+
+    const filteredMovies = useMemo(() => {
+        return moviesData.filter(movie => {
+            const activeStatuses = status.filter(s => s.checked).map(s => s.name)
+            const matchesStatus = activeStatuses.length === 0 || activeStatuses.includes(movie.status || '')
+
+            const matchesGenre = selectedGenres.length === 0 || 
+                movie.genres?.some(g => selectedGenres.includes(g.name))
+
+            const matchesRuntime = movie.runtime ? movie.runtime <= parseInt(String(runtime)) : true
+
+            return matchesStatus && matchesGenre && matchesRuntime
+        })
+    }, [moviesData, status, selectedGenres, runtime])
 
     const buttons = useMemo<ButtonItem[]>(() => [
         {
@@ -58,7 +89,7 @@ export function useList(listId: string | null, bck: () => void) {
             icon: <Funnel className='max-md:h-6! max-md:w-6!'/>,
             color: filter ? '#7f22fe' : '#1e2939',
             hover: filter ? '#641aca': '#303844',
-            onClick: () => setFilter(!filter),
+            onClick: () => {setFilter(!filter); resetFilters()},
             text: 'Filter'
         },{
             icon: 
@@ -84,7 +115,12 @@ export function useList(listId: string | null, bck: () => void) {
                             </motion.div>
                     }
                 </AnimatePresence>,
-            onClick: () => {setShuffle(true); router.push(`./random?id=${listId}`)},
+            onClick: () => {
+                setShuffle(true)
+                const filteredIds = filteredMovies.map(m => m.id)
+                sessionStorage.setItem('filtered_movie_ids', JSON.stringify(filteredIds))
+                router.push(`./random?id=${listId}`)
+            },
             text: 'Random pick',
             color: '#7f22fe',
             hover: '#641aca',
@@ -96,7 +132,7 @@ export function useList(listId: string | null, bck: () => void) {
             hover: '#c10007',
             text: 'Delete'
         }
-    ], [filter, movie, listId, shuffle])
+    ], [filter, movie, listId, shuffle, filteredMovies])
 
     const fetchListAndMovies = useCallback(async () => {
         if (!listId) {bck(); return}
@@ -110,7 +146,6 @@ export function useList(listId: string | null, bck: () => void) {
 
             if (listSnap.exists()) {
                 const data = listSnap.data()
-                setOwner(data.ownerId)
                 const storedMovies = data.movies || []
                 const fetchedName = data.name || 'Untitled List'
                 setName(fetchedName)
@@ -118,7 +153,7 @@ export function useList(listId: string | null, bck: () => void) {
 
                 const moviePromises = storedMovies.map(async (movieObj: {id: number, status: string}) => {
                     try {
-                        const res = await getMovieDetails({ id: movieObj.id })
+                        const res = await getMovieDetails({id: movieObj.id})
                         const tmdbData = res.data as any
 
                         return {
@@ -156,8 +191,6 @@ export function useList(listId: string | null, bck: () => void) {
 
     useEffect(() => {fetchListAndMovies()}, [fetchListAndMovies])
 
-    const [status, setStatus] = useState<Status[]>(statuses)
-
     const deleteList = useCallback(async (listId: string | null) => {
         try {
             const listRef = doc(db, 'lists', String(listId))
@@ -170,21 +203,7 @@ export function useList(listId: string | null, bck: () => void) {
         }
     }, [db])
 
-    const [delClarify, setDelClarify] = useState(false)
-
-    const filteredMovies = useMemo(() => {
-        return moviesData.filter(movie => {
-            const activeStatuses = status.filter(s => s.checked).map(s => s.name)
-            const matchesStatus = activeStatuses.length === 0 || activeStatuses.includes(movie.status || '')
-
-            const matchesGenre = selectedGenres.length === 0 || 
-                movie.genres?.some(g => selectedGenres.includes(g.name))
-
-            const matchesRuntime = movie.runtime ? movie.runtime <= parseInt(String(runtime)) : true
-
-            return matchesStatus && matchesGenre && matchesRuntime
-        })
-    }, [moviesData, status, selectedGenres, runtime])
+    const [delClarify, setDelClarify] = useState<boolean>(false)
 
     const toggleCheck = useCallback((index: number) => {
         setStatus(prev =>
@@ -279,5 +298,5 @@ export function useList(listId: string | null, bck: () => void) {
         }
     }, [name])
 
-    return {similar, setSimilar, delay, setFilter, owner, user, loading, delClarify, setDelClarify, deleteList, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, inputWidth, onChange, edit, setEdit, name, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime}
+    return {similar, setSimilar, delay, setFilter, role, user, loading, delClarify, setDelClarify, deleteList, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, inputWidth, onChange, edit, setEdit, name, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime, resetFilters}
 }

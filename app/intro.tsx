@@ -39,11 +39,11 @@ export default function Intro() {
                     The ultimate social ecosystem for movie lovers. Solve the “What should we watch?” dilemma with real-time group synchronization, AI-powered recommendations, and a cinematic interface.
                 </motion.p>
                 <Button
-                    className='outline-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-[#7f22fe] hover:bg-[#641aca] focus:bg-[#641aca] transition-colors duration-300 cursor-pointer p-10 w-fit text-4xl font-semibold rounded-2xl'
+                    className='outline-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-[#7f22fe] hover:bg-[#641aca] focus:bg-[#641aca] transition-colors duration-300 cursor-pointer p-10 w-fit text-4xl font-semibold rounded-2xl gap-0'
                     disabled={loading}
                     onClick={auth}
                 >
-                    Let's start <SlideLeft visibility={loading}><Loader className='ml-2 animate-spin'/></SlideLeft>
+                    Let's start <SlideLeft visibility={loading}><Loader className='min-w-8 min-h-8 ml-4 animate-spin'/></SlideLeft>
                 </Button>
             </section>
 
@@ -57,7 +57,7 @@ export default function Intro() {
                         key={`${pathname}-${i}`}
                         viewport={{once: true}}
                     >
-                        <Card className='max-md:max-w-full w-fit min-w-auto max-w-[40%] hover:border-[#7f22fe] transition-colors duration-300 border border-[#1e2939] rounded-2xl bg-white/5 border-white/10 rounded-2xl h-full'>
+                        <Card className='justify-center max-md:max-w-full w-fit min-w-auto max-w-[40%] hover:border-[#7f22fe] transition-colors duration-300 border border-[#1e2939] rounded-2xl bg-white/5 border-white/10 rounded-2xl h-full'>
                             <CardContent className='p-6 flex flex-col items-center'>
                                 <div className='min-w-fit flex gap-4 max-md:gap-2 pb-3 items-center'>
                                     <f.icon className='min-w-12 h-12 max-md:w-8 max-md:h-8 text-purple-400'/>
@@ -66,7 +66,7 @@ export default function Intro() {
                                 <p className='min-2xl:text-2xl text-l text-white/60 text-center'>{f.desc}</p>
                             </CardContent>
                         </Card>
-                        <div className='max-md:min-w-full w-[69%] hover:border-[#7f22fe] transition-colors duration-300 border border-[#1e2939] rounded-2xl bg-white/5 border-white/10 rounded-2xl'>
+                        <div className='max-md:min-w-full w-[69%] hover:border-[#7f22fe] transition-colors duration-300 border border-[#1e2939] rounded-2xl bg-white/5 border-white/10 rounded-2xl flex justify-center'>
                             {f.source}
                         </div>
                     </motion.div>
@@ -90,12 +90,12 @@ const features = [
     icon: Zap,
     title: 'Social Pulse',
     desc: `Experience a living platform. Track friends’ online presence, monitor real-time activities, and stay connected through dynamic status updates.`,
-    source: <img className='p-6 rounded-2xl aspect-[4/3]' src='\images\social.jpg'/>
+    source: <img className='h-fit self-center p-6 rounded-2xl aspect-[4/3]' src='\images\social.jpg'/>
   }, {
     icon: SearchCode,
     title: 'TMDB Base',
     desc: `Access a world-class database. Seamlessly search, filter, and categorize millions of titles into “Watched”, “Planned”, or “Dropped” with rich metadata.`,
-    source: <img className='p-6 rounded-2xl aspect-[4/3]' src='\images\tmdb.jpg'/>
+    source: <img className='h-fit self-center p-6 rounded-2xl aspect-[4/3]' src='\images\tmdb.jpg'/>
   }, {
     icon: Gemini,
     title: 'AI Intelligence',

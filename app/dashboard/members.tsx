@@ -1,7 +1,7 @@
 import {X, UserStar, UserPen, User, Trash2, Image, Loader, BadgeInfo} from 'lucide-react'
+import {AnimatePresence, LazyMotion, m, domAnimation} from 'framer-motion'
 import {animationProps, stylesProps} from '../components/motionProps'
 import {useDynamicHeight} from '../components/useDynamicHeight'
-import {AnimatePresence, motion} from 'framer-motion'
 import {MembersTypes, Member} from './dashboardTypes'
 import ShowClarify from '../components/showClarify'
 import {useEffect, useMemo, useRef} from 'react'
@@ -42,7 +42,7 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
     }, [visibility, group?.editors, group?.members, fetchMembers])
 
     useEffect(() => {
-        if (!visibility || members.length === 0) return;
+        if (!visibility || members.length === 0) return
 
         const unsubscribes: (() => void)[] = []
 
@@ -100,7 +100,7 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
             <User className={roleClass}/>
         )
         return (
-            <motion.div
+            <m.div
                 className='flex gap-2 text-white justify-between items-center hover:bg-[#121e37] rounded-[5px] p-2 transition-colors duration-300'
                 {...animationProps('vertical', true, delay, index)}
                 style={{...stylesProps, overflow: 'hidden'}}
@@ -132,7 +132,16 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
                         : 
                             <>
                                 {member.last_seen 
-                                    ? `Last seen ${new Date(member.last_seen).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` 
+                                    ? `Last seen ${(() => {
+                                        const date = new Date(member.last_seen)
+                                        const isOver24h = Date.now() - date.getTime() > 86400000
+                                        return date.toLocaleTimeString('ru-RU', {
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            hour12: false,
+                                            ...(isOver24h && {day: '2-digit', month: '2-digit', year: 'numeric'})
+                                        })
+                                    })()}` 
                                     : 'Offline'}
                             </>
                         }</span>
@@ -143,7 +152,7 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
                     <AnimatePresence mode='wait'>
                         {processingId === member.id
                             ? 
-                                <motion.div
+                                <m.div
                                     initial={{opacity: 0, scale: 0.5}}
                                     animate={{opacity: 1, scale: 1}}
                                     exit={{opacity: 0, scale: 0.5}}
@@ -151,9 +160,9 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
                                     key={`loader-${member.id}`}
                                 >
                                     <Loader className='h-10 w-10 text-[#959dab] animate-spin'/>
-                                </motion.div>
+                                </m.div>
                             :
-                                <motion.div
+                                <m.div
                                     onClick={() => (member.role === 'owner' || !owner) ? null : toggleRole(group?.id, member.id, isCurrentlyAdmin)}
                                     initial={{opacity: 0, scale: 0.5}}
                                     animate={{opacity: 1, scale: 1}}
@@ -163,14 +172,14 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
                                     tabIndex={0}
                                 >
                                     {role}
-                                </motion.div>
+                                </m.div>
                         }
                     </AnimatePresence>
                     {(owner && member.id !== user?.uid && member.id !== group?.ownerId) ?
                         <AnimatePresence mode='wait'>
                             {deletingId === member.id
                                 ? 
-                                    <motion.div
+                                    <m.div
                                         initial={{opacity: 0, scale: 0.5}}
                                         animate={{opacity: 1, scale: 1}}
                                         exit={{opacity: 0, scale: 0.5}}
@@ -178,9 +187,9 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
                                         key={`loader-${member.id}`}
                                     >
                                         <Loader className='h-10 w-10 text-[#959dab] animate-spin'/>
-                                    </motion.div>
+                                    </m.div>
                                 :
-                                    <motion.div
+                                    <m.div
                                         onClick={() => kickMember(group?.id, member.id)}
                                         initial={{opacity: 0, scale: 0.5}}
                                         animate={{opacity: 1, scale: 1}}
@@ -192,70 +201,72 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
                                         <Trash2
                                             className='h-10 w-10 text-[#959dab] hover:text-red-700 cursor-pointer transition-colors duration-300'
                                         />
-                                    </motion.div>
+                                    </m.div>
                             }
                         </AnimatePresence>
                     : null}
                 </div>
                 
-            </motion.div>
+            </m.div>
         )
     })
 
     return (
-        <ShowClarify
-            parentClassName='max-h-full overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939]'
-            visibility={visibility}
-            onClose={onClose}
-            className='!mb-0'
-        >
-            <div className='text-white flex justify-between border-b border-[#1e2939] pb-4'>
-                <div className='flex'>
-                    <h1>Members</h1>
-                    <SlideLeft
-                        visibility={loading}
-                        className='pl-2'
-                    >
-                        <Loader className='text-[#959dab] animate-spin'/>
-                    </SlideLeft>
-                </div>
-            <X className='text-[#99a1af] hover:text-white cursor-pointer transition-colors duration-300' onClick={onClose}/>
-            </div>
-            <SlideDown visibility={owner}>
-                <div className='pt-2 flex justify-between items-center border-b border-[#1e2939] pb-4'>
-                    <span className='text-[#99a1af] text-sm'>
-                        By clicking on the user's icon, you can change their rights.<br/>
-                        <span className='inline'>
-                            <UserPen className='w-4 h-4 mr-1 inline'/>
-                        </span>can edit the group,{''}
-                        <span className='inline'>
-                            <User className='w-4 h-4 mx-1 inline'/>
-                        </span>{''}
-                        — can only view.
-                        <br/>
-                        <span className='inline'>
-                            <Trash2 className='w-4 h-4 mr-1 inline'/>
-                        </span>{''}
-                        will remove the user from group.
-                    </span>
-                    <BadgeInfo className='text-[#99a1af] hover:text-white transition-colors duration-300'/>
-                </div>
-            </SlideDown>
-            <motion.div
-                className='overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939] mt-2'
-                transition={{duration: 0.3, ease: 'easeInOut'}}
-                animate={{height}}
+        <LazyMotion features={domAnimation}>
+            <ShowClarify
+                parentClassName='max-h-full overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939]'
+                visibility={visibility}
+                onClose={onClose}
+                className='!mb-0'
             >
-                <div className='flex flex-col gap-2' ref={contentRef}>
-                    <AnimatePresence
-                        onExitComplete={measureHeight}
-                        mode='popLayout'
-                        initial={false}
-                    >
-                        {renderMembers}
-                    </AnimatePresence>
+                <div className='text-white flex justify-between border-b border-[#1e2939] pb-4'>
+                    <div className='flex'>
+                        <h1>Members</h1>
+                        <SlideLeft
+                            visibility={loading}
+                            className='pl-2'
+                        >
+                            <Loader className='text-[#959dab] animate-spin'/>
+                        </SlideLeft>
+                    </div>
+                <X className='text-[#99a1af] hover:text-white cursor-pointer transition-colors duration-300' onClick={onClose}/>
                 </div>
-            </motion.div>
-        </ShowClarify>
+                <SlideDown visibility={owner}>
+                    <div className={`pt-2 flex justify-between items-center border-[#1e2939] ${loading ? 'border-b-0' : 'border-b'} pb-4 transition-[border-width] duration-300`}>
+                        <span className='text-[#99a1af] text-sm'>
+                            By clicking on the user's icon, you can change their rights.<br/>
+                            <span className='inline'>
+                                <UserPen className='w-4 h-4 mr-1 inline'/>
+                            </span>can edit the group,{''}
+                            <span className='inline'>
+                                <User className='w-4 h-4 mx-1 inline'/>
+                            </span>{''}
+                            — can only view.
+                            <br/>
+                            <span className='inline'>
+                                <Trash2 className='w-4 h-4 mr-1 inline'/>
+                            </span>{''}
+                            will remove the user from group.
+                        </span>
+                        <BadgeInfo className='text-[#99a1af] hover:text-white transition-colors duration-300'/>
+                    </div>
+                </SlideDown>
+                <m.div
+                    className='overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:#641aca_#1e2939] mt-2'
+                    transition={{duration: 0.3, ease: 'easeInOut'}}
+                    animate={{height}}
+                >
+                    <div className='flex flex-col gap-2' ref={contentRef}>
+                        <AnimatePresence
+                            onExitComplete={measureHeight}
+                            mode='popLayout'
+                            initial={false}
+                        >
+                            {renderMembers}
+                        </AnimatePresence>
+                    </div>
+                </m.div>
+            </ShowClarify>
+        </LazyMotion>
     )
 }

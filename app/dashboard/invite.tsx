@@ -1,6 +1,6 @@
 'use client'
 
-import {X, UserRoundPlus, UserStar, UserPen, User, BadgeInfo, Loader} from 'lucide-react'
+import {X, UserRoundPlus, UserStar, UserPen, User, BadgeInfo, Loader, Copy} from 'lucide-react'
 import {collection, writeBatch, doc, Timestamp} from 'firebase/firestore'
 import {useState, useCallback, useRef, useEffect} from 'react'
 import {Field, FieldLabel} from '@/components/ui/field'
@@ -17,6 +17,7 @@ import {Select} from 'react-animated-select'
 import {InviteProps} from './dashboardTypes'
 import {Input} from '@/components/ui/input'
 import {db} from '@/lib/firebase'
+import { ButtonGroup } from '@/components/ui/button-group'
 
 const generateToken = () => crypto.randomUUID()
 
@@ -52,15 +53,18 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
 
     const [pendings, setPendings] = useState<Pending[]>([])
     const [loading, setLoading] = useState<boolean>(false)
+    const [link, setLink] = useState<boolean>(true)
+
+    const [URL, setURL] = useState<string>('')
 
     const sendInvite = useCallback(async () => {
-        if ((!validateEmail(input) || input == '') && pendings.length === 0) {
+        if (!link && (!validateEmail(input) || input == '') && pendings.length === 0) {
             shake(emailRef.current)
             setError(true)
             return
         }
 
-        if (pendings.length === 0) {
+        if (!link && pendings.length === 0) {
             shake(memberRef.current)
             shake(adminRef.current)
             return
@@ -71,6 +75,35 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
             const batch = writeBatch(db)
             const expiresAt = getExpirationDate(duration)
             const now = Timestamp.now()
+
+            if (link) {
+                const token = generateToken()
+                const inviteRef = doc(db, 'invites', `generic_${group?.id}`)
+
+                batch.set(inviteRef, {
+                    groupId: group?.id,
+                    groupName: group?.name,
+                    token,
+                    expiresAt,
+                    status: 'pending',
+                    senderId: user?.uid,
+                    senderName: user?.displayName || 'Someone',
+                    createdAt: now,
+                    role: 'member'
+                }, {merge: true})
+
+                await batch.commit()
+                
+                try {
+                    setURL(`${window.location.origin}/invite?token=${token}`)
+                    await navigator.clipboard.writeText(`${window.location.origin}/invite?token=${token}`)
+                } catch (err) {
+                    console.error('Failed to copy link', err)
+                }
+
+                setPendings([])
+                return
+            }
 
             for (const {email, admin} of pendings) {
                 const cleanEmail = email.trim().toLowerCase()
@@ -148,22 +181,19 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
 
             await batch.commit()
             setPendings([])
+            setURL('')
             onClose()
         } catch (e) {
             console.error('Error sending invites: ', e)
         } finally {
             setLoading(false)
         }
-    }, [data, pendings, duration, onClose, user])
+    }, [data, pendings, duration, onClose, user, link])
 
     useEffect(() => {
-        if (data) {
-            updateActivity('creating_invite')
-        }
+        data && updateActivity('creating_invite')
 
-        return () => {
-            updateActivity('idle')
-        }
+        return () => {updateActivity('idle')}
     }, [data])
 
     const renderPendings = pendings.map((element, index) => {
@@ -210,6 +240,7 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
     const close = useCallback(() => {
         setPendings([])
         setError(false)
+        setURL('')
         onClose()
     }, [])
 
@@ -219,8 +250,37 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
         setError(false)
     }, [])
 
+    const period = 
+        <label>
+            <span className='text-[#d1d5dc]'>
+                Choose invitation validity period
+            </span>
+            <Select
+                offset={1}
+                optionsClassName='options'
+                className='items-center mt-2 mb-2 rac-select-cancel:hover:text-red-500 h-10 hover:border-[#7f22fe!important] w-full mt-1 rounded-md bg-[#1e2939!important] !border-[1px] !border-solid !border-[#364153] !text-white min-h-9!'
+                style={{
+                    '--rac-arrow-height' : '2em',
+                    '--rac-arrow-width' : '2em',
+                    '--rac-cancel-height': '0',
+                    '--rac-cancel-width': '0',
+                    '--rac-list-background': '#1e2939',
+                    '--rac-list-color': 'white',
+                    '--rac-option-highlight': '#7f22fe',
+                    '--rac-option-hover': '#641aca',
+                    '--rac-option-selected': '#641aca',
+                    '--rac-scroll-color': '#7f22fe',
+                    '--rac-scroll-track': '#1e2939'
+                } as React.CSSProperties}
+                placeholder='Choose invitation validity period'
+                value={duration}
+                onChange={setDuration}
+                options={durations}
+            />
+        </label>
+
     return (
-        <ShowClarify visibility={group} onClose={onClose}>
+        <ShowClarify visibility={group} onClose={()=> {onClose(); setURL('')}} className='min-md:min-w-165'>
             <div className='text-white flex justify-between border-b border-[#1e2939] pb-4 items-center'>
                 <div className='flex flex-col gap-2 whitespace-nowrap'>
                     <h1 className='text-white'>
@@ -235,9 +295,40 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                 className='text-[#99a1af] hover:text-white cursor-pointer transition-colors duration-300'
             />
             </div>
+            <ButtonGroup className='w-full! bg-[#1e2939] rounded-[10px] p-[2px] flex justify-center w-[300px] my-3'>
+                <Button
+                    className={`flex-1 gap-0 rounded-[10px_0_0_10px] px-4 py-2 transition-colors duration-300
+                        ${link ? 'bg-[#7f22fe] text-white' : 'bg-[#1e2939] text-[#6a7282]'}
+                        ${link
+                            ? 'hover:bg-[#641aca]'
+                            : 'hover:bg-[#1e2939] hover:text-white'}
+                        ${link ? '' : 'cursor-pointer'}
+                    `}
+                    onClick={() => !link ? (setLink(true), setError(false)) : null}
+                    type='button'
+                >
+                Link
+                </Button>
+                <Button
+                    onClick={() => link ? (setLink(false), setError(false)) : null}
+                    type='button'
+                    className={`flex-1 gap-0 rounded-[0_10px_10px_0] px-4 py-2 transition-colors duration-300
+                        ${!link
+                            ? 'bg-[#7f22fe] text-white'
+                            : 'bg-[#1e2939] text-[#6a7282]'
+                        }
+                        ${!link
+                            ? 'hover:bg-[#641aca]'
+                            : 'hover:bg-[#1e2939] hover:text-white'}
+                        ${!link ? '' : 'cursor-pointer'}
+                    `}
+                >
+                Email
+                </Button>
+            </ButtonGroup>
             
             <SlideDown visibility={user?.uid === group?.ownerId}>
-                <div className='pt-2 flex justify-between'>
+                <div className='flex justify-between'>
                     <span className='text-[#99a1af] text-sm'>
                         By inviting user with admin{''}
                         <span className='inline'>
@@ -249,71 +340,65 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                 </div>
             </SlideDown>
 
-            <Field className='pb-4 pt-2 min-w-97 w-full'>
-                <FieldLabel
-                    className='text-[#d1d5dc]'
-                    htmlFor='input-email'
-                >
-                    Email Address
-                </FieldLabel>
-                <div className='flex gap-2 w-full'>
-                    <Input
-                        className='max-md:w-[65%] bg-[#1e2939] text-white border-[#364153] placeholder:text-[#4b5563] hover:border-[#7f22fe] focus:border-[#7f22fe] focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:border-[#7f22fe] focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors duration-300'
-                        placeholder='friend@email.com'
-                        onChange={onChange}
-                        id='input-email'
-                        ref={emailRef}
-                        value={input}
-                        type='email'
-                    />
-                    {user?.uid == group?.ownerId &&
+            <Field className='gap-0 pt-2 min-w-97 w-full'>
+                <SlideDown visibility={link}>
+                    <div className='flex flex-col gap-3'>
+                        <SlideDown className='flex flex-col gap-3' visibility={URL}>
+                            <span className='text-[#d1d5dc] text-sm'>Invite via link</span>
+                            <div className='gap-3 cursor-pointer text-[#c4b4ff] bg-[#1b183d] prose prose-invert py-2 px-4 rounded-[10px] border border-[#381a77] hover:border-[#7f22fe] transition-colors duration-300 w-full flex justify-between'>
+                                <div className='truncate'>{URL}</div>
+                                <Copy
+                                    className='transition-colors duration-300 hover:text-white'
+                                    onClick={() => navigator.clipboard.writeText(URL)}
+                                />
+                            </div>
+                        </SlideDown>
+                        {period}
+                    </div>
+                </SlideDown>
+                <SlideDown className='flex flex-col gap-3' visibility={!link}>
+                    <FieldLabel
+                        className='text-[#d1d5dc]'
+                        htmlFor='input-email'
+                    >
+                        Email Address
+                    </FieldLabel>
+                    <div className='flex gap-2 w-full'>
+                        <Input
+                            className='max-md:w-[65%] bg-[#1e2939] text-white border-[#364153] placeholder:text-[#4b5563] hover:border-[#7f22fe] focus:border-[#7f22fe] focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:border-[#7f22fe] focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors duration-300'
+                            placeholder='friend@email.com'
+                            onChange={onChange}
+                            id='input-email'
+                            ref={emailRef}
+                            value={input}
+                            type='email'
+                        />
+                        {user?.uid == group?.ownerId &&
+                            <Button
+                                className='max-md:w-[10%] bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'
+                                onClick={() => addEmail(true)}
+                                ref={adminRef}
+                            >
+                                <UserStar/>
+                            </Button>
+                        }
                         <Button
                             className='max-md:w-[10%] bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'
-                            onClick={() => addEmail(true)}
-                            ref={adminRef}
+                            onClick={() => addEmail(false)}
+                            ref={memberRef}
                         >
-                            <UserStar/>
+                            <UserRoundPlus/>
                         </Button>
-                    }
-                    <Button
-                        className='max-md:w-[10%] bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'
-                        onClick={() => addEmail(false)}
-                        ref={memberRef}
-                    >
-                        <UserRoundPlus/>
-                    </Button>
-                </div>
+                    </div>
+                    <SlideDown visibility={error}>
+                        <span className='text-[#a60000] w-full text-center block mb-4'>Email was entered incorrectly</span>
+                    </SlideDown>
+                    {period}
+                    <div className='w-full text-[#c4b4ff] bg-[#1b183d] prose prose-invert p-4 rounded-[10px] border border-[#381a77] hover:border-[#7f22fe] transition-colors duration-300 max-md:w-[100%] text-wrap'>
+                        Invited members will receive an email with a link to join your group.
+                    </div>
+                </SlideDown>
             </Field>
-            <SlideDown visibility={error}>
-                <span className='text-[#a60000] w-full text-center block mb-4'>Email was entered incorrectly</span>
-            </SlideDown>
-            <label>
-                <span className='text-[#d1d5dc]'>
-                    Choose invitation validity period
-                </span>
-                <Select
-                    offset={1}
-                    optionsClassName='options'
-                    className='items-center mt-2 mb-2 rac-select-cancel:hover:text-red-500 h-10 hover:border-[#7f22fe!important] w-full mt-1 rounded-md bg-[#1e2939!important] !border-[1px] !border-solid !border-[#364153] !text-white min-h-9!'
-                    style={{
-                        '--rac-arrow-height' : '2em',
-                        '--rac-arrow-width' : '2em',
-                        '--rac-cancel-height': '0',
-                        '--rac-cancel-width': '0',
-                        '--rac-list-background': '#1e2939',
-                        '--rac-list-color': 'white',
-                        '--rac-option-highlight': '#7f22fe',
-                        '--rac-option-hover': '#641aca',
-                        '--rac-option-selected': '#641aca',
-                        '--rac-scroll-color': '#7f22fe',
-                        '--rac-scroll-track': '#1e2939'
-                    } as React.CSSProperties}
-                    placeholder='Choose invitation validity period'
-                    value={duration}
-                    onChange={setDuration}
-                    options={durations}
-                />
-            </label>
             <SlideDown visibility={pendings.length > 0}>
                 <div className='flex flex-col'>
                     <span className='text-[#d1d5dc]'>
@@ -326,9 +411,6 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                     </div>
                 </div>
             </SlideDown>
-            <div className='mt-4 text-[#c4b4ff] mt-1 bg-[#1b183d] prose prose-invert p-4 rounded-[10px] border border-[#381a77] hover:border-[#7f22fe] transition-colors duration-300 w-max max-md:w-[100%] text-wrap'>
-                Invited members will receive an email with a link to join your group.
-            </div>
             <div className='flex gap-2 w-full justify-between pt-4'>
                 <Button
                     className='w-[49%] bg-[#1e2939] hover:bg-[#303844] cursor-pointer'
@@ -343,11 +425,9 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                     onClick={sendInvite}
                     disabled={loading}
                 >
-                    Send invites
-                        <SlideLeft visibility={!loading}>
-                            <span className='ml-1'>
-                                ({pendings.length})
-                            </span>
+                    {!link ? 'Send invites' : 'Generate link'}
+                        <SlideLeft visibility={!loading && !link}>
+                            <span className='ml-1'>({pendings.length})</span>
                         </SlideLeft>
                         <SlideLeft visibility={loading}>
                             <Loader className='ml-1 text-white animate-spin'/>

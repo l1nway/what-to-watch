@@ -75,8 +75,7 @@ export default function InvitePage() {
             try {
                 const q = query(
                     collection(db, 'invites'), 
-                    where('token', '==', token),
-                    where('email', '==', user.email.toLowerCase())
+                    where('token', '==', token)
                 )
                 const snapshot = await getDocs(q)
 
@@ -93,6 +92,11 @@ export default function InvitePage() {
                     return
                 }
 
+                if (docData.email && docData.email !== user.email.toLowerCase()) {
+                    setStatus('error')
+                    return
+                }
+
                 const inviteFullData: InviteData = {
                     id: docSnapshot.id,
                     groupId: docData.groupId,
@@ -103,15 +107,14 @@ export default function InvitePage() {
             } catch (e) {
                 console.error(e)
                 setStatus('error')
+                return
+            } finally {
+                navigate.push(status === 'unauthorized' ? '/auth?mode=login' : '/dashboard')
             }
         }
 
         findAndAccept()
     }, [user, token, handleAcceptInvite])
-
-    if (status === 'unauthorized') {
-        () => navigate.push('/auth?mode=login')
-    }
 
     return (
         <div className='h-screen w-screen overflow-y-auto bg-gradient-to-br from-[#030712] to-[#2f0d68] flex max-md:flex-col items-center min-md:justify-center min-md:gap-24 max-md:gap-4'>
