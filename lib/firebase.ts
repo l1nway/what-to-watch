@@ -1,5 +1,6 @@
 import {initializeAppCheck, ReCaptchaV3Provider} from 'firebase/app-check'
 import {initializeApp, getApps, getApp} from 'firebase/app'
+import {getAnalytics, isSupported} from 'firebase/analytics'
 import {getFunctions} from 'firebase/functions'
 import {getFirestore} from 'firebase/firestore'
 import {getDatabase} from 'firebase/database'
@@ -29,8 +30,13 @@ if (typeof window !== 'undefined') {
     })
 }
 
+const analyticsPromise = typeof window !== 'undefined' 
+  ? isSupported().then(yes => yes ? getAnalytics(app) : null) 
+  : Promise.resolve(null)
+
 export const rtdb = getDatabase(app, 'https://filmdecider-default-rtdb.europe-west1.firebasedatabase.app')
 export const functions = getFunctions(app, 'europe-central2')
 export const storage = getStorage(app)
 export const db = getFirestore(app)
 export const auth = getAuth(app)
+export {analyticsPromise}

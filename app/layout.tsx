@@ -1,5 +1,6 @@
 import PageAnimatePresence from './components/PageAnimatePresence'
 import {AuthProvider} from './components/authProvider'
+import Analytics from './components/analytics'
 import {Suspense} from 'react'
 import {Metadata} from 'next'
 import './globals.css'
@@ -44,6 +45,7 @@ export default function RootLayout({children}: Readonly<{children: React.ReactNo
           <AuthProvider>
             <PageAnimatePresence>
               <Suspense fallback={null}>
+                <Analytics/>
                 {children}
               </Suspense>
             </PageAnimatePresence>

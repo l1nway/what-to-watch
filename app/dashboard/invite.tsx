@@ -251,14 +251,14 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
     }, [])
 
     const period = 
-        <label>
+        <label className='max-w-full'>
             <span className='text-[#d1d5dc]'>
                 Choose invitation validity period
             </span>
             <Select
                 offset={1}
                 optionsClassName='options'
-                className='items-center mt-2 mb-2 rac-select-cancel:hover:text-red-500 h-10 hover:border-[#7f22fe!important] w-full mt-1 rounded-md bg-[#1e2939!important] !border-[1px] !border-solid !border-[#364153] !text-white min-h-9!'
+                className='items-center mt-2 mb-2 rac-select-cancel:hover:text-red-500 h-10 hover:border-[#7f22fe!important] mt-1 rounded-md bg-[#1e2939!important] !border-[1px] !border-solid !border-[#364153] !text-white min-h-9!'
                 style={{
                     '--rac-arrow-height' : '2em',
                     '--rac-arrow-width' : '2em',
@@ -280,7 +280,7 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
         </label>
 
     return (
-        <ShowClarify visibility={group} onClose={()=> {onClose(); setURL('')}} className='min-md:min-w-165'>
+        <ShowClarify visibility={group} onClose={()=> {onClose(); setURL('')}} className='min-md:min-w-180'>
             <div className='text-white flex justify-between border-b border-[#1e2939] pb-4 items-center'>
                 <div className='flex flex-col gap-2 whitespace-nowrap'>
                     <h1 className='text-white'>
@@ -340,7 +340,7 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                 </div>
             </SlideDown>
 
-            <Field className='gap-0 pt-2 min-w-97 w-full'>
+            <Field className='gap-0 pt-2 min-md:min-w-97 w-full'>
                 <SlideDown visibility={link}>
                     <div className='flex flex-col gap-3'>
                         <SlideDown className='flex flex-col gap-3' visibility={URL}>
@@ -365,7 +365,7 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                     </FieldLabel>
                     <div className='flex gap-2 w-full'>
                         <Input
-                            className='max-md:w-[65%] bg-[#1e2939] text-white border-[#364153] placeholder:text-[#4b5563] hover:border-[#7f22fe] focus:border-[#7f22fe] focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:border-[#7f22fe] focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors duration-300'
+                            className='bg-[#1e2939] text-white border-[#364153] placeholder:text-[#4b5563] hover:border-[#7f22fe] focus:border-[#7f22fe] focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:border-[#7f22fe] focus-visible:ring-0 focus-visible:ring-offset-0 transition-colors duration-300'
                             placeholder='friend@email.com'
                             onChange={onChange}
                             id='input-email'
@@ -375,7 +375,7 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                         />
                         {user?.uid == group?.ownerId &&
                             <Button
-                                className='max-md:w-[10%] bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'
+                                className='bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'
                                 onClick={() => addEmail(true)}
                                 ref={adminRef}
                             >
@@ -383,7 +383,7 @@ export default function Invite({data, onClose, input, setInput}: InviteProps) {
                             </Button>
                         }
                         <Button
-                            className='max-md:w-[10%] bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'
+                            className='bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'
                             onClick={() => addEmail(false)}
                             ref={memberRef}
                         >
