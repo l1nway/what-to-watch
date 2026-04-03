@@ -1,6 +1,6 @@
 import {writeBatch, doc, updateDoc, collection, serverTimestamp, arrayUnion, query, where, getDocs, arrayRemove, documentId} from 'firebase/firestore'
-import {useCallback, useState, useEffect, useRef} from 'react'
 import {ListItem, Group, Data, Member, MembersTypes} from './dashboardTypes'
+import {useCallback, useState, useEffect, useRef} from 'react'
 import {useAuth} from '../components/authProvider'
 import {shake} from '../components/shake'
 import {useRouter} from 'next/navigation'
@@ -372,7 +372,19 @@ export default function UseDashboard() {
                 return orderA - orderB
             })
 
-            setMembers(result)
+            setMembers(prev => {
+                const prevMap = new Map(prev.map(m => [m.id, m]))
+
+                return result.map(m => {
+                    const existing = prevMap.get(m.id)
+                    return {
+                        ...m,
+                        online: existing?.online ?? false,
+                        last_seen: existing?.last_seen,
+                        activity: existing?.activity
+                    }
+                })
+            })
         } catch (error) {
             console.error('Error fetching members:', error)
         } finally {
@@ -399,15 +411,13 @@ export default function UseDashboard() {
                         const editors = isCurrentlyAdmin
                             ? (g.editors || []).filter(id => id !== memberId)
                             : [...(g.editors || []), memberId]
-                        return { ...g, editors }
+                        return {...g, editors}
                     }
                     return g
                 })
 
                 const updatedGroup = updated.find(g => g.id === groupId)
-                if (updatedGroup) {
-                    setSelectedGroup(updatedGroup)
-                }
+                updatedGroup && setSelectedGroup(updatedGroup)
 
                 return updated
             })

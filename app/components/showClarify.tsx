@@ -16,7 +16,7 @@ export default function ShowClarify({visibility, onClose, children, className, p
     useEffect(() => {
         if (visibility) {
             setMounted(true)
-            setTimeout(() => setShow(true), 10)
+            setTimeout(() => setShow(true), 25)
         } else {
             setShow(false)
             const timer = setTimeout(() => setMounted(false), 300)

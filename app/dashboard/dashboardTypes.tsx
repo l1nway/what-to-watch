@@ -21,6 +21,7 @@ export interface DeleteProps {
     action: boolean | 'delete' | 'leave'
     onClose: () => void
     deleteGroup: () => void
+    type: 'list' | 'group'
 }
 
 export interface ListItem {

@@ -66,19 +66,59 @@ export const searchMovies = onCall({
     secrets: ['TMDB_KEY'],
     timeoutSeconds: 60,
     memory: '256MiB'
-}, async (request) => {
+}, async (request: any) => {
     try {
         const apiKey = process.env.TMDB_KEY
         if (!apiKey) throw new Error('No API Key')
 
-        const query = request.data.query
-        const response = await axios.get(`https://api.themoviedb.org/3/search/movie`, {
-            params: {api_key: apiKey, query, language: 'en-US'}
-        })
-        return response.data.results || []
+        const {query, types} = request.data as {query: string, types?: string[]}
+        
+        const activeTypes = (types && types.length > 0) ? types : ['movie']
+
+        let results: any[] = []
+
+        if (activeTypes.length === 1) {
+            const target = activeTypes[0] === 'tv' ? 'tv' : 'movie';
+            
+            const response = await axios.get(`https://api.themoviedb.org/3/search/${target}`, {
+                params: { 
+                    api_key: apiKey, 
+                    query: query, 
+                    language: 'en-US',
+                    include_adult: false 
+                }
+            })
+            
+            results = (response.data.results || []).map((item: any) => ({
+                ...item,
+                media_type: target
+            }))
+        } else {
+            const response = await axios.get(`https://api.themoviedb.org/3/search/multi`, {
+                params: { 
+                    api_key: apiKey, 
+                    query: query, 
+                    language: 'en-US',
+                    include_adult: false
+                }
+            })
+
+            results = (response.data.results || []).filter((item: any) =>
+                activeTypes.includes(item.media_type)
+            )
+        }
+
+        return results.map((item: any) => ({
+            ...item,
+            id: item.id,
+            title: item.title || item.name || 'Untitled',
+            date: item.release_date || item.first_air_date || '',
+            media_type: item.media_type
+        }))
+
     } catch (err) {
-        console.error('Critical start error:', err)
-        throw new HttpsError('internal', 'Internal error')
+        console.error('Search error:', err)
+        throw new HttpsError('internal', 'Search failed')
     }
 })
 
@@ -91,9 +131,7 @@ export const getMovieDetails = onCall({
 }, async (request) => {
     const movieId = request.data.id
 
-    if (!movieId) {
-        throw new HttpsError('invalid-argument', 'Movie ID is required')
-    }
+    if (!movieId) {throw new HttpsError('invalid-argument', 'Movie ID is required')}
 
     try {
         const apiKey = process.env.TMDB_KEY

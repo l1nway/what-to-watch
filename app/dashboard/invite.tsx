@@ -1,6 +1,7 @@
 'use client'
 
 import {X, UserRoundPlus, UserStar, UserPen, User, BadgeInfo, Loader, Copy} from 'lucide-react'
+import {addMinutes, addHours, addDays, addWeeks, addMonths} from 'date-fns'
 import {collection, writeBatch, doc, Timestamp} from 'firebase/firestore'
 import {useState, useCallback, useRef, useEffect} from 'react'
 import {Field, FieldLabel} from '@/components/ui/field'
@@ -21,17 +22,17 @@ import { ButtonGroup } from '@/components/ui/button-group'
 
 const generateToken = () => crypto.randomUUID()
 
-const getExpirationDate = (durationStr: string) => {
-    const now = new Date()
+const getExpirationDate = (durationStr: string): Date => {
     const [amount, unit] = durationStr.split(' ')
     const val = parseInt(amount)
-    
-    if (unit.includes('min')) now.setMinutes(now.getMinutes() + val)
-    if (unit.includes('hour')) now.setHours(now.getHours() + val)
-    if (unit.includes('day')) now.setDate(now.getDate() + val)
-    if (unit.includes('week')) now.setDate(now.getDate() + val * 7)
-    if (unit.includes('month')) now.setMonth(now.getMonth() + val)
-    
+    const now = new Date()
+
+    if (unit.includes('min'))   return addMinutes(now, val)
+    if (unit.includes('hour'))  return addHours(now, val)
+    if (unit.includes('day'))   return addDays(now, val)
+    if (unit.includes('week'))  return addWeeks(now, val)
+    if (unit.includes('month')) return addMonths(now, val)
+
     return now
 }
 

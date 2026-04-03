@@ -292,11 +292,7 @@ export function useList(listId: string | null, bck: () => void) {
         }
     }, [loading])
     
-    useEffect(() => {
-        if (name && name !== 'Loading…') {
-            document.title = `${name} | What to Watch`
-        }
-    }, [name])
+    useEffect(() => {if (name && name !== 'Loading…') document.title = `${name} | What to Watch`}, [name])
 
     return {similar, setSimilar, delay, setFilter, role, user, loading, delClarify, setDelClarify, deleteList, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, inputWidth, onChange, edit, setEdit, name, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime, resetFilters}
 }

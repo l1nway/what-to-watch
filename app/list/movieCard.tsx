@@ -3,6 +3,8 @@ import {Calendar, Clock4, Trash2} from 'lucide-react'
 import {MovieCardProps} from './listTypes'
 import {useRef, useCallback} from 'react'
 import {motion} from 'framer-motion'
+import {getLocale} from '../intro'
+import {format} from 'date-fns'
 import {memo} from 'react'
 
 const MovieCard = memo(function MovieCard({delay, setDelWarning, setSelected, setFilm, movie, statusColor, index, onClick}: MovieCardProps) {
@@ -17,6 +19,8 @@ const MovieCard = memo(function MovieCard({delay, setDelWarning, setSelected, se
         setSelected(movie)
         setFilm(true)
     }, [movie, setSelected, setFilm])
+
+    const locale = getLocale()
     return (
        <motion.div
             {...animationProps('both', true, delay, index)}
@@ -43,7 +47,7 @@ const MovieCard = memo(function MovieCard({delay, setDelWarning, setSelected, se
                     <div className='max-md:w-full absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 transition-[opacity, colors] duration-300 group-hover:opacity-100 group-focus-within:opacity-100'/>
                     <div className='w-[90%] flex justify-between absolute text-[#777f8d] bottom-3 left-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100'>
                         <div className='flex gap-2'>
-                            <span className='flex gap-2 text-sm flex items-center'><Calendar className='text-[#777f8d] max-w-5'/> {movie.release_date}</span>
+                            <span className='flex gap-2 text-sm flex items-center'><Calendar className='text-[#777f8d] max-w-5'/> {format(new Date(movie.release_date), 'PP', {locale})}</span>
                             <span className='flex gap-2 text-sm flex items-center'><Clock4 className='text-[#777f8d] max-w-5'/> {movie.vote_average}</span>
                         </div>
                         <Trash2

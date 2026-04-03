@@ -6,12 +6,16 @@ import {Button} from '@/components/ui/button'
 import {AddMovieCardProps} from './listTypes'
 import {Select} from 'react-animated-select'
 import {motion} from 'framer-motion'
+import {getLocale} from '../intro'
+import {format} from 'date-fns'
 
 const AddMovieCard = ({delay, currentStatus, toggleFilm, statusChange, movie, index, added, addedLocally, alreadyInDb, statuses, url}: AddMovieCardProps) => {
     const cardRef = useRef<HTMLDivElement | null>(null)
     const [desc, setDesc] = useState<boolean>(false)
     const uid = useId()
     
+    const locale = getLocale()
+
     return (
        <motion.div
             className='outline-none h-fit mr-4 mt-4 flex bg-[#1e2939] rounded-xl p-4 border border-[#364153] transition-colors duration-300 hover:border-[#7f22fe] focus:border-[#7f22fe] cursor-pointer flex-col'
@@ -22,7 +26,7 @@ const AddMovieCard = ({delay, currentStatus, toggleFilm, statusChange, movie, in
             tabIndex={0}
         >
             <div className='flex gap-4 h-fit'>
-                {movie?.poster_path ?
+                {movie?.poster_path &&
                     <img
                         src={`https://image.tmdb.org/t/p/w500${movie?.poster_path || ''}`}
                         className='rounded-xl min-w-min h-50 max-md:aspect-[2/3]'
@@ -32,7 +36,7 @@ const AddMovieCard = ({delay, currentStatus, toggleFilm, statusChange, movie, in
                         decoding='async'
                         loading='lazy'
                     />
-                    : null}
+                    }
                 <div className='flex flex-col gap-2 h-fit w-full'>
                     <div className='flex justify-between w-full'>
                         <h2 className='text-white'>{movie?.original_title}</h2>
@@ -41,27 +45,27 @@ const AddMovieCard = ({delay, currentStatus, toggleFilm, statusChange, movie, in
                         </a>
                     </div>
                     <div className='flex text-[#99a1af] gap-2 items-center flex-wrap'>
-                        {movie?.release_date ?
+                        {movie?.release_date &&
                             <span>
-                                {movie?.release_date}
+                                {format(new Date(movie.release_date), 'PP', {locale})}
                             </span>
-                        : null}
-                        {movie?.genre_ids?.length > 0 ?
+                        }
+                        {movie?.genre_ids?.length > 0 &&
                             <>
                                 <div className='w-1 h-1 bg-[#99a1af] rounded-full'/>
                                 <span>
                                     {movie?.genre_ids}
                                 </span>
                             </>
-                        : null}
-                        {movie?.vote_average ?
+                        }
+                        {movie?.vote_average &&
                             <>
                                 <div className='w-1 h-1 bg-[#99a1af] rounded-full'/>
                                 <span>
                                     {movie?.vote_average}
                                 </span>
                             </>
-                        : null}
+                        }
                     </div>
                     <span className='text-[#99a1af] text-wrap max-w-150 max-md:hidden'>{movie?.overview}</span>
                     <div className='flex gap-4 max-md:flex-col'>

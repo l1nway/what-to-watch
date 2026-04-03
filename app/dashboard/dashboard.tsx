@@ -138,6 +138,7 @@ export default function Dashboard() {
                 }
                 onClose={() => setDelClarify(false)}
                 action={delClarify}
+                type='group'
             />
             <header
                 className='shrink-0 bg-[#101828] flex justify-between items-center border-b border-b-[#1e2939] p-4'
@@ -231,12 +232,12 @@ export default function Dashboard() {
                 {listHeader('My lists', 'New list', <List className='text-[#7f22fe]'/>, () => setList(true))}
                 <div className='flex flex-wrap'>
                     <AnimatePresence mode='popLayout'>
-                        {!lists.length ?
+                        {!lists.length &&
                             <ListSkeleton
                                 onClick={setList}
                                 loading={loading}
                             />
-                        : null}
+                        }
                         {lists.map((list, index) => 
                             <ListCard
                                 delay={delay}
@@ -251,12 +252,12 @@ export default function Dashboard() {
                 {listHeader('My groups', 'New group', <Users className='text-[#7f22fe]'/>, () => setGroup(true))}
                 <div className='flex flex-wrap'>
                     <AnimatePresence mode='popLayout'>
-                        {!groups.length ?
+                        {!groups.length &&
                             <GroupSkeleton
                                 lists={lists}
                                 onClick={setGroup}
                                 loading={loading}
-                            /> : null}
+                            />}
                         {groups.map((group, index) => 
                             <GroupCard
                                 setMembersClarify={setMembersClarify}

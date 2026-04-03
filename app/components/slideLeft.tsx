@@ -4,12 +4,12 @@ import {CSSTransition} from 'react-transition-group'
 import {ReactNode, useRef} from 'react'
 
 interface SlideLeftProps {
-    in?: boolean
+    onClick?: () => void
     visibility?: boolean
     children?: ReactNode
-    duration?: number
     className?: string
-    onClick?: () => void
+    duration?: number
+    in?: boolean
 }
 
 function SlideLeft({in: inProp, visibility, children, duration = 300, className, onClick}: SlideLeftProps) {
@@ -27,8 +27,14 @@ function SlideLeft({in: inProp, visibility, children, duration = 300, className,
                 nodeRef.current.style.width = '0px'
             }}
             onEntering={() => {
-                if (!nodeRef.current) return
-                nodeRef.current.style.width = nodeRef.current.scrollWidth + 'px'
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        if (nodeRef.current) {
+                            nodeRef.current.style.transition = `width ${duration}ms, color ${duration}ms, background-color ${duration}ms`
+                            nodeRef.current.style.width = nodeRef.current.scrollWidth + 'px'
+                        }
+                    })
+                })
             }}
             onEntered={() => {
                 if (!nodeRef.current) return
@@ -37,6 +43,7 @@ function SlideLeft({in: inProp, visibility, children, duration = 300, className,
             onExit={() => {
                 if (!nodeRef.current) return
                 nodeRef.current.style.width = nodeRef.current.scrollWidth + 'px'
+                void nodeRef.current.offsetHeight
             }}
             onExiting={() => {
                 if (!nodeRef.current) return
@@ -44,11 +51,7 @@ function SlideLeft({in: inProp, visibility, children, duration = 300, className,
             }}
         >
             <div
-                className={`slide-left-enter-done ${className}`}
-                style={{
-                    overflow: 'hidden',
-                    transition: `width ${duration}ms ease`
-                }}
+                className={`${className} slide-left-enter-done overflow-hidden will-change-[width] transition-[width,color,background-color] duration-[${duration}ms]`}
                 onClick={onClick}
                 ref={nodeRef}
                 tabIndex={-1}

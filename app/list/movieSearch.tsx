@@ -7,7 +7,7 @@ import {httpsCallable} from 'firebase/functions'
 import {doc, updateDoc} from 'firebase/firestore'
 import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
-import {Loader, Search, X} from 'lucide-react'
+import {Check, Loader, Search, X} from 'lucide-react'
 import {updateActivity} from '@/lib/presence'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
@@ -35,6 +35,10 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
     const [search, setSearch] = useState<string>('')
     const [text, setText] = useState<string>('Enter movie title')
 
+    const [types, setTypes] = useState([{name: 'Films', checked: true}, {name: 'TV', checked: false}])
+    const typesRef = useRef(types)
+    useEffect(() => {typesRef.current = types}, [types])
+
     const [loading, setLoading] = useState<boolean>(false)
 
     const fetchSuggestions = useMemo(() => debounce(async (query: string) => {
@@ -42,42 +46,36 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
             setSuggestions([])
             return
         }
-        
+
         try {
             setText('Searching…')
             setLoading(true)
 
-            const searchMovies = httpsCallable(functions, 'searchMovies')
+            const activeTypes = typesRef.current
+                .filter(t => t.checked)
+                .map(t => t.name === 'Films' ? 'movie' : 'tv')
 
-            const response = await searchMovies({query})
+            const searchMovies = httpsCallable(functions, 'searchMovies')
             
-            const tmdbResults = response.data as any[] 
+            const response = await searchMovies({query, types: activeTypes})
+            const tmdbResults = response.data as any[]
 
             const enrichedResults = tmdbResults.map((movie: any) => {
                 const existingMovie = movies?.find((m: any) => m.id === movie.id)
-                return {
-                    ...movie,
-                    status: existingMovie ? existingMovie.status : null,
-                    isSavedInDb: !!existingMovie 
-                }
+                return {...movie, status: existingMovie ? existingMovie.status : null, isSavedInDb: !!existingMovie}
             })
 
             setSuggestions(enrichedResults)
-            if (enrichedResults.length === 0) setText('Nothing found')
-            setLoading(false)
-            
+            !enrichedResults.length && setText('Nothing found')
         } catch (e: any) {
             console.error('Cloud Function Error:', e)
-            
             setText('Error while searching')
+        } finally {
             setLoading(false)
         }
     }, 500), [movies])
 
-    const combinedList = useMemo(() => 
-        [...films, ...suggestions.filter(s => !films.some(f => f.id === s.id))],
-        [films, suggestions]
-    )
+    const combinedList = useMemo(() => [...films, ...suggestions.filter(s => !films.some(f => f.id === s.id))], [films, suggestions])
 
     const statusChange = useCallback((element: any, newStatus: any) => {
         const statusValue = newStatus?.name
@@ -168,11 +166,14 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
     const {height, measureHeight} = useDynamicHeight({contentRef, dependency: combinedList, visibility, staticOffsets: 280})
 
     const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearch(e.target.value)
-        search == '' ? setText('Enter movie title') : setText('Searching…')
+        const value = e.target.value
+        setSearch(value)
+        value === '' ? setText('Enter movie title') : setText('Searching…')
     }, [search])
 
-    useEffect(() => {fetchSuggestions(search)}, [search, fetchSuggestions])
+    useEffect(() => {(search.length > 0) && fetchSuggestions(search)}, [types, search, fetchSuggestions])
+
+    useEffect(() => {return () => {fetchSuggestions.cancel()}}, [fetchSuggestions])
 
     const fetchAiSuggestions = useCallback(async () => {
         if (!similar || !visibility) return
@@ -237,6 +238,46 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
         onClose()
     }, [])
 
+    const toggleCheck = useCallback((index: number) => {
+        setTypes(prev => {
+            const activeCount = prev.filter(t => t.checked).length
+            return prev.map((s, i) => 
+                (i === index && (s.checked ? activeCount > 1 : true)) 
+                ? {...s, checked: !s.checked} 
+                : s
+            )
+        })
+    }, [setTypes])
+
+    const renderCheckboxes = useMemo(() => {
+        return types.map((element, index) => {
+            return (
+                <label
+                    className='outline-none group flex gap-3 max-md:gap-2 cursor-pointer'
+                    key={element.name}
+                    tabIndex={0}
+                >
+                    <div className={`${element.checked ? 'border-[#641aca] group-hover:border-[#7f22fe] group-focus-within:border-[#7f22fe]' : 'border-[#99a1af] group-hover:border-white group-focus-within:border-white'} border rounded-[5px] min-h-7 min-w-7 flex items-center text-center duration-300 transition-colors`}
+                    >
+                        <input
+                            onChange={() => toggleCheck(index)}
+                            className='cursor-pointer hidden'
+                            checked={element.checked}
+                            type='checkbox'
+                        />
+                        <Check 
+                            className={`
+                                text-[#641aca] group-hover:text-[#7f22fe] group-focus-within:text-[#7f22fe] w-full h-full 
+                                transition-all duration-300 ease-in-out
+                                ${element.checked ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}
+                            `}
+                        />
+                    </div>
+                    <span className='whitespace-nowrap text-white capitalize'>{element.name}</span>
+                </label>
+            )
+    })}, [types, toggleCheck])
+
     return (
         <ShowClarify
             parentClassName='min-md:min-w-[90%] min-2xl:min-w-[75%] flex max-h-full'
@@ -281,7 +322,12 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
                             />
                         </SlideLeft>
                     </label>
-                    <span className='text-[#6a7282] border-b border-[#1e2939] pb-4'>Powered by TMDB API (The Movie Database)</span>
+                    <div className='flex justify-between border-b border-[#1e2939] pb-4'>
+                        <span className='text-[#6a7282]'>Powered by TMDB API (The Movie Database)</span>
+                        <div className='flex gap-4'>
+                            {renderCheckboxes}
+                        </div>
+                    </div>
                 </>
             :
                 <span className='text-[#6a7282] border-b border-[#1e2939] pb-4'>

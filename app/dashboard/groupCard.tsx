@@ -6,6 +6,7 @@ import {shake, clearShake} from '../components/shake'
 import {motion, AnimatePresence} from 'framer-motion'
 import {CSSTransition} from 'react-transition-group'
 import SlideLeft from '../components/slideLeft'
+import {updateActivity} from '@/lib/presence'
 import {Button} from '@/components/ui/button'
 import {Select} from 'react-animated-select'
 
@@ -71,9 +72,7 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
                         <div className='relative flex items-center h-10 w-full'>
                             <div className='absolute flex top-0 items-center h-10 w-full'>
                                 <span
-                                    className={`text-ellipsis max-md:max-w-[90%] absolute invisible whitespace-pre text-xl py-2
-                                        ${group?.edit ? 'pl-2 pr-2' : 'pr-1'}`
-                                    }
+                                    className={`text-ellipsis max-md:max-w-[90%] absolute invisible whitespace-pre text-xl py-2 ${group?.edit ? 'pl-2 pr-2' : 'pr-1'}`}
                                     ref={spanRef}
                                 >
                                     {group?.tempName ?? group?.name ?? ''}
@@ -91,7 +90,7 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
                                         ${group?.edit ? 'pl-2 pr-2' : 'pr-1'} 
                                     `}
                                 />
-                                {admin ?
+                                {admin &&
                                     <div className='relative w-6 h-6'>
                                         <CSSTransition
                                             classNames='icon-fade'
@@ -100,23 +99,23 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
                                             timeout={700}
                                             unmountOnExit
                                         >
-                                            <div
-                                                ref={editRef}
-                                            >
-                                            <Save
-                                                className='absolute top-0 left-0 ml-1 text-[#99a1af] cursor-pointer hover:text-white transition-colors duration-300'
-                                                onClick={() => {
-                                                    if (!group?.id || !group?.tempName.trim()) {
-                                                        shake(inputRef.current)
-                                                        return
-                                                    }
-                                                    if (group?.tempName.trim() === group?.name) {
-                                                        setGroups?.(prev => prev.map(g => g.id === group?.id ? {...g, edit: false} : g))
-                                                        return
-                                                    }
-                                                    updateGroup?.(group?.id, group?.tempName)
-                                                }}
-                                            />
+                                            <div ref={editRef}>
+                                                <Save
+                                                    className='absolute top-0 left-0 ml-1 text-[#99a1af] cursor-pointer hover:text-white transition-colors duration-300'
+                                                    onClick={() => {
+                                                        if (!group?.id || !group?.tempName.trim()) {
+                                                            shake(inputRef.current)
+                                                            return
+                                                        }
+                                                        if (group?.tempName.trim() === group?.name) {
+                                                            setGroups?.(prev => prev.map(g => g.id === group?.id ? {...g, edit: false} : g))
+                                                            updateActivity('idle')
+                                                            return
+                                                        }
+                                                        updateGroup?.(group?.id, group?.tempName)
+                                                        updateActivity('idle')
+                                                    }}
+                                                />
                                             </div>
                                         </CSSTransition>
                                         <CSSTransition
@@ -127,21 +126,22 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
                                             unmountOnExit
                                         >
                                             <div
-                                                ref={viewRef}
                                                 className='absolute top-0 left-0 flex items-center justify-center'
+                                                ref={viewRef}
                                             >
                                             <Pencil
                                                 className='ml-1 text-[#99a1af] cursor-pointer hover:text-white transition-colors duration-300'
-                                                onClick={() =>
+                                                onClick={() =>{
                                                     setGroups?.(prev => prev.map(g =>
                                                         g.id === group?.id ? {...g, edit: true, tempName: g.name} : g
                                                     ))
-                                                }
+                                                    updateActivity('editing_group')
+                                                }}
                                             />
                                             </div>
                                         </CSSTransition>
                                     </div>
-                                : null}
+                                }
                             </div>
                         </div>
                         <div 
@@ -223,7 +223,7 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
                     </SlideLeft>
                 </div>
             </div>
-            {admin && !invite ?
+            {(admin && !invite) &&
                 <div className='flex flex-col gap-4 max-md:w-fit min-md:w-full'>
                     <Button
                         className='outline-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-[#1e2939] rounded-[10px] p-4 cursor-pointer hover:bg-[#303844] focus:bg-[#303844] transition-colors duration-300'
@@ -233,7 +233,7 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
                         <UserRoundPlus/> Invite
                     </Button>
                     <Select
-                        className='outline-none !justify-center [&_.rac-select-buttons]:!hidden text-white hover:!bg-[#641aca] rounded-[10px] p-4 cursor-pointer !transition-colors duration-300 min-h-9! items-center'
+                        className='outline-none [&_.rac-title-container]:flex [&_.rac-title-container]:w-full [&_.rac-title-container]:justify-center !justify-center [&_.rac-select-buttons]:!hidden text-white hover:!bg-[#641aca] rounded-[10px] p-4 cursor-pointer !transition-colors duration-300 min-h-9! items-center'
                         style={{
                             '--rac-select-border': 'none',
                             '--rac-select-background': '#7f22fe',
@@ -268,8 +268,8 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
                         {owner ? <><Trash2/> Delete</> : <><DoorOpen/> Leave</>}
                     </Button>
                 </div>
-            : null}
-            {invite ?
+            }
+            {invite &&
                 <div className='flex flex-col gap-4 justify-center'>
                     <Button
                         className='h-fit text-xl bg-[#7f22fe] rounded-[10px] p-2 cursor-pointer hover:bg-[#641aca] transition-colors duration-300'
@@ -284,7 +284,7 @@ export function GroupCard({setMembersClarify, setSelectedGroup, setDelClarify, u
                         <X className='w-5! h-5!'/> Reject
                     </Button>
                 </div>
-            : null}
+            }
         </motion.div>
     )
 }

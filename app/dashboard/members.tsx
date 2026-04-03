@@ -1,15 +1,20 @@
+'use client'
+
 import {X, UserStar, UserPen, User, Trash2, Image, Loader, BadgeInfo} from 'lucide-react'
+import {Fragment, useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import {AnimatePresence, LazyMotion, m, domAnimation} from 'framer-motion'
 import {animationProps, stylesProps} from '../components/motionProps'
 import {useDynamicHeight} from '../components/useDynamicHeight'
+import {format, isToday, isYesterday} from 'date-fns'
 import {MembersTypes, Member} from './dashboardTypes'
 import ShowClarify from '../components/showClarify'
-import {useEffect, useMemo, useRef} from 'react'
 import SlideLeft from '../components/slideLeft'
 import SlideDown from '../components/slideDown'
 import {ref, onValue} from 'firebase/database'
 import {updateActivity} from '@/lib/presence'
+import {enGB} from 'date-fns/locale'
 import {rtdb} from '@/lib/firebase'
+import {getLocale} from '../intro'
 
 const activity: Record<string, string> = {
     adding_list_to_group: 'Adding movies to group',
@@ -18,11 +23,13 @@ const activity: Record<string, string> = {
     deleting_group: 'Managing group deletion',
     reading_privacy: 'Reading privacy policy',
     viewing_members: 'Checking members list',
+    deleting_list: 'Managing list deletion',
     leaving_group: 'Managing group leaving',
     creating_group: 'Creating a new group',
     creating_list: 'Creating a new list',
     changing_avatar: 'Changing avatar',
     creating_invite: 'Creating invite',
+    editing_group: 'Editing a group',
     browsing_list: 'Browsing list',
     adding_movie: 'Adding a movie',
     in_settings: 'In settings',
@@ -30,6 +37,19 @@ const activity: Record<string, string> = {
 }
 
 export default function Members({visibility, onClose, group, user, toggleRole, kickMember, fetchMembers, loading, members, setMembers, processingId, deletingId, delay}: MembersTypes) {
+
+    const [locale, setLocale] = useState(enGB)
+
+    const lastSeen = useCallback((lastSeen: string | number | Date) => {
+        if (!locale) return
+        const options = {locale: locale}
+        const date = new Date(lastSeen)
+    
+        if (isToday(date)) {return `today at ${format(date, 'p', options)}`}
+        if (isYesterday(date)) {return `yesterday at ${format(date, 'p', options)}`}
+
+        return format(date, 'Pp', options)
+    }, [locale])
     
     const memberRef = useRef<HTMLDivElement | null>(null)
     const contentRef = useRef<HTMLDivElement>(null)
@@ -69,18 +89,16 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
             unsubscribes.push(unsub)
         })
 
-        return () => {
-            unsubscribes.forEach(unsub => unsub())
-        }
-    }, [visibility, members.length])
+        return () => unsubscribes.forEach(unsub => unsub())
+    }, [visibility, members.map(m => m.id).join()])
 
     useEffect(() => {
-        if (visibility) updateActivity('viewing_members')
+        visibility && updateActivity('viewing_members')
         
-        return () => {
-            updateActivity('idle')
-        }
+        return () => {updateActivity('idle')}
     }, [visibility])
+
+    useEffect(() => {setLocale(getLocale())}, [])
 
     const editor = useMemo(() => group?.editors?.includes(user?.uid ?? ''), [user?.uid, group?.editors])
     const owner = useMemo(() => user?.uid === group?.ownerId, [user?.uid, group?.ownerId])
@@ -89,7 +107,8 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
     const roleClass = 'h-10 w-10 outline-none text-[#959dab] hover:text-white focus:text-white transition-colors duration-300'
     const editorClass = 'cursor-pointer'
 
-    const renderMembers = (members as Member[]).map((member: Member, index: number) => {
+    const renderMembers = useMemo(() => {
+        return (members as Member[]).map((member, index) => {
         const isCurrentlyAdmin = member.role === 'admin'
 
         const role = member.role === 'owner' ? (
@@ -100,84 +119,48 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
             <User className={roleClass}/>
         )
         return (
-            <m.div
-                className='flex gap-2 text-white justify-between items-center hover:bg-[#121e37] rounded-[5px] p-2 transition-colors duration-300'
-                {...animationProps('vertical', true, delay, index)}
-                style={{...stylesProps, overflow: 'hidden'}}
-                layoutId={member?.id}
-                key={member?.id}
-                ref={memberRef}
-                tabIndex={0}
-            >
-                <div className='flex gap-4 items-center relative'>
-                    {member.avatar ?
-                            <img
-                                className='min-h-12 min-w-12 max-h-12 max-w-12 aspect-square object-cover rounded-full block flex-shrink-0'
-                                alt={`${member.name} avatar`}
-                                key={`${member.name} avatar`}
-                                src={`${member.avatar}`}
-                                crossOrigin='anonymous'
-                                decoding='async'
-                                loading='lazy'
-                            />
-                        :
-                            <Image className='min-h-12 min-w-12 max-h-12 max-w-12 text-[#99a1af] hover:text-white transition-colors duration-300'/>
-                    }
-                    <div className='flex flex-col'>
-                        <span className='text-2xl'>{member.name}</span>
-                        <span className='text-xs text-gray-500 pl-1'>{member.online ?
-                            <>
-                                {activity[member.activity ?? ''] || 'Online'}
-                            </>
-                        : 
-                            <>
-                                {member.last_seen 
-                                    ? `Last seen ${(() => {
-                                        const date = new Date(member.last_seen)
-                                        const isOver24h = Date.now() - date.getTime() > 86400000
-                                        return date.toLocaleTimeString('ru-RU', {
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                            hour12: false,
-                                            ...(isOver24h && {day: '2-digit', month: '2-digit', year: 'numeric'})
-                                        })
-                                    })()}` 
-                                    : 'Offline'}
-                            </>
-                        }</span>
-                    </div>
-                    <div className={`w-3 h-3 ${member.online ? 'bg-green-500' : 'bg-red-500'} absolute bottom-0 left-11 rounded-full transition-colors duration-300`}/>
-                </div>
-                <div className='flex gap-2'>
-                    <AnimatePresence mode='wait'>
-                        {processingId === member.id
-                            ? 
-                                <m.div
-                                    initial={{opacity: 0, scale: 0.5}}
-                                    animate={{opacity: 1, scale: 1}}
-                                    exit={{opacity: 0, scale: 0.5}}
-                                    transition={{duration: 0.15}}
-                                    key={`loader-${member.id}`}
-                                >
-                                    <Loader className='h-10 w-10 text-[#959dab] animate-spin'/>
-                                </m.div>
+            <Fragment key={member.id}>
+                <m.div
+                    className='flex gap-2 text-white justify-between items-center hover:bg-[#121e37] rounded-[5px] p-2 transition-colors duration-300'
+                    {...animationProps('vertical', true, delay, index)}
+                    style={{...stylesProps, overflow: 'hidden'}}
+                    layoutId={member?.id}
+                    ref={memberRef}
+                    tabIndex={0}
+                >
+                    <div className='flex gap-4 items-center relative'>
+                        {member.avatar ?
+                                <img
+                                    className='min-h-12 min-w-12 max-h-12 max-w-12 aspect-square object-cover rounded-full block flex-shrink-0'
+                                    alt={`${member.name} avatar`}
+                                    key={`${member.name} avatar`}
+                                    src={`${member.avatar}`}
+                                    crossOrigin='anonymous'
+                                    decoding='async'
+                                    loading='lazy'
+                                />
                             :
-                                <m.div
-                                    onClick={() => (member.role === 'owner' || !owner) ? null : toggleRole(group?.id, member.id, isCurrentlyAdmin)}
-                                    initial={{opacity: 0, scale: 0.5}}
-                                    animate={{opacity: 1, scale: 1}}
-                                    exit={{opacity: 0, scale: 0.5}}
-                                    transition={{duration: 0.15}}
-                                    key={`role-${member.id}`}
-                                    tabIndex={0}
-                                >
-                                    {role}
-                                </m.div>
+                                <Image className='min-h-12 min-w-12 max-h-12 max-w-12 text-[#99a1af] hover:text-white transition-colors duration-300'/>
                         }
-                    </AnimatePresence>
-                    {(owner && member.id !== user?.uid && member.id !== group?.ownerId) ?
+                        <div className='flex flex-col'>
+                            <span className='text-2xl'>{member.name}</span>
+                            <span className='text-xs text-gray-500 pl-1'>{member.online ?
+                                <>
+                                    {activity[member.activity ?? ''] || 'Online'}
+                                </>
+                            : 
+                                <>
+                                    {member.last_seen 
+                                        ? `Last seen ${lastSeen(member.last_seen)}` 
+                                        : 'Offline'}
+                                </>
+                            }</span>
+                        </div>
+                        <div className={`w-3 h-3 ${member.online ? 'bg-green-500' : 'bg-red-500'} absolute bottom-0 left-11 rounded-full transition-colors duration-300`}/>
+                    </div>
+                    <div className='flex gap-2'>
                         <AnimatePresence mode='wait'>
-                            {deletingId === member.id
+                            {processingId === member.id
                                 ? 
                                     <m.div
                                         initial={{opacity: 0, scale: 0.5}}
@@ -190,7 +173,7 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
                                     </m.div>
                                 :
                                     <m.div
-                                        onClick={() => kickMember(group?.id, member.id)}
+                                        onClick={() => (member.role === 'owner' || !owner) ? null : toggleRole(group?.id, member.id, isCurrentlyAdmin)}
                                         initial={{opacity: 0, scale: 0.5}}
                                         animate={{opacity: 1, scale: 1}}
                                         exit={{opacity: 0, scale: 0.5}}
@@ -198,18 +181,43 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
                                         key={`role-${member.id}`}
                                         tabIndex={0}
                                     >
-                                        <Trash2
-                                            className='h-10 w-10 text-[#959dab] hover:text-red-700 cursor-pointer transition-colors duration-300'
-                                        />
+                                        {role}
                                     </m.div>
                             }
                         </AnimatePresence>
-                    : null}
-                </div>
-                
-            </m.div>
-        )
-    })
+                        {(owner && member.id !== user?.uid && member.id !== group?.ownerId) &&
+                            <AnimatePresence mode='wait'>
+                                {deletingId === member.id
+                                    ? 
+                                        <m.div
+                                            initial={{opacity: 0, scale: 0.5}}
+                                            animate={{opacity: 1, scale: 1}}
+                                            exit={{opacity: 0, scale: 0.5}}
+                                            transition={{duration: 0.15}}
+                                            key={`loader-${member.id}`}
+                                        >
+                                            <Loader className='h-10 w-10 text-[#959dab] animate-spin'/>
+                                        </m.div>
+                                    :
+                                        <m.div
+                                            onClick={() => kickMember(group?.id, member.id)}
+                                            initial={{opacity: 0, scale: 0.5}}
+                                            animate={{opacity: 1, scale: 1}}
+                                            exit={{opacity: 0, scale: 0.5}}
+                                            transition={{duration: 0.15}}
+                                            key={`role-${member.id}`}
+                                            tabIndex={0}
+                                        >
+                                            <Trash2 className='h-10 w-10 text-[#959dab] hover:text-red-700 cursor-pointer transition-colors duration-300'/>
+                                        </m.div>
+                                }
+                            </AnimatePresence>
+                        }
+                    </div>
+                    
+                </m.div>
+            </Fragment>
+    )})}, [members, processingId, deletingId, owner, group?.id])
 
     return (
         <LazyMotion features={domAnimation}>

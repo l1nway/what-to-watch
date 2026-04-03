@@ -1,6 +1,7 @@
 'use client'
 
 import {UserCog, Zap, SearchCode, Loader} from 'lucide-react'
+import {ru, uk, pl, de, enGB, enUS} from 'date-fns/locale'
 import {Card, CardContent} from '@/components/ui/card'
 import {useRouter, usePathname} from 'next/navigation'
 import SlideLeft from './components/slideLeft'
@@ -9,6 +10,15 @@ import {useCallback, useState} from 'react'
 import {Gemini} from './components/gemini'
 import {motion} from 'framer-motion'
 import Footer from './footer'
+
+const localeMap: Record<string, any> = {ruRU: ru, ru: ru, ukUA: uk, uk: uk, plPL: pl, pl: pl, deDE: de, de: de, enGB: enGB, enUS: enUS, en: enGB}
+
+export const getLocale = () => {
+    if (typeof window === 'undefined') return enGB
+
+    const bLocale = window.navigator.language.replace('-', '')
+    return localeMap[bLocale] || localeMap[bLocale.slice(0, 2)] || enGB
+}
 
 export default function Intro() {
     const pathname = usePathname()

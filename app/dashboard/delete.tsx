@@ -6,18 +6,16 @@ import {DeleteProps} from './dashboardTypes'
 import {useEffect} from 'react'
 import {X} from 'lucide-react'
 
-export default function Delete({action, onClose, deleteGroup}: DeleteProps) {
-    
+export default function Delete({action, onClose, deleteGroup, type}: DeleteProps) {
+
     useEffect(() => {
         if (action == 'delete') {
-            updateActivity('deleting_group')
+            type === 'group' && updateActivity('deleting_group')
+            type === 'list' && updateActivity('deleting_list')
         } else {
             updateActivity('leaving_group')
         }
-
-        return () => {
-            updateActivity('idle')
-        }
+        return () => {updateActivity('idle')}
     }, [action])
 
     return (
@@ -25,9 +23,9 @@ export default function Delete({action, onClose, deleteGroup}: DeleteProps) {
             <div className='text-white flex justify-between border-b border-[#1e2939] pb-4'>
                 <div className='flex flex-col'>
                     <h1>
-                        Are you sure you want to {action ? action : 'action'} this group?
+                        Are you sure want to {!action ? action : 'delete'} this {type}?
                     </h1>
-                    <SlideDown className='text-[#959dab]' visibility={action == 'delete'}>
+                    <SlideDown className='text-[#959dab]' visibility={action === 'delete' || action === true}>
                         This action cannot be undone.
                     </SlideDown>
                 </div>
@@ -38,7 +36,7 @@ export default function Delete({action, onClose, deleteGroup}: DeleteProps) {
                     Cancel
                 </Button>
                 <Button className={`capitalize w-[48%] bg-red-500 hover:bg-red-700 transition-colors duration-300 cursor-pointer`} onClick={deleteGroup}>
-                    {action ? action : 'action'}
+                    {!action ? action : 'delete'}
                 </Button>
             </div>
         </ShowClarify>

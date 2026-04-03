@@ -42,15 +42,9 @@ export const useDynamicHeight = ({contentRef, dependency, visibility, staticOffs
         })
     })}, [dependency, staticOffsets, maxHeightOverride, contentRef])
 
-    useLayoutEffect(() => {
-        measureHeight()
-    }, [dependency, visibility, measureHeight])
+    useLayoutEffect(() => {measureHeight()}, [dependency, visibility, measureHeight])
 
-    useEffect(() => {
-        if (!visibility) {
-            setHeight(0)
-        }
-    }, [visibility])
+    useEffect(() => {!visibility && setHeight(0)}, [visibility])
 
     useEffect(() => {
         const debouncedMeasure = debounce(measureHeight, 150)

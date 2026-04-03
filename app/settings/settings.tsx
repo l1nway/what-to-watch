@@ -211,9 +211,7 @@ export default function settings() {
                 visibility={file}
                 user={user}
             />
-            <header
-                className='shrink-0 bg-[#101828] flex justify-between items-center border-b border-b-[#1e2939] p-4'
-            >
+            <header className='shrink-0 bg-[#101828] flex justify-between items-center border-b border-b-[#1e2939] p-4'>
                 <div className='flex gap-5 items-center'>
                     <AnimatePresence mode='wait'>
                         {!back ?
@@ -241,14 +239,10 @@ export default function settings() {
                             </motion.div>
                         }
                     </AnimatePresence>
-                    <div
-                        className='bg-[#7f22fe] rounded-[10px] w-min p-2'
-                    >
+                    <div className='bg-[#7f22fe] rounded-[10px] w-min p-2'>
                         <Film className='text-white'/>
                     </div>
-                    <h1
-                        className='text-white flex items-center'
-                    >
+                    <h1 className='text-white flex items-center'>
                         What2Watch
                     </h1>
                 </div>
@@ -257,10 +251,10 @@ export default function settings() {
                     <AnimatePresence mode='wait'>
                         {!privacy ?
                             <motion.div
-                                key='privacy'
                                 animate={{opacity: 1, scale: 1, rotate: 0}}
                                 exit={{opacity: 0, scale: 0.5, rotate: 45}}
                                 transition={{duration: 0.15}}
+                                key='privacy'
                             >
                                 <ReceiptText
                                     className='outline-none cursor-pointer text-[#959dab] hover:text-white focus:text-white transition-colors duration-300'
@@ -276,9 +270,7 @@ export default function settings() {
                                 exit={{opacity: 0, scale: 0.5}}
                                 transition={{duration: 0.15}}
                             >
-                                <Loader
-                                    className='text-[#959dab] animate-spin'
-                                />
+                                <Loader className='text-[#959dab] animate-spin'/>
                             </motion.div>
                         }
                     </AnimatePresence>
@@ -303,9 +295,7 @@ export default function settings() {
                                 exit={{opacity: 0, scale: 0.5}}
                                 transition={{duration: 0.15}}
                             >
-                                <Loader
-                                    className='text-[#959dab] animate-spin'
-                                />
+                                <Loader className='text-[#959dab] animate-spin'/>
                             </motion.div>
                         }
                     </AnimatePresence>
@@ -319,23 +309,15 @@ export default function settings() {
                         user={user}
                     />
                     <div className='flex w-full max-xl:flex-col'>
-                        <div
-                            className='bg-[#101828] flex flex-col gap-2 p-4 m-4 rounded-[10px] max-xl:w-auto w-[50%] h-fit'
-                        >
-                            <h2
-                                className='text-white text-2xl pb-2'
-                            >
+                        <div className='bg-[#101828] flex flex-col gap-2 p-4 m-4 rounded-[10px] max-xl:w-auto w-[50%] h-fit'>
+                            <h2 className='text-white text-2xl pb-2'>
                                 Personal data
                             </h2>
                             {renderPersonal}
                         </div>
-                        <div
-                            className='bg-[#101828] flex flex-col p-4 m-4 rounded-[10px] max-xl:w-auto w-[50%] h-fit'
-                        >
+                        <div className='bg-[#101828] flex flex-col p-4 m-4 rounded-[10px] max-xl:w-auto w-[50%] h-fit'>
                             <div className='flex items-center pb-4'>
-                                <h2
-                                    className='text-white text-2xl pr-1'
-                                >
+                                <h2 className='text-white text-2xl pr-1'>
                                     Change password
                                 </h2>
                                 <AnimatePresence mode='wait'>
@@ -356,8 +338,7 @@ export default function settings() {
                             <SlideDown visibility={passwordEdit}>
                                 <Button
                                     onClick={savePassword}
-                                    className='mt-4 w-full gap-0 bg-[#7f22fe] hover:bg-[#641aca] transition-[colors, opacity] duration-300 cursor-pointer
-                                    '
+                                    className='mt-4 w-full gap-0 bg-[#7f22fe] hover:bg-[#641aca] transition-[colors, opacity] duration-300 cursor-pointer'
                                     disabled={emptyPassword}
                                 >
                                     <SlideLeft visibility={passwordSaving}>
@@ -372,15 +353,9 @@ export default function settings() {
                         </div>
                     </div>
                 </div>
-                <SlideDown
-                    visibility={fullInvites.length}
-                >
-                    <div
-                        className='flex flex-col gap-2 px-4 pt-2'
-                    >
-                        <h2
-                            className='text-white text-2xl pb-2'
-                        >
+                <SlideDown visibility={fullInvites.length}>
+                    <div className='flex flex-col gap-2 px-4 pt-2'>
+                        <h2 className='text-white text-2xl pb-2'>
                             Invites
                         </h2>
                         <TransitionGroup component={null}>

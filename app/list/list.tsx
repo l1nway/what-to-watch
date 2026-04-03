@@ -202,6 +202,7 @@ export default function List() {
                 deleteGroup={() => deleteList(listId)}
                 onClose={() => setDelClarify(false)}
                 action={delClarify}
+                type='list'
             />
             <header
                 className='flex w-full justify-between bg-[#101828] border-b border-b-[#1e2939] p-4 items-center'
@@ -339,12 +340,12 @@ export default function List() {
                     </div>
                 </SlideDown>
                 <AnimatePresence mode='popLayout'>
-                    {!filteredMovies.length ?
+                    {!filteredMovies.length &&
                         <MovieSkeleton
                             onClick={setMovie}
                             loading={loading}
                         />
-                    : null}
+                    }
                     {movieCard}
                 </AnimatePresence>
             </div>
