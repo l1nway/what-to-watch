@@ -151,14 +151,15 @@ export function useList(listId: string | null, bck: () => void) {
                 setName(fetchedName)
                 setOriginalName(fetchedName)
 
-                const moviePromises = storedMovies.map(async (movieObj: {id: number, status: string}) => {
+                const moviePromises = storedMovies.map(async (movieObj: {id: number, status: string, type: string}) => {
                     try {
-                        const res = await getMovieDetails({id: movieObj.id})
+                        const res = await getMovieDetails({id: movieObj.id, type: movieObj.type || 'movie'})
                         const tmdbData = res.data as any
 
                         return {
                             ...tmdbData,
-                            status: movieObj.status
+                            status: movieObj.status,
+                            type: movieObj.type || 'movie'
                         }
                     } catch (err) {
                         console.error(`Failed to fetch movie ${movieObj.id}`, err)
@@ -171,7 +172,7 @@ export function useList(listId: string | null, bck: () => void) {
                 const validResults = results.filter(m => m !== null)
 
                 setMoviesData(validResults)
-
+                
                 const allGenres = validResults
                     .flatMap((movie: any) => movie.genres || [])
                 

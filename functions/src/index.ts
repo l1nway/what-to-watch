@@ -129,13 +129,13 @@ export const getMovieDetails = onCall({
     timeoutSeconds: 60,
     memory: '256MiB'
 }, async (request) => {
-    const movieId = request.data.id
+    const {id, type = 'movie'} = request.data
 
-    if (!movieId) {throw new HttpsError('invalid-argument', 'Movie ID is required')}
+    if (!id) {throw new HttpsError('invalid-argument', 'Movie ID is required')}
 
     try {
         const apiKey = process.env.TMDB_KEY
-        const response = await axios.get(`https://api.themoviedb.org/3/movie/${movieId}`, {
+        const response = await axios.get(`https://api.themoviedb.org/3/${type}/${id}`, {
             params: {api_key: apiKey, language: 'en-US'}
         })
         

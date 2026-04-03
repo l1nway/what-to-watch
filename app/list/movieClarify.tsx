@@ -13,7 +13,7 @@ import {getLocale} from '../intro'
 import {db} from '@/lib/firebase'
 import {format} from 'date-fns'
 
-export default function MovieClarify({url, visibility, onClose, statuses, selected, listId, onRefresh, deleteMovie, delWarning, setDelWarning, setSimilar, setMovie}: MovieClarifyProps) {
+export default function MovieClarify({role, url, visibility, onClose, statuses, selected, listId, onRefresh, deleteMovie, delWarning, setDelWarning, setSimilar, setMovie}: MovieClarifyProps) {
     const [status, setStatus] = useState<MovieClarifyProps['statuses'][number] | undefined>(undefined)
 
     useEffect(() => {
@@ -51,7 +51,7 @@ export default function MovieClarify({url, visibility, onClose, statuses, select
     }, [listId, selected?.id, status?.name])
     
     const locale = getLocale()
-
+    
     return (
         <ShowClarify
             visibility={visibility}
@@ -74,13 +74,13 @@ export default function MovieClarify({url, visibility, onClose, statuses, select
                 </div>
             </div>
             <div className='text-white flex justify-between mb-2'>
-                <h2>{selected?.title}</h2>
+                <h2>{selected?.title || selected?.name}</h2>
                 <div className='flex gap-2'>
                     <Trash2
                         className='text-[#99a1af] hover:text-[#fb2933] transition-colors duration-300 cursor-pointer'
                         onClick={() => setDelWarning(!delWarning)}
                     />
-                    <a href={url}>
+                    <a target='_blank' href={url}>
                         <Info className='text-[#99a1af] hover:text-white cursor-pointer transition-colors duration-300'/>
                     </a>
                     <Gemini
@@ -107,9 +107,9 @@ export default function MovieClarify({url, visibility, onClose, statuses, select
                 </div>
             </SlideDown>
             <div className='flex text-[#99a1af] gap-2 items-center mb-4'>
-                {selected?.release_date &&
+                {selected?.release_date || selected?.date || selected?.first_air_date &&
                     <span>
-                        {format(new Date(selected?.release_date), 'PP', {locale})}
+                        {format(new Date(selected?.release_date || selected?.date || selected?.first_air_date), 'PP', {locale})}
                     </span>
                 }
                 <div className='w-1 h-1 bg-[#99a1af] rounded-full'/>
@@ -117,43 +117,47 @@ export default function MovieClarify({url, visibility, onClose, statuses, select
                     {selected?.genres?.[0]?.name}
                 </span>
                 <div className='w-1 h-1 bg-[#99a1af] rounded-full'/>
-                <span>
-                    {selected?.vote_average}
-                </span>
+                {selected?.vote_average &&
+                    <span>
+                        {Number(selected?.vote_average.toFixed(1))}
+                    </span>
+                }
             </div>
             <div className='text-[#99a1af] mb-4 max-w-200'>
                 {selected?.overview}
             </div>
             <div className='text-white flex flex-col gap-2'>
                 <span>
-                    Status
+                    Status{role === 'member' && `: ${status?.name || 'Plan to watch'}`}
                 </span>
-                <div className='flex'>
-                    <Select
-                        style={{
-                            '--rac-list-background': '#1e2939',
-                            '--rac-list-color': 'white',
-                            '--rac-option-highlight': '#2c2c2c',
-                            '--rac-option-hover': '#2c2c2c',
-                            '--rac-option-selected': '#2c2c2c',
-                            '--rac-arrow-width': '2em',
-                            '--rac-cancel-height': '1.75em',
-                            '--rac-arrow-height': '2em',
-                            '--rac-cancel-width': '1.75em',
-                        } as React.CSSProperties}
-                        className='h-9 w-full rounded-md bg-[#1e2939!important] border border-[#364153!important] !text-white items-center'
-                        placeholder='Choose status'
-                        onChange={setStatus}
-                        options={statuses}
-                        value={status}
-                    />
-                    <SlideLeft visibility={status != statuses.find(s => s?.name == selected?.status)}>
-                        <Button
-                            className='w-25 ml-4 mr-10 bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'
-                            onClick={() => updateStatus()}
-                        >Save</Button>
-                    </SlideLeft>
-                </div>
+                {(role === 'owner' || role === 'editor') &&
+                    <div className='flex'>
+                        <Select
+                            style={{
+                                '--rac-list-background': '#1e2939',
+                                '--rac-list-color': 'white',
+                                '--rac-option-highlight': '#2c2c2c',
+                                '--rac-option-hover': '#2c2c2c',
+                                '--rac-option-selected': '#2c2c2c',
+                                '--rac-arrow-width': '2em',
+                                '--rac-cancel-height': '1.75em',
+                                '--rac-arrow-height': '2em',
+                                '--rac-cancel-width': '1.75em',
+                            } as React.CSSProperties}
+                            className='h-9 w-full rounded-md bg-[#1e2939!important] border border-[#364153!important] !text-white items-center'
+                            placeholder='Choose status'
+                            onChange={setStatus}
+                            options={statuses}
+                            value={status}
+                        />
+                        <SlideLeft visibility={status != statuses.find(s => s?.name == selected?.status)}>
+                            <Button
+                                className='w-25 ml-4 mr-10 bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer'
+                                onClick={() => updateStatus()}
+                            >Save</Button>
+                        </SlideLeft>
+                    </div>
+                }
             </div>
         </ShowClarify>
     )

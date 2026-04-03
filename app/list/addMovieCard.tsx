@@ -39,35 +39,35 @@ const AddMovieCard = ({delay, currentStatus, toggleFilm, statusChange, movie, in
                     }
                 <div className='flex flex-col gap-2 h-fit w-full'>
                     <div className='flex justify-between w-full'>
-                        <h2 className='text-white'>{movie?.original_title}</h2>
-                        <a href={url} className='outline-none group'>
+                        <h2 className='text-white'>{movie?.original_title || movie?.original_name}</h2>
+                        <a target='_blank' href={url} className='outline-none group'>
                             <Info className='text-[#99a1af] group-hover:text-white group-focus-within:text-white cursor-pointer transition-colors duration-300'/>
                         </a>
                     </div>
                     <div className='flex text-[#99a1af] gap-2 items-center flex-wrap'>
-                        {movie?.release_date &&
+                        {(movie?.release_date || movie?.date) &&
                             <span>
-                                {format(new Date(movie.release_date), 'PP', {locale})}
+                                {format(new Date(movie.release_date || movie.date), 'PP', {locale})}
                             </span>
                         }
-                        {movie?.genre_ids?.length > 0 &&
+                        {movie?.genre_names && (
                             <>
                                 <div className='w-1 h-1 bg-[#99a1af] rounded-full'/>
                                 <span>
-                                    {movie?.genre_ids}
+                                    {movie.genre_names}
                                 </span>
                             </>
-                        }
-                        {movie?.vote_average &&
+                        )}
+                        {!!movie?.vote_average &&
                             <>
                                 <div className='w-1 h-1 bg-[#99a1af] rounded-full'/>
                                 <span>
-                                    {movie?.vote_average}
+                                    {Number(movie.vote_average.toFixed(1))}
                                 </span>
                             </>
                         }
                     </div>
-                    <span className='text-[#99a1af] text-wrap max-w-150 max-md:hidden'>{movie?.overview}</span>
+                    {movie?.overview && <span className='text-[#99a1af] text-wrap max-w-150 max-md:hidden'>{movie.overview}</span>}
                     <div className='flex gap-4 max-md:flex-col'>
                         <Select
                             offset={2}
@@ -96,20 +96,20 @@ const AddMovieCard = ({delay, currentStatus, toggleFilm, statusChange, movie, in
                         >
                             {added ? <><Check/> {alreadyInDb ? 'Already added' : 'Remove from list'}</> : <><Plus/> <span>Add to list</span></>}
                         </Button>
-                        {movie.overview ?
+                        {movie?.overview &&
                             <Button
                                 className='min-md:hidden bg-[#7f22fe] hover:bg-[#641aca] cursor-pointer transition-colors duration-300'
                                 onClick={() => setDesc(!desc)}
                             >
                                 {desc ? 'Hide' : 'Show'} description
                             </Button>
-                        : null}
+                        }
                     </div>
                 </div>
             </div>
             <SlideDown visibility={desc}>
                 <span className='block text-white'>
-                    {movie.overview}
+                    {movie?.overview}
                 </span>
             </SlideDown>
         </motion.div>

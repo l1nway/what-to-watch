@@ -186,6 +186,7 @@ export default function List() {
                 statuses={statuses}
                 visibility={film}
                 listId={listId}
+                role={role}
             />
             <MovieSearch
                 selected={selected as MovieClarifyProps['selected']}

@@ -6,7 +6,7 @@ export default function Footer({className}: {className?: string}) {
             <div className='flex flex-col'>
             <span className='text-[#c3abff]'>Developed by l1nway</span>
             </div>
-            <a href='https://github.com/l1nway'>
+            <a target='_blank' href='https://github.com/l1nway'>
             <Github className='text-[#a684ff] hover:scale-[1.05] hover:text-[#ffeafe] transition-[colors, transform] duration-300 cursor-pointer'/>
             </a>
         </footer>

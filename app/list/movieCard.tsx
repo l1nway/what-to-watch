@@ -1,5 +1,5 @@
 import {animationProps, stylesProps} from '../components/motionProps'
-import {Calendar, Clock4, Trash2} from 'lucide-react'
+import {Calendar, Star, Trash2} from 'lucide-react'
 import {MovieCardProps} from './listTypes'
 import {useRef, useCallback} from 'react'
 import {motion} from 'framer-motion'
@@ -37,7 +37,7 @@ const MovieCard = memo(function MovieCard({delay, setDelWarning, setSelected, se
                     tabIndex={0}
                 >
                     <img
-                        src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                        src={`https://image.tmdb.org/t/p/w500${movie?.poster_path}`}
                         className='min-w-full min-h-full aspect-[2/3] object-cover block transition-transform duration-300 ease-out group-hover:scale-110 group-focus-within:scale-110'
                     />
                     <div
@@ -47,8 +47,8 @@ const MovieCard = memo(function MovieCard({delay, setDelWarning, setSelected, se
                     <div className='max-md:w-full absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 transition-[opacity, colors] duration-300 group-hover:opacity-100 group-focus-within:opacity-100'/>
                     <div className='w-[90%] flex justify-between absolute text-[#777f8d] bottom-3 left-3 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100'>
                         <div className='flex gap-2'>
-                            <span className='flex gap-2 text-sm flex items-center'><Calendar className='text-[#777f8d] max-w-5'/> {format(new Date(movie.release_date), 'PP', {locale})}</span>
-                            <span className='flex gap-2 text-sm flex items-center'><Clock4 className='text-[#777f8d] max-w-5'/> {movie.vote_average}</span>
+                            <span className='flex gap-2 text-sm flex items-center'><Calendar className='text-[#777f8d] max-w-5'/> {format(new Date(movie?.release_date || movie?.date || movie?.first_air_date || '2010-10-10'), 'PP', {locale})}</span>
+                            <span className='flex gap-2 text-sm flex items-center'><Star className='text-[#777f8d] max-w-5'/> {Number(movie?.vote_average.toFixed(1))}</span>
                         </div>
                         <Trash2
                             className='max-w-5 text-[#777f8d] hover:text-[#fb2933] transition-colors duration-300 text-sm'
@@ -58,7 +58,7 @@ const MovieCard = memo(function MovieCard({delay, setDelWarning, setSelected, se
                 </div>
                 <div className='flex flex-col gap-1 pt-2'>
                     <h2 className='max-md:max-w-40 text-white max-w-64 whitespace-nowrap overflow-hidden text-ellipsis'>
-                        {movie.title}
+                        {movie?.title || movie?.name}
                     </h2>
                     <span className='text-[#777f8d]'>
                         {movie.genres?.[0]?.name}

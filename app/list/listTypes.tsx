@@ -65,15 +65,19 @@ export type MovieClarifyProps = {
       }>
       id: number
       title: string
+      name: string
       poster_path: string
       release_date: string
-      vote_average: string
+      date: string
+      first_air_date: string
+      vote_average: number
       overview: string
       genres: {
           name: string
       }[]
   } | null
   listId: string | null
+  role: string
 }
 
 export type ButtonItem = {
@@ -108,6 +112,7 @@ export interface MovieCardProps {
 }
 
 export interface FilmItem {
+    media_type: string
     status: string | null
     poster_path: string
     duration: number
