@@ -9,7 +9,9 @@ import {Button} from '@/components/ui/button'
 import {Select} from 'react-animated-select'
 import {Info, Trash2, X} from 'lucide-react'
 import {Gemini} from '../components/gemini'
+import {getLocale} from '../intro'
 import {db} from '@/lib/firebase'
+import {format} from 'date-fns'
 
 export default function MovieClarify({url, visibility, onClose, statuses, selected, listId, onRefresh, deleteMovie, delWarning, setDelWarning, setSimilar, setMovie}: MovieClarifyProps) {
     const [status, setStatus] = useState<MovieClarifyProps['statuses'][number] | undefined>(undefined)
@@ -47,6 +49,8 @@ export default function MovieClarify({url, visibility, onClose, statuses, select
             console.error('Error updating status:', e)
         }
     }, [listId, selected?.id, status?.name])
+    
+    const locale = getLocale()
 
     return (
         <ShowClarify
@@ -103,9 +107,11 @@ export default function MovieClarify({url, visibility, onClose, statuses, select
                 </div>
             </SlideDown>
             <div className='flex text-[#99a1af] gap-2 items-center mb-4'>
-                <span>
-                    {selected?.release_date}
-                </span>
+                {selected?.release_date &&
+                    <span>
+                        {format(new Date(selected?.release_date), 'PP', {locale})}
+                    </span>
+                }
                 <div className='w-1 h-1 bg-[#99a1af] rounded-full'/>
                 <span>
                     {selected?.genres?.[0]?.name}
