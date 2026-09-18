@@ -46,7 +46,7 @@ export default function RootLayout({children}: Readonly<{children: React.ReactNo
             <PageAnimatePresence>
               <Suspense fallback={null}>
                 <Analytics/>
-                {children}
+                  {children}
               </Suspense>
             </PageAnimatePresence>
           </AuthProvider>

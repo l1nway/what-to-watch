@@ -60,6 +60,59 @@ export const onGroupSync = onDocumentWritten({
     }
 })
 
+// [DOC: list-updated-tracking]
+const trackedSignature = (data?: FirebaseFirestore.DocumentData) => {
+    if (!data) return null
+    const movies = Array.isArray(data.movies) ? data.movies : []
+    return JSON.stringify({
+        name: (data.name ?? '').toString().trim(),
+        groupId: data.groupId ?? null,
+        movies: movies.map((m: any) => `${m?.id}:${m?.type || 'movie'}:${m?.status || ''}`).sort()
+    })
+}
+
+const touchList = async (listId: string) => {
+    try {
+        await db.collection('lists').doc(listId).update({updated: FieldValue.serverTimestamp()})
+    } catch (err: any) {
+        // NOT_FOUND means the list is already gone — nothing to stamp
+        if (err?.code !== 5) throw err
+    }
+}
+
+export const onListActivity = onDocumentWritten({
+    document: 'lists/{listId}',
+    region: 'europe-central2',
+    retry: true
+}, async (event) => {
+    const before = event.data?.before.data()
+    const after = event.data?.after.data()
+
+    if (!after) return
+
+    // Guards the self-write loop: our own `updated` stamp never changes the signature
+    if (before && trackedSignature(before) === trackedSignature(after)) return
+
+    await touchList(event.params.listId)
+})
+
+// Fallback for writes that only touch the group's `lists` array without rewriting list.groupId
+export const onGroupListsActivity = onDocumentWritten({
+    document: 'groups/{groupId}',
+    region: 'europe-central2',
+    retry: true
+}, async (event) => {
+    const before: string[] = event.data?.before.data()?.lists || []
+    const after: string[] = event.data?.after.data()?.lists || []
+
+    const changed = [
+        ...after.filter(id => !before.includes(id)),
+        ...before.filter(id => !after.includes(id))
+    ]
+
+    await Promise.all(changed.map(touchList))
+})
+
 export const searchMovies = onCall({
     cors: true,
     region: 'europe-central2',
@@ -161,7 +214,7 @@ export const getAiRecommendations = onCall({
         }
         
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({model: 'gemini-3-flash-preview'})
+    const model = genAI.getGenerativeModel({model: 'gemini-3.1-flash-lite'})
 
     const {movieId, movieTitle, movieDescription} = request.data
     

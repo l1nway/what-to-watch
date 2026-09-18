@@ -1,14 +1,13 @@
 'use client'
 
 import {ArrowLeft, Film, Loader, LogOut, ReceiptText, Settings} from 'lucide-react'
-import {ref, set, serverTimestamp} from 'firebase/database'
 import {useCallback, useEffect, useState} from 'react'
 import {AnimatePresence, motion} from 'framer-motion'
 import useDashboard from '../dashboard/useDashboard'
 import {onAuthStateChanged} from 'firebase/auth'
-import {updateActivity} from '@/lib/presence'
+import {goOffline, updateActivity} from '@/lib/presence'
 import {Button} from '@/components/ui/button'
-import {rtdb, auth} from '@/lib/firebase'
+import {auth} from '@/lib/firebase'
 import {useRouter} from 'next/navigation'
 import Footer from '../footer'
 
@@ -43,11 +42,7 @@ export default function Privacy() {
         
         const user = auth.currentUser
         if (user) {
-            await set(ref(rtdb, `/status/${user.uid}`), {
-                last_changed: serverTimestamp(),
-                state: 'offline',
-                activity: 'idle'
-            })
+            await goOffline(user.uid)
         }
 
         logout()

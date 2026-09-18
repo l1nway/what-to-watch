@@ -1,16 +1,14 @@
-
+import {User as FirebaseUser} from 'firebase/auth'
 import {useCallback, useRef} from 'react'
 import {User} from 'lucide-react'
 
-export default function Avatar({user, setFile}: any) {
+export default function Avatar({user, setFile}: {user: FirebaseUser | null; setFile: (file: File) => void}) {
     const fileRef = useRef<HTMLInputElement>(null)
 
-    const handleFile = useCallback((uploaded: any) => {
-        if (!uploaded || !uploaded.type || !uploaded.type.startsWith('image/')) {
-            return
-        }
+    const handleFile = useCallback((uploaded: File) => {
+        if (!uploaded.type?.startsWith('image/')) return
         setFile(uploaded)
-    }, [])
+    }, [setFile])
 
     return (
         <div className='bg-[#101828] flex flex-col gap-2 p-4 m-4 rounded-[10px] h-fit'>

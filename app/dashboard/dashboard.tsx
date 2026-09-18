@@ -2,7 +2,6 @@
 
 import {Film, Settings, LogOut, List, Users, Loader} from 'lucide-react'
 import {ReactNode, useCallback, useEffect, useState} from 'react'
-import {ref, set, serverTimestamp} from 'firebase/database'
 import {AnimatePresence, motion} from 'framer-motion'
 import {onAuthStateChanged} from 'firebase/auth'
 import SlideDown from '../components/slideDown'
@@ -10,9 +9,9 @@ import SlideLeft from '../components/slideLeft'
 import {useSearchParams} from 'next/navigation'
 import {Button} from '@/components/ui/button'
 import {GroupSkeleton} from './groupSkeleton'
-import {updateActivity} from '@/lib/presence'
+import {goOffline, updateActivity} from '@/lib/presence'
 import {ListSkeleton} from './listSkeleton'
-import {rtdb, auth} from '@/lib/firebase'
+import {auth} from '@/lib/firebase'
 import useDashboard from './useDashboard'
 import {GroupCard} from './groupCard'
 import {ListCard} from './listCard'
@@ -70,13 +69,7 @@ export default function Dashboard() {
         setDeauth(true)
         
         const user = auth.currentUser
-        if (user) {
-            await set(ref(rtdb, `/status/${user.uid}`), {
-                last_changed: serverTimestamp(),
-                state: 'offline',
-                activity: 'idle'
-            })
-        }
+        if (user) await goOffline(user.uid)
 
         logout()
     }, [logout])

@@ -1,30 +1,32 @@
 import {ref, getDownloadURL, uploadBytes} from 'firebase/storage'
-import {useCallback, useEffect, useRef, useState} from 'react'
+import {useCallback, useEffect, useReducer, useRef} from 'react'
+import {updateProfile, User} from 'firebase/auth'
 import ShowClarify from '../components/showClarify'
 import SlideDown from '../components/slideDown'
 import AvatarEditor from 'react-avatar-editor'
 import {doc, setDoc} from 'firebase/firestore'
 import {Button} from '@/components/ui/button'
-import {updateProfile} from 'firebase/auth'
 import {db, storage} from '@/lib/firebase'
 import {Loader} from 'lucide-react'
 import SlideLeft from '../components/slideLeft'
 import {Slider} from '@/components/ui/slider'
 import {useGesture} from '@use-gesture/react'
 import {updateActivity} from '@/lib/presence'
+import {merge} from '@/utils/reducer'
 
-export default function Editor({visibility, onClose, user}: any) {
+type State = {rotation: number; zoom: number; loaded: boolean; loading: boolean}
+
+const initialState: State = {rotation: 0, zoom: 1, loaded: false, loading: false}
+
+export default function Editor({visibility, onClose, user}: {visibility: File | null; onClose: () => void; user: User | null}) {
 
     const editor = useRef<AvatarEditor>(null)
 
-    const [rotation, setRotation] = useState<number>(0)
-    const [zoom, setZoom] = useState<number>(1)
-    const [loaded, setLoaded] = useState<boolean>(false)
-    const [loading, setLoading] = useState<boolean>(false)
+    const [{rotation, zoom, loaded, loading}, dispatch] = useReducer(merge<State>, initialState)
 
     useEffect(() => {
         if (!visibility) {
-            setLoaded(false)
+            dispatch({loaded: false})
         } else {
             updateActivity('changing_avatar')
         }
@@ -33,16 +35,15 @@ export default function Editor({visibility, onClose, user}: any) {
     }, [visibility])
 
     const reset = useCallback(() => {
-        setRotation(0)
-        setZoom(1)
+        dispatch({rotation: 0, zoom: 1})
         onClose()
-    }, [])
+    }, [onClose])
 
     const fileUpload = useCallback(async () => {
-        if (!editor.current) return
+        if (!editor.current || !user) return
 
         try {
-            setLoading(true)
+            dispatch({loading: true})
 
             const canvas = editor.current.getImageScaledToCanvas()
 
@@ -72,9 +73,9 @@ export default function Editor({visibility, onClose, user}: any) {
         } catch (e) {
             console.error('Upload error:', e)
         } finally {
-            setLoading(false)
+            dispatch({loading: false})
         }
-    }, [user, onClose, storage, db])
+    }, [user, onClose])
 
     const MIN_ZOOM = 1
     const MAX_ZOOM = 3
@@ -91,8 +92,10 @@ export default function Editor({visibility, onClose, user}: any) {
             startRotation.current = rotation
             return true
         }
-            setZoom(Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, startZoom.current * ms)))
-            setRotation(Math.min(180, Math.max(-180, startRotation.current + mr)))
+            dispatch({
+                zoom: Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, startZoom.current * ms)),
+                rotation: Math.min(180, Math.max(-180, startRotation.current + mr)),
+            })
             return memo
         }
     }, {
@@ -118,11 +121,11 @@ export default function Editor({visibility, onClose, user}: any) {
                 ref={editorContainer}
             >
                 <AvatarEditor
-                    onLoadSuccess={() => setLoaded(true)}
+                    onLoadSuccess={() => dispatch({loaded: true})}
                     crossOrigin='anonymous'
                     backgroundColor='gray'
                     borderRadius={500}
-                    image={visibility}
+                    image={visibility ?? ''}
                     rotate={rotation}
                     height={512}
                     scale={zoom}
@@ -137,7 +140,7 @@ export default function Editor({visibility, onClose, user}: any) {
                         Zoom
                     </span>
                     <Slider
-                        onValueChange={([v]) => setZoom(v)}
+                        onValueChange={([v]) => dispatch({zoom: v})}
                         min={MIN_ZOOM}
                         max={MAX_ZOOM}
                         value={[zoom]}
@@ -149,7 +152,7 @@ export default function Editor({visibility, onClose, user}: any) {
                     Rotate
                 </span>
                     <Slider
-                        onValueChange={([v]) => setRotation(v)}
+                        onValueChange={([v]) => dispatch({rotation: v})}
                         value={[rotation]}
                         step={0.01}
                         min={-180}

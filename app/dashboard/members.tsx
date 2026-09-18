@@ -77,7 +77,7 @@ export default function Members({visibility, onClose, group, user, toggleRole, k
                     prev.map(m => m.id === member.id 
                         ? {
                             ...m,
-                            online: val.state === 'online',
+                            online: !!val.connections && Object.keys(val.connections).length > 0,
                             last_seen: val.last_changed,
                             activity: val.activity
                         }

@@ -1,129 +1,53 @@
 'use client'
 
 import {doc, updateDoc, deleteDoc, arrayUnion, collection, query, where, getDocs} from 'firebase/firestore'
+import TokenScreen, {useTokenGuard} from '../components/tokenScreen'
 import {useRouter, useSearchParams} from 'next/navigation'
-import {getAuth, onAuthStateChanged} from 'firebase/auth'
-import {useEffect, useState, useCallback} from 'react'
-import {Film, Loader} from 'lucide-react'
-import {User} from 'firebase/auth'
+import {useAuth} from '../components/authProvider'
+import {useEffect, useRef, useState} from 'react'
 import {db} from '@/lib/firebase'
 
-const auth = getAuth()
-
-type InviteData = {
-    id: string
-    groupId: string
-    role?: 'editor' | 'viewer'
-}
-
-export default function InvitePage() {
+// [DOC: auth/#invite-route]
+export default function Invite() {
     const searchParams = useSearchParams()
-    const navigate = useRouter()
-    
-    const [status, setStatus] = useState<string>('loading')
-    const [user, setUser] = useState<User | null>(null)
+    const {user, loading} = useAuth()
+    const router = useRouter()
 
     const token = searchParams.get('token')
+    const [error, setError] = useState<string>('')
+    const handled = useRef<boolean>(false)
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            setUser(currentUser)
-            if (!currentUser) {
-                setStatus('unauthorized')
-            }
-        })
-        return () => unsubscribe()
-    }, [])
+        if (!token || loading || !user?.email || handled.current) return
+        handled.current = true
 
-    const handleAcceptInvite = useCallback(async (inviteData: InviteData, currentUser: User) => {
-        setStatus('processing')
-
-        try {
-            const groupRef = doc(db, 'groups', inviteData.groupId)
-            
-            const updateData: any = {
-                members: arrayUnion(currentUser.uid)
-            }
-
-            if (inviteData.role === 'editor') {
-                updateData.editors = arrayUnion(currentUser.uid)
-            }
-
-            await updateDoc(groupRef, updateData)
-
-            const inviteRef = doc(db, 'invites', inviteData.id)
-            await deleteDoc(inviteRef)
-
-            setStatus('success')
-            
-            navigate.push(`/dashboard?groupId=${inviteData.groupId}`)
-        } catch (e) {
-            console.error('Error', e)
-            setStatus('error')
-        }
-    }, [navigate])
-
-    useEffect(() => {
-        if (!user || !token || status === 'processing' || status === 'success') return
-
-        const findAndAccept = async () => {
-            setStatus('loading')
-            if (!user.email) {
-                setStatus('error')
-                return
-            }
+        const accept = async () => {
             try {
-                const q = query(
-                    collection(db, 'invites'), 
-                    where('token', '==', token)
-                )
-                const snapshot = await getDocs(q)
+                const snapshot = await getDocs(query(collection(db, 'invites'), where('token', '==', token)))
+                if (snapshot.empty) return setError('This invite does not exist')
 
-                if (snapshot.empty) {
-                    setStatus('error')
-                    return
-                }
+                const invite = snapshot.docs[0]
+                const data = invite.data()
 
-                const docSnapshot = snapshot.docs[0]
-                const docData = docSnapshot.data()
+                if (data.expiresAt?.toDate() < new Date()) return setError('This invite has expired')
+                if (data.email && data.email !== user.email!.toLowerCase()) return setError('This invite was issued for another account')
 
-                if (docData.expiresAt?.toDate() < new Date()) {
-                    setStatus('error')
-                    return
-                }
+                await updateDoc(doc(db, 'groups', data.groupId), {
+                    members: arrayUnion(user.uid),
+                    ...(data.role === 'editor' ? {editors: arrayUnion(user.uid)} : {}),
+                })
+                await deleteDoc(doc(db, 'invites', invite.id))
 
-                if (docData.email && docData.email !== user.email.toLowerCase()) {
-                    setStatus('error')
-                    return
-                }
-
-                const inviteFullData: InviteData = {
-                    id: docSnapshot.id,
-                    groupId: docData.groupId,
-                    role: docData.role,
-                }
-                await handleAcceptInvite(inviteFullData, user)
-
-            } catch (e) {
-                console.error(e)
-                setStatus('error')
-                return
-            } finally {
-                navigate.push(status === 'unauthorized' ? '/auth?mode=login' : '/dashboard')
+                router.replace(`/dashboard?groupId=${data.groupId}`)
+            } catch {
+                setError('Failed to accept the invite')
             }
         }
 
-        findAndAccept()
-    }, [user, token, handleAcceptInvite])
+        accept()
+    }, [token, user, loading, router])
 
-    return (
-        <div className='h-screen w-screen overflow-y-auto bg-gradient-to-br from-[#030712] to-[#2f0d68] flex max-md:flex-col items-center min-md:justify-center min-md:gap-24 max-md:gap-4'>
-            <div className='flex flex-col items-center gap-4'>
-                <div className='cursor-pointer login-logo'>
-                    <Film className='text-[#a684ff] min-md:h-120 min-md:w-120 max-md:h-50 max-md:w-50 hover:scale-[1.05] hover:text-[#ffeafe] transition-[colors, transform] duration-300 cursor-pointer'/>
-                </div>
-                <h1 className='text-white text-2xl'>What to Watch</h1> <Loader className='text-[#959dab] animate-spin'/>
-            </div>
-        </div>
-    )
+    useTokenGuard(!token || Boolean(error))
+
+    return <TokenScreen error={token ? error : 'The invite link is missing'}/>
 }

@@ -54,8 +54,29 @@ export const authError = (
             if (refs.password) shake(refs.password)
         break
 
+        case 'auth/missing-email':
+            message = 'Please enter an email address'
+            if (refs.login) shake(refs.login)
+        break
+
+        case 'auth/expired-action-code':
+            message = 'The link has expired, request a new one'
+        break
+
+        case 'auth/invalid-action-code':
+            message = 'The link is invalid, request a new one'
+        break
+
+        case 'auth/requires-recent-login':
+            message = 'Please sign in again and repeat this change'
+        break
+
+        case 'auth/operation-not-allowed':
+            message = 'Not allowed'
+        break
+
         case 'auth/too-many-requests':
-            message = 'Too many requests'
+            message = 'Too many requests, try again later'
         break
 
         case 'auth/network-request-failed':

@@ -3,6 +3,7 @@
 import {CSSTransition} from 'react-transition-group'
 import {ReactNode, useRef} from 'react'
 
+// [DOC: #slide-no-gap] never put a parent `gap-*` on this component's flex container
 interface SlideLeftProps {
     onClick?: () => void
     visibility?: boolean

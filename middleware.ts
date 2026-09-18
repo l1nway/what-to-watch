@@ -3,15 +3,17 @@ import {NextResponse} from 'next/server'
 
 export function middleware(request: NextRequest) {
     const session = request.cookies.get('session')
-    const {pathname} = request.nextUrl
+    const {pathname, search} = request.nextUrl
 
     const isAuthPage = pathname.startsWith('/auth')
+    // the single route every email link lands on stays usable with or without a session
+    const isLinkPage = pathname.startsWith('/reset')
     const isRootPage = pathname === '/'
-    const isPublicPage = isAuthPage || isRootPage
+    const isPublicPage = isAuthPage || isLinkPage || isRootPage
 
     if (!session) {
       if (!isPublicPage) {
-        const returnTo = encodeURIComponent(pathname)
+        const returnTo = encodeURIComponent(`${pathname}${search}`)
         return NextResponse.redirect(
           new URL(`/auth?mode=login&returnTo=${returnTo}`, request.url)
         )
@@ -19,10 +21,9 @@ export function middleware(request: NextRequest) {
       return NextResponse.next()
     }
 
-    if (session) {
-      if (isPublicPage) {
-        return NextResponse.redirect(new URL('/dashboard', request.url))
-      }
+    // a signed-in user may still need the email links: they are valid regardless of the session
+    if (isPublicPage && !isLinkPage) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
     return NextResponse.next()

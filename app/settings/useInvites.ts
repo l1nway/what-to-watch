@@ -156,5 +156,5 @@ export default function useInvites(user: User | null) {
         return () => unsub()
     }, [q, invitesRequest])
 
-    return {fullInvites, acceptInvite, rejectInvite}
+    return useMemo(() => ({fullInvites, acceptInvite, rejectInvite}), [fullInvites, acceptInvite, rejectInvite])
 }
