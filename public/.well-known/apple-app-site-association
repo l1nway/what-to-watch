@@ -1,0 +1,20 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "5DPF7227QH.com.l1nway.w2wrn",
+        "paths": ["/list*", "/group*", "/invite*", "/email-action*"]
+      },
+      {
+        "appIDs": ["5DPF7227QH.com.l1nway.w2wrn"],
+        "components": [
+          {"/": "/list*"},
+          {"/": "/group*"},
+          {"/": "/invite*"},
+          {"/": "/email-action*"}
+        ]
+      }
+    ]
+  }
+}
