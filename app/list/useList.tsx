@@ -46,6 +46,7 @@ export function useList(listId: string | null, bck: () => void) {
 
     const [similar, setSimilar] = useState<boolean>(false)
 
+    const [isPublic, setIsPublic] = useState<boolean>(false)
     const [role, setRole] = useState<string>('owner')
 
     useEffect(() => {
@@ -146,6 +147,19 @@ export function useList(listId: string | null, bck: () => void) {
 
             if (listSnap.exists()) {
                 const data = listSnap.data()
+                const publicList = data.get ? data.get('public', false) : (data.public ?? false)
+                setIsPublic(publicList)
+
+                if (!user && !publicList) {
+                    const returnTo = encodeURIComponent(`/list?id=${listId}`)
+                    router.replace(`/auth?mode=login&returnTo=${returnTo}`)
+                    return
+                }
+
+                if (!user && publicList) {
+                    setRole('viewer')
+                }
+
                 const storedMovies = data.movies || []
                 const fetchedName = data.name || 'Untitled List'
                 setName(fetchedName)
@@ -188,7 +202,7 @@ export function useList(listId: string | null, bck: () => void) {
         } finally {
             setLoading(false)
         }
-    }, [listId])
+    }, [listId, user])
 
     useEffect(() => {fetchListAndMovies()}, [fetchListAndMovies])
 
@@ -295,5 +309,5 @@ export function useList(listId: string | null, bck: () => void) {
     
     useEffect(() => {if (name && name !== 'Loading…') document.title = `${name} | What to Watch`}, [name])
 
-    return {similar, setSimilar, delay, setFilter, role, user, loading, delClarify, setDelClarify, deleteList, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, inputWidth, onChange, edit, setEdit, name, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime, resetFilters}
+    return {similar, setSimilar, isPublic, delay, setFilter, role, user, loading, delClarify, setDelClarify, deleteList, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, inputWidth, onChange, edit, setEdit, name, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime, resetFilters}
 }

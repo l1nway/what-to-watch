@@ -9,6 +9,7 @@ import {httpsCallable} from 'firebase/functions'
 import {doc, getDoc} from 'firebase/firestore'
 import {updateActivity} from '@/lib/presence'
 import {Button} from '@/components/ui/button'
+import {useAuth} from '../components/authProvider'
 import {db, functions} from '@/lib/firebase'
 import {auth} from '@/lib/firebase'
 
@@ -22,6 +23,8 @@ export default function Random() {
     const searchParams = useSearchParams()
     const listId = searchParams.get('id')
     const router = useRouter()
+    
+    const {user, loading: authLoading} = useAuth()
 
     const [desc, setDesc] = useState<string>('You can choose a movie randomly or play a quiz to eliminate')
     const [title, setTitle] = useState<string>('Choose your mode')
@@ -43,6 +46,13 @@ export default function Random() {
 
     const [animate, setAnimate] = useState<'spinning' | 'reveal'>('reveal')
     
+    const [back, setBack] = useState<boolean>(false)
+    
+    const bck = useCallback(() => {
+        router.push(`/list?id=${listId}`)
+        setBack(true)
+    }, [listId, router])
+    
     const getMovieDetails = httpsCallable(functions, 'getMovieDetails')
 
     useEffect(() => {
@@ -53,31 +63,49 @@ export default function Random() {
     }, [])
 
     const fetchIds = useCallback(async () => {
+        if (authLoading) return
         if (!listId) {bck(); return}
 
         try {
-            const savedIds = sessionStorage.getItem('filtered_movie_ids')
-            
-            if (savedIds) {
-                const parsedIds = JSON.parse(savedIds)
-                if (Array.isArray(parsedIds) && parsedIds.length > 0) {
-                    setAllIds(parsedIds)
-                    return
-                }
-            }
-
             const listRef = doc(db, 'lists', listId)
             const snap = await getDoc(listRef)
+            
             if (snap.exists()) {
-                const movies = snap.data().movies || []
+                const data = snap.data()
+                const publicList = data.get ? data.get('public', false) : (data.public ?? false)
+                
+                if (!user && !publicList) {
+                    const returnTo = encodeURIComponent(`/random?id=${listId}`)
+                    router.replace(`/auth?mode=login&returnTo=${returnTo}`)
+                    return
+                }
+
+                const savedIds = sessionStorage.getItem('filtered_movie_ids')
+                if (savedIds) {
+                    const parsedIds = JSON.parse(savedIds)
+                    if (Array.isArray(parsedIds) && parsedIds.length > 0) {
+                        setAllIds(parsedIds)
+                        return
+                    }
+                }
+
+                const movies = data.movies || []
                 setAllIds(movies.map((m: any) => m.id))
+            } else {
+                bck()
             }
         } catch (e) {
             console.error(e)
+            if (!user) {
+                const returnTo = encodeURIComponent(`/random?id=${listId}`)
+                router.replace(`/auth?mode=login&returnTo=${returnTo}`)
+            } else {
+                bck()
+            }
         } finally {
             setLoading(false)
         }
-    }, [listId])
+    }, [listId, user, authLoading, bck, router])
 
     const pickRandomMovie = useCallback(async () => {
         if (allIds.length === 0) return
@@ -272,12 +300,6 @@ export default function Random() {
         },
     }), [])
     
-    const [back, setBack] = useState<boolean>(false)
-    
-    const bck = useCallback(() => {
-        router.push(`/list?id=${listId}`)
-        setBack(true)
-    }, [])
 
     return (
         <div className='bg-[#030712] h-screen flex flex-col '>

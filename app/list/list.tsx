@@ -12,6 +12,7 @@ import SlideLeft from '../components/slideLeft'
 import {Slider} from '@/components/ui/slider'
 import {Button} from '@/components/ui/button'
 import {updateActivity} from '@/lib/presence'
+import {useAuth} from '../components/authProvider'
 import MovieSkeleton from './movieSkeleton'
 import {useList, statuses} from './useList'
 import {useRouter} from 'next/navigation'
@@ -38,12 +39,14 @@ export default function List() {
 
     const [back, setBack] = useState<boolean>(false)
 
-    const bck = useCallback(() => {
-        router.push('/dashboard')
-        setBack(true)
-    }, [])
+    const {user} = useAuth()
 
-    const {similar, setSimilar, delay, setFilter, role, user, loading, delClarify, setDelClarify, inputWidth, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, onChange, edit, setEdit, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime, name, deleteList, resetFilters} = useList(listId, bck)
+    const bck = useCallback(() => {
+        router.push(user ? '/dashboard' : '/')
+        setBack(true)
+    }, [user])
+
+    const {similar, setSimilar, isPublic, delay, setFilter, role, loading, delClarify, setDelClarify, inputWidth, setMoviesData, delWarning, setDelWarning, deleteMovie, updateName, inputRef, spanRef, onChange, edit, setEdit, selectedGenres, setSelected, setSelectedGenres, toggleCheck, filteredMovies, status, genres, film, setFilm, selected, movie, setMovie, buttons, filter, fetchListAndMovies, moviesData, setRuntime, runtime, name, deleteList, resetFilters} = useList(listId, bck)
 
     const renderButtons = useCallback((mobile: boolean) => {
         return buttons.map((element, index) => {

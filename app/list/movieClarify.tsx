@@ -76,10 +76,12 @@ export default function MovieClarify({role, url, visibility, onClose, statuses, 
             <div className='text-white flex justify-between mb-2'>
                 <h2>{selected?.title || selected?.name}</h2>
                 <div className='flex gap-2'>
-                    <Trash2
-                        className='text-[#99a1af] hover:text-[#fb2933] transition-colors duration-300 cursor-pointer'
-                        onClick={() => setDelWarning(!delWarning)}
-                    />
+                    {role !== 'viewer' &&
+                        <Trash2
+                            className='text-[#99a1af] hover:text-[#fb2933] transition-colors duration-300 cursor-pointer'
+                            onClick={() => setDelWarning(!delWarning)}
+                        />
+                    }
                     <a target='_blank' href={url}>
                         <Info className='text-[#99a1af] hover:text-white cursor-pointer transition-colors duration-300'/>
                     </a>
@@ -89,23 +91,25 @@ export default function MovieClarify({role, url, visibility, onClose, statuses, 
                     />
                 </div>
             </div>
-            <SlideDown visibility={delWarning}>
-                <span className='text-white w-full justify-center flex pb-4'>Are you sure want remove the movie from the list?</span>
-                <div className='flex pb-2 gap-2'>
-                    <Button
-                        onClick={(e: React.MouseEvent<HTMLButtonElement>) => deleteMovie(e, selected?.id)}
-                        className='bg-red-500 hover:bg-red-700 cursor-pointer w-[49%]'
-                    >
-                        Confirm delete
-                    </Button>
-                    <Button
-                        className='cursor-pointer w-[49%] bg-[#7f22fe] hover:bg-[#641aca]'
-                        onClick={() => setDelWarning(!delWarning)}
-                    >
-                        Cancel
-                    </Button>
-                </div>
-            </SlideDown>
+            {role !== 'viewer' &&
+                <SlideDown visibility={delWarning}>
+                    <span className='text-white w-full justify-center flex pb-4'>Are you sure want remove the movie from the list?</span>
+                    <div className='flex pb-2 gap-2'>
+                        <Button
+                            onClick={(e: React.MouseEvent<HTMLButtonElement>) => deleteMovie(e, selected?.id)}
+                            className='bg-red-500 hover:bg-red-700 cursor-pointer w-[49%]'
+                        >
+                            Confirm delete
+                        </Button>
+                        <Button
+                            className='cursor-pointer w-[49%] bg-[#7f22fe] hover:bg-[#641aca]'
+                            onClick={() => setDelWarning(!delWarning)}
+                        >
+                            Cancel
+                        </Button>
+                    </div>
+                </SlideDown>
+            }
             <div className='flex text-[#99a1af] gap-2 items-center mb-4'>
                 {selected?.release_date || selected?.date || selected?.first_air_date &&
                     <span>

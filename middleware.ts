@@ -9,7 +9,10 @@ export function middleware(request: NextRequest) {
     // the single route every email link lands on stays usable with or without a session
     const isLinkPage = pathname.startsWith('/reset')
     const isRootPage = pathname === '/'
-    const isPublicPage = isAuthPage || isLinkPage || isRootPage
+    // /list may be publicly readable (public:true lists); auth guard lives in useList
+    const isListPage = pathname.startsWith('/list')
+    const isRandomPage = pathname.startsWith('/random')
+    const isPublicPage = isAuthPage || isLinkPage || isRootPage || isListPage || isRandomPage
 
     if (!session) {
       if (!isPublicPage) {
@@ -22,7 +25,7 @@ export function middleware(request: NextRequest) {
     }
 
     // a signed-in user may still need the email links: they are valid regardless of the session
-    if (isPublicPage && !isLinkPage) {
+    if (isPublicPage && !isLinkPage && !isListPage && !isRandomPage) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 

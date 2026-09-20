@@ -113,6 +113,66 @@ export const onGroupListsActivity = onDocumentWritten({
     await Promise.all(changed.map(touchList))
 })
 
+// [DOC: invite-push]
+const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send'
+
+export const onInvitePush = onDocumentWritten({
+    document: 'invites/{inviteId}',
+    region: 'europe-central2',
+}, async (event) => {
+    const before = event.data?.before.data()
+    const invite = event.data?.after.data()
+    console.log('onInvitePush fired', {inviteId: event.params.inviteId, email: invite?.email, status: invite?.status})
+
+    // generic-инвайты (без email) пушить некому
+    if (!invite?.email || invite.status !== 'pending') {
+        console.log('skip: no email or not pending', {email: invite?.email, status: invite?.status})
+        return
+    }
+
+    // Повторная отправка приходит как merge-запись с новым createdAt; прочие правки не пушим
+    const resent = before?.createdAt?.toMillis?.() !== invite.createdAt?.toMillis?.()
+    if (before?.status === 'pending' && !resent) {
+        console.log('skip: already pending, not resent')
+        return
+    }
+
+    try {
+        const users = await db.collection('users').where('email', '==', invite.email).limit(1).get()
+        const user = users.docs[0]
+        const pushToken = user?.get('pushToken')
+        console.log('user lookup', {email: invite.email, found: !!user, pushToken: pushToken || null})
+        if (!pushToken) {
+            console.log('skip: no pushToken')
+            return
+        }
+
+        console.log('sending expo push', {to: pushToken, groupId: invite.groupId})
+        const {data} = await axios.post(EXPO_PUSH_URL, {
+            to: pushToken,
+            title: 'Group invitation',
+            body: `You've been invited to join "${invite.groupName}"`,
+            categoryId: 'invite',
+            data: {type: 'invite', token: invite.token, groupId: invite.groupId},
+            sound: 'default'
+        }, {headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'Accept-Encoding': 'gzip, deflate'}})
+        console.log('expo response', data)
+
+        const tickets = Array.isArray(data?.data) ? data.data : [data?.data]
+
+        for (const ticket of tickets) {
+            if (ticket?.status !== 'error') continue
+            console.error('Expo push error:', ticket.message, ticket.details)
+            if (ticket.details?.error === 'DeviceNotRegistered') {
+                console.log('clearing stale pushToken', {uid: user.id})
+                await user.ref.set({pushToken: null}, {merge: true})
+            }
+        }
+    } catch (err) {
+        console.error('Invite push error:', err)
+    }
+})
+
 export const searchMovies = onCall({
     cors: true,
     region: 'europe-central2',
