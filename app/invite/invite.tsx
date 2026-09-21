@@ -35,6 +35,7 @@ export default function Invite() {
                 await updateDoc(doc(db, 'groups', data.groupId), {
                     members: arrayUnion(user.uid),
                     ...(data.role === 'editor' ? {editors: arrayUnion(user.uid)} : {}),
+                    updatedBy: user.uid
                 })
                 await deleteDoc(doc(db, 'invites', invite.id))
 

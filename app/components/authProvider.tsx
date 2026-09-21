@@ -2,7 +2,8 @@
 
 import {createContext, useContext, useEffect, useState} from 'react'
 import {onAuthStateChanged, User} from 'firebase/auth'
-import {auth} from '@/lib/firebase'
+import {httpsCallable} from 'firebase/functions'
+import {auth, functions} from '@/lib/firebase'
 
 type AuthContextType = {
     user: User | null
@@ -26,6 +27,9 @@ export function AuthProvider({children}: {children: React.ReactNode}) {
 
         return () => unsub()
     }, [])
+
+    // [DOC: email-sign-in-sync] rescue sync in case the email-change link was confirmed while signed out
+    useEffect(() => {if (user) httpsCallable(functions, 'syncEmailOnSignIn')().catch(() => {})}, [user?.uid])
 
     return (
         <AuthContext.Provider value={{user, loading}}>

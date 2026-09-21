@@ -8,6 +8,7 @@ import {doc, updateDoc} from 'firebase/firestore'
 import SlideDown from '../components/slideDown'
 import SlideLeft from '../components/slideLeft'
 import {Check, Loader, Search, X} from 'lucide-react'
+import {useAuth} from '../components/authProvider'
 import {updateActivity} from '@/lib/presence'
 import {Button} from '@/components/ui/button'
 import {Input} from '@/components/ui/input'
@@ -29,6 +30,7 @@ const TMDB_GENRES: Record<number, string> = {
 }
 
 export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesData, onRefresh, similar}: MovieSearchProps) => {
+    const {user} = useAuth()
 
     useEffect(() => {
         visibility && updateActivity('adding_movie')
@@ -176,7 +178,8 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
             const currentMoviesInDb = movies.map((m: any) => ({id: m.id, status: m.status || 'Plan to watch', type: m.type || 'movie'}))
             
             await updateDoc(listRef, {
-                movies: [...newMoviesForDb, ...currentMoviesInDb]
+                movies: [...newMoviesForDb, ...currentMoviesInDb],
+                updatedBy: user?.uid ?? null
             })
 
             await onRefresh()
@@ -184,7 +187,7 @@ export const MovieSearch = ({delay, visibility, onClose, id, movies, setMoviesDa
             console.error('Error during save:', e)
             await onRefresh()
         }
-    }, [films, id, onClose, movies, setMoviesData])
+    }, [films, id, onClose, movies, setMoviesData, user])
 
     const {height, measureHeight} = useDynamicHeight({contentRef, dependency: combinedList, visibility, staticOffsets: 290})
 

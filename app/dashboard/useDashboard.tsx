@@ -101,13 +101,14 @@ export default function UseDashboard() {
                 lists: listIds,
                 public: false,
                 created: serverTimestamp(),
+                updatedBy: user.uid
             }
 
             batch.set(newGroupRef, newGroupData)
 
             listIds.forEach((listId) => {
                 const listRef = doc(db, 'lists', listId)
-                batch.update(listRef, {groupId: newGroupRef.id})
+                batch.update(listRef, {groupId: newGroupRef.id, updatedBy: user.uid})
             })
 
             await batch.commit()
@@ -146,6 +147,7 @@ export default function UseDashboard() {
     }, [user, lists, groupLists])
 
     const deleteGroup = useCallback(async (id: string) => {
+        if (!user) return
         try {
             setLoading(true)
             const batch = writeBatch(db)
@@ -154,7 +156,7 @@ export default function UseDashboard() {
             const listsSnap = await getDocs(listsQuery)
 
             listsSnap.docs.forEach(listDoc => {
-                batch.update(listDoc.ref, {groupId: null})
+                batch.update(listDoc.ref, {groupId: null, updatedBy: user.uid})
             })
 
             batch.delete(doc(db, 'groups', String(id)))
@@ -170,9 +172,10 @@ export default function UseDashboard() {
         } finally {
             setLoading(false)
         }
-    }, [])
+    }, [user])
 
     const updateGroup = useCallback(async (id: string, newName: string | undefined) => {
+        if (!user) return
         if (!newName) {
             setGroups(prev => prev.map(g => g.id === id ? {...g, edit: false} : g))
             return
@@ -184,14 +187,14 @@ export default function UseDashboard() {
                 g.id === id ? {...g, edit: false, name: newName, tempName: newName} : g
             ))
 
-            await updateDoc(doc(db, 'groups', id), {name: newName})
-            
+            await updateDoc(doc(db, 'groups', id), {name: newName, updatedBy: user.uid})
+
         } catch (e) {
             console.error(e)
         } finally {
             setLoading(false)
         }
-    }, [])
+    }, [user])
 
     const leaveGroup = useCallback(async (groupId: string | number) => {
         if (!user) return
@@ -200,9 +203,11 @@ export default function UseDashboard() {
             setLoading(true)
             const groupRef = doc(db, 'groups', String(groupId))
 
+            // updatedBy === выходящий участник: так триггер отличает member_left от member_kicked
             await updateDoc(groupRef, {
                 members: arrayRemove(user.uid),
-                editors: arrayRemove(user.uid)
+                editors: arrayRemove(user.uid),
+                updatedBy: user.uid
             })
 
             setGroups(prev => prev.filter(g => g.id !== groupId))
@@ -236,7 +241,8 @@ export default function UseDashboard() {
                 groupId: targetGroupId, 
                 desc: listDesc,
                 created: serverTimestamp(),
-                movies: []
+                movies: [],
+                updatedBy: user.uid
             }
 
             batch.set(newListRef, newListData)
@@ -244,7 +250,8 @@ export default function UseDashboard() {
             if (targetGroupId) {
                 const groupDocRef = doc(db, 'groups', targetGroupId)
                 batch.update(groupDocRef, {
-                    lists: arrayUnion(newListRef.id)
+                    lists: arrayUnion(newListRef.id),
+                    updatedBy: user.uid
                 })
             }
 
@@ -276,6 +283,7 @@ export default function UseDashboard() {
         originalOptions: ListItem[],
         selectedIds: string[]
     ) => {
+        if (!user) return
         const previousGroups = [...groups]
 
         setGroups(prevGroups => prevGroups.map(group => 
@@ -286,18 +294,18 @@ export default function UseDashboard() {
             const batch = writeBatch(db)
             
             const groupRef = doc(db, 'groups', groupId)
-            batch.update(groupRef, {lists: selectedIds})
+            batch.update(groupRef, {lists: selectedIds, updatedBy: user.uid})
 
             const listsToRemove = lists.filter(l => l.groupId === groupId && !selectedIds.includes(l.id))
-            
+
             listsToRemove.forEach(list => {
                 const listRef = doc(db, 'lists', list.id)
-                batch.update(listRef, {groupId: null})
+                batch.update(listRef, {groupId: null, updatedBy: user.uid})
             })
 
             selectedIds.forEach((listId) => {
                 const listRef = doc(db, 'lists', listId)
-                batch.update(listRef, {groupId: groupId})
+                batch.update(listRef, {groupId: groupId, updatedBy: user.uid})
             })
 
             await batch.commit()
@@ -306,7 +314,7 @@ export default function UseDashboard() {
             console.error('Firebase Batch Error:', e)
             setGroups(previousGroups)
         }
-    }, [groups, lists])
+    }, [groups, lists, user])
 
     useEffect(() => {
         if (!user) return
@@ -396,13 +404,14 @@ export default function UseDashboard() {
     const [processingId, setProcessingId] = useState<string | null>(null)
 
     const toggleRole: MembersTypes['toggleRole'] = useCallback(async (groupId, memberId, isCurrentlyAdmin) => {
-        if (!groupId || !memberId || isCurrentlyAdmin === undefined) return
+        if (!groupId || !memberId || isCurrentlyAdmin === undefined || !user) return
         try {
             setProcessingId(memberId)
             const groupRef = doc(db, 'groups', groupId)
-            
+
             await updateDoc(groupRef, {
-                editors: isCurrentlyAdmin ? arrayRemove(memberId) : arrayUnion(memberId)
+                editors: isCurrentlyAdmin ? arrayRemove(memberId) : arrayUnion(memberId),
+                updatedBy: user.uid
             })
 
             setGroups(prev => {
@@ -428,18 +437,20 @@ export default function UseDashboard() {
         } finally {
             setProcessingId(null)
         }
-    }, [fetchMembers])
+    }, [fetchMembers, user])
 
     const [deletingId, setDeletingId] = useState<string | null>(null)
 
     const kickMember: MembersTypes['kickMember'] = useCallback(async (groupId, targetUserId) => {
+        if (!user) return
         try {
             setDeletingId(targetUserId)
             const groupRef = doc(db, 'groups', groupId as string)
 
             await updateDoc(groupRef, {
                 members: arrayRemove(targetUserId),
-                editors: arrayRemove(targetUserId)
+                editors: arrayRemove(targetUserId),
+                updatedBy: user.uid
             })
 
             setGroups(prev => {
@@ -468,7 +479,7 @@ export default function UseDashboard() {
         } finally {
             setDeletingId(null)
         }
-    }, [fetchMembers])
+    }, [fetchMembers, user])
 
     return ({deletingId, processingId, members, setMembers, fetchMembers, setLoading, toggleRole, kickMember, membersClarify, setMembersClarify, logout, delay, newGroupRef, newListRef, groupRef, setGroups, updateGroup, delClarify, setDelClarify, selectedGroup, setSelectedGroup, deleteGroup, leaveGroup, router, lists, groups, user, loading, list, setList, group, setGroup, invite, setInvite, listName, setListName, listDesc, setListDesc, groupName, setGroupName, groupDesc, setGroupDesc, inviteEmail, setInviteEmail, groupLists, setGroupLists, createList, createGroup, updateGroups})
 }

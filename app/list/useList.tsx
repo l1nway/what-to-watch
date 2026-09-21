@@ -1,5 +1,5 @@
 import {useCallback, useState, useMemo, useEffect, useRef, useLayoutEffect} from 'react'
-import {doc, getDoc, updateDoc, arrayRemove, deleteDoc} from 'firebase/firestore'
+import {doc, getDoc, updateDoc, deleteDoc} from 'firebase/firestore'
 import {Funnel, Loader, Plus, Shuffle, Trash2} from 'lucide-react'
 import {ButtonItem, Status, TMDBMovie} from './listTypes'
 import {shake, clearShake} from '../components/shake'
@@ -210,13 +210,15 @@ export function useList(listId: string | null, bck: () => void) {
         try {
             const listRef = doc(db, 'lists', String(listId))
 
+            // Автора удаления в триггере видно только по последней записи — помечаем документ перед удалением
+            if (user) await updateDoc(listRef, {updatedBy: user.uid})
             await deleteDoc(listRef)
             router.push('/dashboard')
             setDelClarify(false)
         } catch (e) {
             console.error('Failed to delete list:', e)
         }
-    }, [db])
+    }, [user])
 
     const [delClarify, setDelClarify] = useState<boolean>(false)
 
@@ -255,14 +257,15 @@ export function useList(listId: string | null, bck: () => void) {
         try {
             const listRef = doc(db, 'lists', listId)
             await updateDoc(listRef, {
-                name: name.trim()
+                name: name.trim(),
+                updatedBy: user?.uid ?? null
             })
             setEdit(false)
             setOriginalName(name.trim())
         } catch (e) {
             console.error(e)
         }
-    }, [listId, name, originalName])
+    }, [listId, name, originalName, user])
 
     const [delWarning, setDelWarning] = useState<boolean>(false)
 
@@ -271,25 +274,22 @@ export function useList(listId: string | null, bck: () => void) {
         if (!listId || !movieId) return
 
         try {
-            const movieToDelete = moviesData.find(m => m.id === movieId)
-            if (!movieToDelete) return
-
             const listRef = doc(db, 'lists', listId)
+            const listSnap = await getDoc(listRef)
+            if (!listSnap.exists()) return
 
-            await updateDoc(listRef, {
-                movies: arrayRemove({
-                    id: movieToDelete.id,
-                    status: movieToDelete.status
-                })
-            })
+            // arrayRemove требует точного совпадения объекта, а у записей без поля type оно не срабатывало — фильтруем сами
+            const movies = (listSnap.data().movies || []).filter((m: {id: number | string}) => m.id !== movieId)
+
+            await updateDoc(listRef, {movies, updatedBy: user?.uid ?? null})
 
             setMoviesData(prev => prev.filter(m => m.id !== movieId))
             setDelWarning(false)
             setFilm(false)
         } catch (error) {
-            
+            console.error('Error deleting movie:', error)
         }
-    }, [listId, moviesData])
+    }, [listId, user])
 
     const [genres, setGenres] = useState<{name: string, id: string}[]>([])
 

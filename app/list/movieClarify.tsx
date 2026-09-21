@@ -1,5 +1,6 @@
 import {doc, getDoc, updateDoc} from 'firebase/firestore'
 import {useState, useEffect, useCallback} from 'react'
+import {useAuth} from '../components/authProvider'
 import ShowClarify from '../components/showClarify'
 import SlideLeft from '../components/slideLeft'
 import SlideDown from '../components/slideDown'
@@ -15,6 +16,7 @@ import {format} from 'date-fns'
 
 export default function MovieClarify({role, url, visibility, onClose, statuses, selected, listId, onRefresh, deleteMovie, delWarning, setDelWarning, setSimilar, setMovie}: MovieClarifyProps) {
     const [status, setStatus] = useState<MovieClarifyProps['statuses'][number] | undefined>(undefined)
+    const {user} = useAuth()
 
     useEffect(() => {
         visibility && updateActivity('reading_movie_info')
@@ -39,7 +41,8 @@ export default function MovieClarify({role, url, visibility, onClose, statuses, 
                 )
 
                 await updateDoc(listRef, {
-                    movies: updatedMovies
+                    movies: updatedMovies,
+                    updatedBy: user?.uid ?? null
                 })
                 
                 onRefresh?.()
@@ -48,7 +51,7 @@ export default function MovieClarify({role, url, visibility, onClose, statuses, 
         } catch (e) {
             console.error('Error updating status:', e)
         }
-    }, [listId, selected?.id, status?.name])
+    }, [listId, selected?.id, status?.name, user])
     
     const locale = getLocale()
     

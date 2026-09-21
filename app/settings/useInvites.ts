@@ -1,4 +1,4 @@
-import {QuerySnapshot, DocumentData, query, collection, where, onSnapshot, getDocs, deleteDoc, Timestamp, getDoc} from 'firebase/firestore'
+import {QuerySnapshot, DocumentData, query, collection, where, onSnapshot, getDocs, deleteDoc, updateDoc, Timestamp, getDoc} from 'firebase/firestore'
 import {FirestoreList, FirestoreGroup, FirestoreInvite, EnrichedGroup, FullInvite} from './settingsTypes'
 import {useState, useEffect, useCallback, useMemo} from 'react'
 import {writeBatch, doc, arrayUnion} from 'firebase/firestore'
@@ -117,7 +117,8 @@ export default function useInvites(user: User | null) {
         const groupRef = doc(db, 'groups', invite.groupId)
 
         const updateData: any = {
-            members: arrayUnion(user.uid)
+            members: arrayUnion(user.uid),
+            updatedBy: user.uid
         }
 
         if (invite.role === 'editor') {
@@ -136,10 +137,12 @@ export default function useInvites(user: User | null) {
         }
     }, [user])
 
-    // refusal to join a group
+    // refusal to join a group — stamp status before delete so the backend can log invite_rejected
     const rejectInvite = useCallback(async (inviteId: string) => {
+        if (!user) return
         try {
             const inviteRef = doc(db, 'invites', inviteId)
+            await updateDoc(inviteRef, {status: 'rejected', updatedBy: user.uid})
             await deleteDoc(inviteRef)
         } catch (e) {
             console.error('Error rejecting invite:', e)

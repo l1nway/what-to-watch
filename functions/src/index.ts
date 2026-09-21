@@ -1,14 +1,13 @@
 import {onDocumentWritten} from 'firebase-functions/v2/firestore'
-import {getFirestore, FieldValue} from 'firebase-admin/firestore'
 import {onCall, HttpsError} from 'firebase-functions/v2/https'
 import {GoogleGenerativeAI} from '@google/generative-ai'
 import * as authV1 from 'firebase-functions/v1/auth'
-import * as admin from 'firebase-admin'
+import {FieldValue} from 'firebase-admin/firestore'
+import {getAuth} from 'firebase-admin/auth'
+import {db} from './firebase'
 import axios from 'axios'
 
-if (admin.apps.length === 0) {admin.initializeApp()}
-
-const db = getFirestore()
+export {onGroupActivityFeed, onListActivityFeed, onInviteActivityFeed, onUserActivityFeed} from './activity'
 
 export const onUserCreate = authV1.user().onCreate(async (user) => {
     await db.collection('users').doc(user.uid).set({
@@ -321,4 +320,30 @@ export const getAiRecommendations = onCall({
         console.error('Gemini/DB Error:', error)
         throw new HttpsError('internal', 'AI recommendation failed')
     }
+})
+
+// [DOC: email-sign-in-sync]
+export const syncEmailOnSignIn = onCall({
+    cors: true,
+    region: 'europe-central2',
+}, async (request) => {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'Требуется авторизация')
+
+    const uid = request.auth.uid
+    const userRef = db.collection('users').doc(uid)
+
+    // Auth email is read from Admin SDK, never trusted from the client request
+    const [authUser, snap] = await Promise.all([getAuth().getUser(uid), userRef.get()])
+    const data = snap.data()
+
+    if (!data || data.email === authUser.email) return {synced: false}
+
+    const settled = Boolean(data.pendingEmail) && data.pendingEmail === authUser.email
+
+    await userRef.set({
+        email: authUser.email || '',
+        ...(settled ? {emailStatus: 'verified', pendingEmail: FieldValue.delete()} : {})
+    }, {merge: true})
+
+    return {synced: true}
 })
